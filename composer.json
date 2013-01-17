@@ -7,6 +7,9 @@
             "email": "appcia.dev@gmail.com"
         }
     ],
+    "autoload": {
+        "psr-0": { "Appcia\\Webwork": "lib/" }
+    },
     "require": {
 
     }
