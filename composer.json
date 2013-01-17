@@ -1,0 +1,13 @@
+{
+    "name": "appcia/webwork",
+    "description": "Appcia PHP Framework, simple, light-weight and fast",
+    "authors": [
+        {
+            "name": "appcia",
+            "email": "appcia.dev@gmail.com"
+        }
+    ],
+    "require": {
+
+    }
+}
