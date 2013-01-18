@@ -1,6 +1,6 @@
 Appcia Framework
 ================
-codename webwork, version 0.3
+codename webwork, version 0.5
 
 Main ideas
 
@@ -12,6 +12,7 @@ Main ideas
 * views with multiple block extending
 
 News
+
 **0.5**
 * PSR-0 autoloader, structure modified
 * composer/packagist support
