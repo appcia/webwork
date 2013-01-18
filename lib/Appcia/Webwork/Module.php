@@ -70,7 +70,7 @@ abstract class Module
     }
 
     /**
-     * Register
+     * Register in autoloader
      */
     public function register()
     {
@@ -79,7 +79,7 @@ abstract class Module
     }
 
     /**
-     * Initialize module (triggered on every times on startup when application is running)
+     * Initialize module (triggered every time on startup)
      *
      * @return Module
      */

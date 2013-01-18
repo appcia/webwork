@@ -254,7 +254,7 @@ class Dispatcher
      */
     private function processResponse()
     {
-        $moduleDir = $this->container['app']->getModule($this->route->getModule())->getPath();
+        $moduleDir = $this->container['bootstrap']->getModule($this->route->getModule())->getPath();
         $controllerDir = $this->getPath($this->route->getController());
         $actionFilename = $this->getPath($this->route->getAction());
         $templateFilename = mb_strtolower(str_replace('*', $actionFilename, $this->route->getTemplate()));

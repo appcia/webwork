@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork;
 
-class App
+class Bootstrap
 {
     /**
      * @var Container
@@ -17,27 +17,39 @@ class App
     /**
      * Constructor
      *
+     * @param string $env        Environment
      * @param string $rootPath   Root directory
      * @param string $configFile Global configuration
      * @param object $autoloader Autoloader
      */
-    public function __construct($rootPath, $configFile, $autoloader)
+    public function __construct($env, $rootPath, $configFile, $autoloader)
     {
         $this->container = new Container();
 
-        $this->container['configFile'] = $configFile;
+        $this->container['environment'] = $env;
         $this->container['rootPath'] = $rootPath;
+        $this->container['configFile'] = $configFile;
 
-        $this->container['app'] = $this;
+        $this->container['bootstrap'] = $this;
         $this->container['autoloader'] = $autoloader;
 
         $this->modules = array();
     }
 
     /**
+     * Get container for external dependencies
+     *
+     * @return Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
+    }
+
+    /**
      * Init application
      *
-     * @return App
+     * @return Bootstrap
      */
     public function init()
     {
@@ -50,18 +62,18 @@ class App
     /**
      * Load core components
      *
-     * @return App
+     * @return Bootstrap
      */
     private function loadCore()
     {
-        $this->container['config'] = $this->container->share(function ($c)  {
+        $this->container->single('config', function ($c) {
             $config = new Config();
             $config->loadFile($c['configFile']);
 
             return $config;
         });
 
-        $this->container['session'] = $this->container->share(function ($c) {
+        $this->container->single('session', function ($c) {
             $session = new Session();
             $c['config']
                 ->get('session')
@@ -72,7 +84,7 @@ class App
             return $session;
         });
 
-        $this->container['router'] = $this->container->share(function ($c) {
+        $this->container->single('router', function ($c) {
             $router = new Router();
             $c['config']
                 ->get('router')
@@ -81,7 +93,7 @@ class App
             return $router;
         });
 
-        $this->container['dispatcher'] = $this->container->share(function ($c) {
+        $this->container->single('dispatcher', function ($c) {
             return new Dispatcher($c);
         });
 
@@ -89,9 +101,9 @@ class App
     }
 
     /**
-     * Load modules
+     * Load all modules basing on config
      *
-     * @return App
+     * @return Bootstrap
      * @throws \LogicException
      */
     private function loadModules()
@@ -100,29 +112,42 @@ class App
             throw new \LogicException('None modules specified in config');
         }
 
+        $this->loadModule('app', $this->container['config']['app']);
+
         $modules = $this->container['config']['modules'];
         foreach ($modules as $name => $config) {
-            $path = $this->container['rootPath'] . '/' . trim($config['path'], '/');
-
-            require_once $path . '/module.php';
-
-            $className = ucfirst($name)
-                . '\\' . ucfirst($name) . 'Module';
-
-            $module = new $className($this->container, $name, $config);
-            $module->register();
-            $module->init();
-
-            $this->modules[$name] = $module;
+            $this->loadModule($name, $config);
         }
 
         return $this;
     }
 
     /**
+     * Load single module
+     *
+     * @param $name         Keyword name
+     * @param array $config Native data
+     */
+    private function loadModule($name, array $config)
+    {
+        $path = $this->container['rootPath'] . '/' . trim($config['path'], '/');
+
+        require_once $path . '/module.php';
+
+        $className = ucfirst($name)
+            . '\\' . ucfirst($name) . 'Module';
+
+        $module = new $className($this->container, $name, $config);
+        $module->register();
+        $module->init();
+
+        $this->modules[$name] = $module;
+    }
+
+    /**
      * Setup invoked from command line
      *
-     * @return App
+     * @return Bootstrap
      */
     public function setup()
     {
@@ -138,9 +163,6 @@ class App
      */
     public function run()
     {
-        $this->container['profiler']
-            ->start();
-
         $request = new Request();
         $request->loadGlobals();
 
@@ -159,7 +181,7 @@ class App
     }
 
     /**
-     * Get registered modules
+     * Get all loaded modules
      *
      * @return array
      */
@@ -169,13 +191,14 @@ class App
     }
 
     /**
-     * Get module by name
+     * Get loaded module by name
      *
      * @param $name
      * @return mixed
      * @throws \InvalidArgumentException
      */
-    public function getModule($name) {
+    public function getModule($name)
+    {
         if (!isset($this->modules[$name])) {
             throw new \InvalidArgumentException(sprintf("Module '%s' does not exist", $name));
         }

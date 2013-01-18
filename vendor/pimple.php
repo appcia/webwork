@@ -1,7 +1,5 @@
 <?php
 
-namespace Appcia\Webwork;
-
 /*
  * This file is part of Pimple.
  *
@@ -32,7 +30,7 @@ namespace Appcia\Webwork;
  * @package pimple
  * @author  Fabien Potencier
  */
-class Pimple implements \ArrayAccess
+class Pimple implements ArrayAccess
 {
     private $values;
 
@@ -72,12 +70,12 @@ class Pimple implements \ArrayAccess
      *
      * @return mixed The value of the parameter or an object
      *
-     * @throws \InvalidArgumentException if the identifier is not defined
+     * @throws InvalidArgumentException if the identifier is not defined
      */
     public function offsetGet($id)
     {
         if (!array_key_exists($id, $this->values)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+            throw new InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
         }
 
         $isFactory = is_object($this->values[$id]) && method_exists($this->values[$id], '__invoke');
@@ -111,11 +109,11 @@ class Pimple implements \ArrayAccess
      * Returns a closure that stores the result of the given closure for
      * uniqueness in the scope of this instance of Pimple.
      *
-     * @param \Closure $callable A closure to wrap for uniqueness
+     * @param Closure $callable A closure to wrap for uniqueness
      *
-     * @return \Closure The wrapped closure
+     * @return Closure The wrapped closure
      */
-    public function share(\Closure $callable)
+    public function share(Closure $callable)
     {
         return function ($c) use ($callable) {
             static $object;
@@ -133,11 +131,11 @@ class Pimple implements \ArrayAccess
      *
      * This is useful when you want to store a callable as a parameter.
      *
-     * @param \Closure $callable A closure to protect from being evaluated
+     * @param Closure $callable A closure to protect from being evaluated
      *
-     * @return \Closure The protected closure
+     * @return Closure The protected closure
      */
-    public function protect(\Closure $callable)
+    public function protect(Closure $callable)
     {
         return function ($c) use ($callable) {
             return $callable;
@@ -151,12 +149,12 @@ class Pimple implements \ArrayAccess
      *
      * @return mixed The value of the parameter or the closure defining an object
      *
-     * @throws \InvalidArgumentException if the identifier is not defined
+     * @throws InvalidArgumentException if the identifier is not defined
      */
     public function raw($id)
     {
         if (!array_key_exists($id, $this->values)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+            throw new InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
         }
 
         return $this->values[$id];
@@ -169,22 +167,22 @@ class Pimple implements \ArrayAccess
      * without necessarily loading that object.
      *
      * @param string  $id       The unique identifier for the object
-     * @param \Closure $callable A closure to extend the original
+     * @param Closure $callable A closure to extend the original
      *
-     * @return \Closure The wrapped closure
+     * @return Closure The wrapped closure
      *
-     * @throws \InvalidArgumentException if the identifier is not defined
+     * @throws InvalidArgumentException if the identifier is not defined
      */
-    public function extend($id, \Closure $callable)
+    public function extend($id, Closure $callable)
     {
         if (!array_key_exists($id, $this->values)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+            throw new InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
         }
 
         $factory = $this->values[$id];
 
-        if (!($factory instanceof \Closure)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" does not contain an object definition.', $id));
+        if (!($factory instanceof Closure)) {
+            throw new InvalidArgumentException(sprintf('Identifier "%s" does not contain an object definition.', $id));
         }
 
         return $this->values[$id] = function ($c) use ($callable, $factory) {
