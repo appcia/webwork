@@ -116,21 +116,17 @@ class Config implements \Iterator, \ArrayAccess
     /**
      * Inject config by object setters automagically
      *
-     * @param Object $obj      Target object
-     * @param array  $required Required parameters
+     * @param Object $obj Target object
      *
      * @return Config
-     * @throws \ErrorException
      */
-    public function inject($obj, $required = array())
+    public function inject($obj)
     {
-        foreach ($this->data as $key => $value) {
-            $callback = array($obj, 'set' . ucfirst($key));
+        foreach ($this->data as $prop => $value) {
+            $callback = array($obj, 'set' . ucfirst($prop));
 
             if (is_callable($callback)) {
                 call_user_func($callback, $value);
-            } else if (in_array($key, $required)) {
-                throw new \ErrorException("Config injection error. Required parameter '%s' cannot be passed", $key);
             }
         }
 

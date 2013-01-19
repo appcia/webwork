@@ -82,8 +82,7 @@ class Request
         $this->setPost($_POST);
         $this->setGet($_GET);
 
-        $this
-            ->setScriptFile($_SERVER['SCRIPT_NAME'])
+        $this->setScriptFile($_SERVER['SCRIPT_NAME'])
             ->setServer($_SERVER['SERVER_NAME'])
             ->setMethod($_SERVER['REQUEST_METHOD'])
             ->setProtocol($_SERVER['SERVER_PROTOCOL'])

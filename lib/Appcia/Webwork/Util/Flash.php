@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Util;
 
-use Appcia\Session;
+use Appcia\Webwork\Session;
 
 class Flash
 {

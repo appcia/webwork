@@ -14,7 +14,7 @@ class Join extends Helper
      * @param string $separator
      * @return mixed
      */
-    public function join($data, $key = null, $separator = ' ')
+    public function join($data, $key = null, $separator = ', ')
     {
         if (!$data instanceof \Traversable) {
             return null;
