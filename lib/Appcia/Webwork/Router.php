@@ -21,7 +21,7 @@ class Router
      *
      * @var array
      */
-    private $defaults;
+    private $settings;
 
     /**
      * Constructor
@@ -31,7 +31,7 @@ class Router
         $this->routes = array();
         $this->eventRoutes = array();
 
-        $this->setDefaults(array());
+        $this->setSettings(array());
     }
 
     /**
@@ -41,7 +41,7 @@ class Router
      *
      * @return Router
      */
-    public function setDefaults($data)
+    public function setSettings($data)
     {
         if (!isset($data['eventRoutes'])) {
             $data['eventRoutes'] = array(
@@ -50,7 +50,7 @@ class Router
             );
         }
 
-        $this->defaults = $data;
+        $this->settings = $data;
 
         return $this;
     }
@@ -60,9 +60,9 @@ class Router
      *
      * @return array
      */
-    public function getDefaults()
+    public function getSettings()
     {
-        return $this->defaults;
+        return $this->settings;
     }
 
 
@@ -93,8 +93,8 @@ class Router
     public function addRoute(array $route)
     {
         $defaults = array();
-        if (!empty($this->defaults['route'])) {
-            $defaults = $this->defaults['route'];
+        if (!empty($this->settings['route'])) {
+            $defaults = $this->settings['route'];
         }
 
         if (!is_array($route)) {
@@ -132,11 +132,11 @@ class Router
      * @throws \InvalidArgumentException
      */
     public function getEventRoute($type) {
-        if (!isset($this->defaults['eventRoutes'][$type])) {
+        if (!isset($this->settings['eventRoutes'][$type])) {
             throw new \InvalidArgumentException('Invalid event route type');
         }
 
-        $name = $this->defaults['eventRoutes'][$type];
+        $name = $this->settings['eventRoutes'][$type];
 
         if (isset($this->eventRoutes[$type])) {
             return $this->eventRoutes[$type];
@@ -193,7 +193,7 @@ class Router
      * @param Route $route
      */
     private function fetch(Route $route) {
-        foreach ($this->defaults['eventRoutes'] as $name) {
+        foreach ($this->settings['eventRoutes'] as $name) {
             if ($route->getName() == $name) {
                 $this->eventRoutes[$name] = $route;
             }

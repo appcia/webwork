@@ -15,6 +15,6 @@ class BaseUrl extends Helper
     {
         return trim($this
             ->getView()
-            ->getGlobal('baseUrl'), '/');
+            ->getSetting('baseUrl'), '/');
     }
 }

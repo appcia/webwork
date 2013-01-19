@@ -17,7 +17,7 @@ class Upper extends Helper
     {
         $charset = $this
             ->getView()
-            ->getGlobal('charset');
+            ->getSetting('charset');
 
         return mb_strtoupper($value, $charset);
     }

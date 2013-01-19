@@ -12,7 +12,7 @@ class View
     /**
      * @var array
      */
-    private $defaults;
+    private $settings;
 
     /**
      * @var array
@@ -41,7 +41,11 @@ class View
      */
     public function __construct(Container $container = null)
     {
-        $this->defaults = array();
+        $this->settings = array(
+            'baseUrl' => '',
+            'charset' => 'utf-8'
+        );
+
         $this->data = array();
         $this->helpers = array();
 
@@ -49,7 +53,7 @@ class View
     }
 
     /**
-     * Get app container
+     * Get a container
      * Can be used only in view created by dispatcher
      *
      * @return Container
@@ -71,9 +75,9 @@ class View
      *
      * @return View
      */
-    public function setDefaults($defaults)
+    public function setSettings($defaults)
     {
-        $this->defaults = $defaults;
+        $this->settings = $defaults;
 
         return $this;
     }
@@ -83,9 +87,9 @@ class View
      *
      * @return array
      */
-    public function getDefaults()
+    public function getSettings()
     {
-        return $this->defaults;
+        return $this->settings;
     }
 
     /**
@@ -135,7 +139,7 @@ class View
      */
     public function setFile($file)
     {
-        $this->file = (string)$file;
+        $this->file = (string) $file;
 
         return $this;
     }
@@ -158,8 +162,8 @@ class View
      */
     public function render($file = null)
     {
-        if (!$file) {
-            $file = $this->getFile();
+        if ($file === null) {
+            $file = $this->file;
         }
 
         if (!file_exists($file)) {
@@ -170,7 +174,7 @@ class View
 
         ob_start();
 
-        if ((include $file) !== 1) {
+        if ((@include $file) !== 1) {
             throw new \ErrorException(sprintf("View file cannot be included properly: '%s'", $file));
         }
 
@@ -189,13 +193,13 @@ class View
     {
         if (!isset($this->helpers[$name])) {
             $className = 'Appcia\\Webwork\\View\\Helper\\' . ucfirst($name);
+
+            if (!class_exists($className)) {
+                throw new \InvalidArgumentException(sprintf("Helper '%s' does not exist", $className));
+            }
+
             $helper = new $className();
             $helper->setView($this);
-
-            if (!empty($this->defaults['helper']) && !empty($this->defaults['helper'][$name])) {
-                $config = new Config($this->defaults['helper'][$name]);
-                $config->inject($helper);
-            }
 
             $this->helpers[$name] = $helper;
         }
@@ -207,16 +211,17 @@ class View
      * Get global default value, for charsets etc, shared within helpers
      *
      * @param string $name Key
+     *
      * @return mixed
      * @throws \InvalidArgumentException
      */
-    public function getGlobal($name)
+    public function getSetting($name)
     {
-        if (!isset($this->defaults['global']) || !isset($this->defaults['global'][$name])) {
-            throw new \InvalidArgumentException('View global value is not specified');
+        if (!isset($this->settings[$name])) {
+            throw new \InvalidArgumentException(sprintf("View setting '%s' does not exist", $name));
         }
 
-        return $this->defaults['global'][$name];
+        return $this->settings[$name];
     }
 
     /**
@@ -240,28 +245,5 @@ class View
         }
 
         return call_user_func_array($callback, $args);
-    }
-
-    /**
-     * Set shared variable (accessible in base view and extended views)
-     *
-     * @param string $var  Variable name
-     * @param mixed  $data Data
-     */
-    public function __set($var, $data)
-    {
-        $this->data[$var] = $data;
-    }
-
-    /**
-     * Get shared variable (accessible in base view and extended views)
-     *
-     * @param string $var Variable name
-     *
-     * @return mixed
-     */
-    public function __get($var)
-    {
-        return $this->data[$var];
     }
 }

@@ -17,7 +17,7 @@ class FirstUpper extends Helper
     {
         $charset = $this
             ->getView()
-            ->getGlobal('charset');
+            ->getSetting('charset');
 
         $letter = mb_strtoupper(mb_substr($str, 0, 1, $charset), $charset);
         $str = $letter . mb_strtolower(mb_substr($str, 1, mb_strlen($str, $charset), $charset), $charset);

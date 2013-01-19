@@ -78,7 +78,7 @@ class Form
      * @return mixed
      * @throws \InvalidArgumentException
      */
-    public function getValue($name)
+    public function get($name)
     {
         if (!isset($this->fields[$name])) {
             throw new \InvalidArgumentException(sprintf("Field '%s' does not exist", $name));
@@ -94,7 +94,7 @@ class Form
      *
      * @return array
      */
-    public function getValues() {
+    public function getAll() {
         $values = array();
 
         foreach ($this->fields as $field) {
@@ -102,6 +102,27 @@ class Form
         }
 
         return $values;
+    }
+
+    /**
+     * Set field value
+     *
+     * @param string $name  Field name
+     * @param mixed  $value Field value
+     *
+     * @return Form
+     * @throws \InvalidArgumentException
+     */
+    public function set($name, $value)
+    {
+        if (!isset($this->fields[$name])) {
+            throw new \InvalidArgumentException(sprintf("Field '%s' does not exist", $name));
+        }
+
+        $field = $this->fields[$name];
+        $field->setValue($value);
+
+        return $this;
     }
 
     /**
@@ -202,7 +223,7 @@ class Form
     }
 
     /**
-     * Inject values by object setters automagically
+     * Inject values by object setters
      *
      * @param Object $obj Target object
      *
@@ -210,7 +231,11 @@ class Form
      */
     public function inject($obj)
     {
-        foreach ($this->getValues() as $prop => $value) {
+        foreach ($this->getAll() as $prop => $value) {
+            if ($value === null) {
+                continue;
+            }
+
             $callback = array($obj, 'set' . ucfirst($prop));
 
             if (is_callable($callback)) {
@@ -219,6 +244,26 @@ class Form
         }
 
         return $this;
+    }
+
+    /**
+     * Suck values from object using getters
+     *
+     * @param $obj
+     */
+    public function suck($obj)
+    {
+        foreach ($this->fields as $prop => $field) {
+            $callback = array($obj, 'get' . ucfirst($prop));
+
+            if (is_callable($callback)) {
+                $value = call_user_func($callback);
+
+                if ($value !== null) {
+                    $field->setValue($value);
+                }
+            }
+        }
     }
 
     /**

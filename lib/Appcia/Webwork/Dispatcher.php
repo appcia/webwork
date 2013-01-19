@@ -208,6 +208,13 @@ class Dispatcher
         $className = $this->getControllerClass();
         $methodName = $this->getControllerMethod();
 
+        if (!class_exists($className)) {
+            throw new \ErrorException(sprintf(
+                "Controller '%s' could not be loaded. Check paths and autoloader configuration",
+                $className
+            ));
+        }
+
         $controller = new $className($this->container);
 
         $action = array($controller, $methodName);
@@ -290,7 +297,9 @@ class Dispatcher
         // View
         $view = new View($this->container);
 
-        $view->setFile($this->getModuleDir() . '/view/' . $this->getControllerDir() . '/' . $this->getTemplateFilename())
+        $file = $this->getModuleDir() . '/view/' . $this->getControllerDir() . '/' . $this->getTemplateFilename();
+
+        $view->setFile($file)
             ->setData($this->data);
 
         $this->container['config']

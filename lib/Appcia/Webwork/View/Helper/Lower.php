@@ -17,7 +17,7 @@ class Lower extends Helper
     {
         $charset = $this
             ->getView()
-            ->getGlobal('charset');
+            ->getSetting('charset');
 
         return mb_strtolower($value, $charset);
     }

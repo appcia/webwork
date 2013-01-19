@@ -7,19 +7,6 @@ use Appcia\Webwork\View\Helper;
 class Date extends Helper
 {
     /**
-     * @var string
-     */
-    private $format;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        $this->format = 'Y-m-d, H:i:s';
-    }
-
-    /**
      * Caller
      *
      * @param mixed  $value  Unix timestamp or string, e.g '+ 1 week'
@@ -34,7 +21,7 @@ class Date extends Helper
         }
 
         if ($format === null) {
-            $format = $this->format;
+            $format = 'Y-m-d, H:i:s';
         }
         else {
             $format = (string) $format;
@@ -45,21 +32,5 @@ class Date extends Helper
         }
 
         return date($format, $value);
-    }
-
-    /**
-     * @param string $format
-     */
-    public function setFormat($format)
-    {
-        $this->format = $format;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFormat()
-    {
-        return $this->format;
     }
 }

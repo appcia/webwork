@@ -126,8 +126,7 @@ class Block extends Helper
         if (isset($this->extends[$name])) {
             $file = $this->extends[$name];
 
-            echo $this
-                ->getView()
+            echo $this->getView()
                 ->render($file);
         } else {
             $this->block($name);

@@ -32,7 +32,7 @@ class Asset extends Helper
     {
         $base = trim($this
             ->getView()
-            ->getGlobal('baseUrl'), '/');
+            ->getSetting('baseUrl'), '/');
 
         $file = trim($file, '/');
 
