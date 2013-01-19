@@ -10,11 +10,6 @@ class Dispatcher
     private $container;
 
     /**
-     * @var bool
-     */
-    private $dispatched;
-
-    /**
      * @var Request
      */
     private $request;
@@ -43,29 +38,6 @@ class Dispatcher
     {
         $this->container = $container;
         $this->data = array();
-        $this->dispatched = false;
-    }
-
-    /**
-     * @param bool $flag
-     *
-     * @return Dispatcher
-     */
-    private function setDispatched($flag)
-    {
-        $this->dispatched = (bool)$flag;
-
-        return $this;
-    }
-
-    /**
-     * Is any request dispatched before?
-     *
-     * @return bool
-     */
-    public function getDispatched()
-    {
-        return $this->dispatched;
     }
 
     /**
@@ -153,7 +125,7 @@ class Dispatcher
      *
      * @return Dispatcher
      */
-    private function setResponse($response)
+    public function setResponse($response)
     {
         $this->response = $response;
 
@@ -270,14 +242,11 @@ class Dispatcher
             ->inject($view);
 
         // Response
-        $response = new Response();
-        $response->setContent($view->render());
+        $this->response->setContent($view->render());
 
         $this->container['config']
             ->get('response')
-            ->inject($response);
-
-        $this->setResponse($response);
+            ->inject($this->response);
 
         return $this;
     }
@@ -289,11 +258,9 @@ class Dispatcher
      */
     public function dispatch()
     {
-        $this->setDispatched(false)
-            ->findRoute()
+        $this->findRoute()
             ->invokeAction()
-            ->processResponse()
-            ->setDispatched(true);
+            ->processResponse();
 
         return $this;
     }

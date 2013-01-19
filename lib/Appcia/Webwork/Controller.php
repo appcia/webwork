@@ -50,4 +50,16 @@ class Controller
     {
         return $this->get('dispatcher')->getResponse();
     }
+
+    /**
+     * Shortcut for redirecting
+     *
+     * @param string $route  Route name
+     * @param array  $params Route params
+     */
+    public function go($route, array $params = array())
+    {
+        $url = $this->get('router')->assemble($route, $params);
+        $this->getResponse()->redirect($url);
+    }
 }

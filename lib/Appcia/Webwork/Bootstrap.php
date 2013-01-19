@@ -166,14 +166,12 @@ class Bootstrap
         $request = new Request();
         $request->loadGlobals();
 
-        $this->container['request'] = $request;
+        $response = new Response();
 
-        $response = $this->container['dispatcher']
+        $this->container['dispatcher']
             ->setRequest($request)
-            ->dispatch()
-            ->getResponse();
-
-        $this->container['response'] = $response;
+            ->setResponse($response)
+            ->dispatch();
 
         $response->display();
 

@@ -133,5 +133,16 @@ class Response
         $this->sendHeaders();
         echo $this->getContent();
     }
+
+    /**
+     * Break reponse, redirect to another url
+     *
+     * @param $url
+     */
+    public function redirect($url)
+    {
+        header("Location: {$url}");
+        exit(0);
+    }
 }
 

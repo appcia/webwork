@@ -74,8 +74,10 @@ abstract class Module
      */
     public function register()
     {
+        $path = !empty($this->path) ? $this->path . '/lib' : 'lib';
+
         $this->container['autoloader']
-            ->add($this->namespace, 'module/' . $this->name . '/lib');
+            ->add($this->namespace, $path);
     }
 
     /**
