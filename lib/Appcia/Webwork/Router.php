@@ -12,6 +12,11 @@ class Router
     private $routes;
 
     /**
+     * @var array
+     */
+    private $eventRoutes;
+
+    /**
      * Default settings
      *
      * @var array
@@ -19,41 +24,33 @@ class Router
     private $defaults;
 
     /**
-     * Route name when none of routes match to request
-     *
-     * @var string
-     */
-    private $failRoute;
-
-    /**
-     * Route name when error occurred or exception thrown
-     *
-     * @var string
-     */
-    private $errorRoute;
-
-    /**
      * Constructor
      */
     public function __construct()
     {
-        $this->defaults = array();
         $this->routes = array();
+        $this->eventRoutes = array();
 
-        $this->failRoute = 'error_404';
-        $this->errorRoute = 'error_500';
+        $this->setDefaults(array());
     }
 
     /**
      * Set default values
      *
-     * @param array $defaults
+     * @param array $data
      *
      * @return Router
      */
-    public function setDefaults($defaults)
+    public function setDefaults($data)
     {
-        $this->defaults = $defaults;
+        if (!isset($data['eventRoutes'])) {
+            $data['eventRoutes'] = array(
+                'notFound' => 'error_404',
+                'error' => 'error_500'
+            );
+        }
+
+        $this->defaults = $data;
 
         return $this;
     }
@@ -68,49 +65,7 @@ class Router
         return $this->defaults;
     }
 
-    /**
-     * Set route name for situation when some error occurred
-     *
-     * @param string $errorRoute
-     *
-     * @return Router
-     */
-    public function setErrorRoute($errorRoute)
-    {
-        $this->errorRoute = $errorRoute;
 
-        return $this;
-    }
-
-    /**
-     * Get route name for situation when some error occurred
-     *
-     * @return string
-     */
-    public function getErrorRoute()
-    {
-        return $this->errorRoute;
-    }
-
-    /**
-     * Set route name for situation when none of routes match to request
-     *
-     * @param string $failRoute
-     */
-    public function setFailRoute($failRoute)
-    {
-        $this->failRoute = $failRoute;
-    }
-
-    /**
-     * Get route name for situation when none of routes match to request
-     *
-     * @return string
-     */
-    public function getFailRoute()
-    {
-        return $this->failRoute;
-    }
 
     /**
      * @param array $routes
@@ -170,6 +125,35 @@ class Router
     }
 
     /**
+     * Get event route, if previously not found by fetching, search again whole collection
+     *
+     * @param string $type Type of route
+     * @return mixed
+     * @throws \InvalidArgumentException
+     */
+    public function getEventRoute($type) {
+        if (!isset($this->defaults['eventRoutes'][$type])) {
+            throw new \InvalidArgumentException('Invalid event route type');
+        }
+
+        $name = $this->defaults['eventRoutes'][$type];
+
+        if (isset($this->eventRoutes[$type])) {
+            return $this->eventRoutes[$type];
+        }
+
+        foreach ($this->routes as $route) {
+            if ($route->getName() == $name) {
+                $this->eventRoutes[$type] = $route;
+
+                return $route;
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf("Event route of type '%s' cannot be found: '%s'", $type, $name));
+    }
+
+    /**
      * Process request path with route pattern, retrieve parameters
      *
      * @param Request $request Source request
@@ -203,6 +187,20 @@ class Router
     }
 
     /**
+     * Check whether specific route is a event route
+     * If does, store it
+     *
+     * @param Route $route
+     */
+    private function fetch(Route $route) {
+        foreach ($this->defaults['eventRoutes'] as $name) {
+            if ($route->getName() == $name) {
+                $this->eventRoutes[$name] = $route;
+            }
+        }
+    }
+
+    /**
      * Match requested URI to existing routes
      *
      * @param Request $request Source request
@@ -212,27 +210,15 @@ class Router
      */
     public function match(Request $request)
     {
-        $failRoute = null;
+        foreach ($this->routes as $route) {
+            $this->fetch($route);
 
-        foreach ($this->routes as $name => $route) {
-
-            // Look for fail route, remember it for later
-            if ($name == $this->failRoute) {
-                $failRoute = $route;
-                continue;
-            }
-
-            // Process route and match, if valid return
             if ($this->process($request, $route)) {
                 return $route;
             }
         }
 
-        if (!$failRoute) {
-            throw new \LogicException(sprintf("Fail route '%s' does not exist", $this->failRoute));
-        }
-
-        return $failRoute;
+        return $this->getEventRoute('notFound');
     }
 
     /**

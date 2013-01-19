@@ -48,10 +48,6 @@ class Response
      */
     public function getContent()
     {
-        if ($this->content === null) {
-            $this->content = $this->view->render();
-        }
-
         return $this->content;
     }
 

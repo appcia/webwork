@@ -153,13 +153,40 @@ class Dispatcher
         $router = $this->container['router'];
         $route = $router->match($this->request);
 
-        if (!$route) {
-            throw new \ErrorException('No route found for dispatching');
-        }
+        $this->setRoute($route);
+
+        return $this;
+    }
+
+    /**
+     * Set route for dispatching using router
+     *
+     * @return Dispatcher
+     * @throws \ErrorException
+     */
+    private function setErrorRoute()
+    {
+        $router = $this->container['router'];
+        $route = $router->getEventRoute('error');
 
         $this->setRoute($route);
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    private function getControllerClass() {
+        return ucfirst($this->route->getModule())
+        . '\\Controller\\' . ucfirst($this->route->getController()) . 'Controller';
+    }
+
+    /**
+     * @return string
+     */
+    private function getControllerMethod() {
+        return lcfirst($this->route->getAction()) . 'Action';
     }
 
     /**
@@ -171,15 +198,13 @@ class Dispatcher
      */
     private function invokeAction()
     {
-        $className = ucfirst($this->route->getModule())
-            . '\\Controller\\' . ucfirst($this->route->getController()) . 'Controller';
-
-        $methodName = lcfirst($this->route->getAction()) . 'Action';
+        $className = $this->getControllerClass();
+        $methodName = $this->getControllerMethod();
 
         $controller = new $className($this->container);
 
-        $callback = array($controller, $methodName);
-        if (!is_callable($callback)) {
+        $action = array($controller, $methodName);
+        if (!is_callable($action)) {
             throw new \ErrorException(sprintf(
                 "Could not dispatch '%s''. Check whether that controller method really exist",
                 $className . '::' . $methodName
@@ -197,7 +222,7 @@ class Dispatcher
             }
         }
 
-        $data = call_user_func($callback);
+        $data = call_user_func($action);
         if ($data !== null) {
             if (!is_array($data)) {
                 throw new \LogicException("Controller action must return values as array");
@@ -258,9 +283,19 @@ class Dispatcher
      */
     public function dispatch()
     {
-        $this->findRoute()
-            ->invokeAction()
-            ->processResponse();
+        try {
+            $this->container['exception'] = null;
+
+            $this->findRoute()
+                ->invokeAction()
+                ->processResponse();
+        } catch (\Exception $e) {
+            $this->container['exception'] = $e;
+
+            $this->setErrorRoute()
+                ->invokeAction()
+                ->processResponse();
+        }
 
         return $this;
     }
