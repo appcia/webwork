@@ -8,25 +8,25 @@ use Appcia\Webwork\Data\Form\Field;
 class Same extends Validator
 {
     /**
-     * First dependent
+     * Base field
      */
-    private $field1;
+    private $base;
 
     /**
-     * Second dependent
+     * Dependent field
      */
-    private $field2;
+    private $dependent;
 
     /**
      * Constructor
      *
-     * @param Field $f1
-     * @param Field $f2
+     * @param Field $base      Base field
+     * @param Field $dependent Dependent field
      */
-    public function __construct(Field $f1, Field $f2)
+    public function __construct(Field $base, Field $dependent)
     {
-        $this->field1 = $f1;
-        $this->field2 = $f2;
+        $this->base = $base;
+        $this->dependent = $dependent;
     }
 
     /**
@@ -34,7 +34,7 @@ class Same extends Validator
      */
     public function validate($data)
     {
-        return $this->field1->getValue == $this->field2->getValue();
+         return $this->base->getValue() == $this->dependent->getValue();
     }
 
 }

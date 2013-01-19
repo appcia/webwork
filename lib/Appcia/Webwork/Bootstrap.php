@@ -125,23 +125,35 @@ class Bootstrap
     /**
      * Load single module
      *
-     * @param $name         Keyword name
-     * @param array $config Native data
+     * @param string $name   Keyword name
+     * @param array  $config Native data
+     *
+     * @return Bootstrap
+     * @throws \ErrorException
      */
     private function loadModule($name, array $config)
     {
         $path = $this->container['rootPath'] . '/' . trim($config['path'], '/');
+        $file = $path . '/module.php';
 
-        require_once $path . '/module.php';
+        if ((@include_once $file) !== 1) {
+            throw new \ErrorException(sprintf("Cannot find module file '%s'", $file));
+        }
 
         $className = ucfirst($name)
             . '\\' . ucfirst($name) . 'Module';
+
+        if (!class_exists($className)) {
+            throw new \ErrorException(sprintf("Module file '%s' does not contain class '%s'", $file, $className));
+        }
 
         $module = new $className($this->container, $name, $config);
         $module->register();
         $module->init();
 
         $this->modules[$name] = $module;
+
+        return $this;
     }
 
     /**
@@ -154,6 +166,8 @@ class Bootstrap
         foreach ($this->modules as $module) {
             $module->setup();
         }
+
+        return $this;
     }
 
     /**

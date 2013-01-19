@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Router\NotFoundException;
+
 class Controller
 {
     /**
@@ -32,7 +34,7 @@ class Controller
     }
 
     /**
-     * Shortcut for current request
+     * Shortcut to current request
      *
      * @return Request
      */
@@ -42,7 +44,7 @@ class Controller
     }
 
     /**
-     * Shortcut for current response
+     * Shortcut to current response
      *
      * @return Response
      */
@@ -52,14 +54,56 @@ class Controller
     }
 
     /**
-     * Shortcut for redirecting
+     * Shortcut for getting not found page
+     *
+     * @throws NotFoundException
+     * @return void
+     */
+    public function goNotFound() {
+        throw new NotFoundException();
+    }
+
+    /**
+     * Shortcut for redirecting to specified route (internally)
+     *
+     * @param string $route  Route name
+     * @param array  $params Route params
+     *
+     * @return mixed
+     */
+    public function goRoute($route, array $params = array()) {
+        $this->goRedirect($this->generateUrl($route, $params));
+    }
+
+    /**
+     * Shortcut for redirecting to absolute url (externally)
+     *
+     * @param $url
+     */
+    public function goRedirect($url) {
+        $this->getResponse()->redirect($url);
+    }
+
+    /**
+     * Shortcut for generating url's
      *
      * @param string $route  Route name
      * @param array  $params Route params
      */
-    public function go($route, array $params = array())
+    public function generateUrl($route, array $params = array())
     {
-        $url = $this->get('router')->assemble($route, $params);
-        $this->getResponse()->redirect($url);
+        return $this->get('router')
+            ->assemble($route, $params);
+    }
+
+    /**
+     * Shortcut for changing template
+     *
+     * @param $file
+     */
+    public function changeTemplate($file) {
+        $this->get('dispatcher')
+            ->getRoute()
+            ->setTemplate($file);
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Router\NotFoundException;
+use Appcia\Webwork\Router\ErrorException;
+
 class Dispatcher
 {
     /**
@@ -161,13 +164,15 @@ class Dispatcher
     /**
      * Set route for dispatching using router
      *
+     * @param string $type Event route type
+     *
      * @return Dispatcher
      * @throws \ErrorException
      */
-    private function setErrorRoute()
+    private function setEventRoute($type)
     {
         $router = $this->container['router'];
-        $route = $router->getEventRoute('error');
+        $route = $router->getEventRoute($type);
 
         $this->setRoute($route);
 
@@ -177,15 +182,17 @@ class Dispatcher
     /**
      * @return string
      */
-    private function getControllerClass() {
+    private function getControllerClass()
+    {
         return ucfirst($this->route->getModule())
-        . '\\Controller\\' . ucfirst($this->route->getController()) . 'Controller';
+            . '\\Controller\\' . ucfirst($this->route->getController()) . 'Controller';
     }
 
     /**
      * @return string
      */
-    private function getControllerMethod() {
+    private function getControllerMethod()
+    {
         return lcfirst($this->route->getAction()) . 'Action';
     }
 
@@ -245,21 +252,45 @@ class Dispatcher
     }
 
     /**
+     * @return string
+     */
+    private function getModuleDir()
+    {
+        return $this->container['bootstrap']
+            ->getModule($this->route->getModule())
+            ->getPath();
+    }
+
+    /**
+     * @return string
+     */
+    private function getControllerDir()
+    {
+        return $this->getPath($this->route->getController());
+    }
+
+    /**
+     * @return string
+     */
+    private function getTemplateFilename()
+    {
+        $action = $this->getPath($this->route->getAction());
+        $template = mb_strtolower(str_replace('*', $action, $this->route->getTemplate()));
+
+        return $template;
+    }
+
+    /**
      * Process data, make views, set response
      *
      * @return Dispatcher
      */
     private function processResponse()
     {
-        $moduleDir = $this->container['bootstrap']->getModule($this->route->getModule())->getPath();
-        $controllerDir = $this->getPath($this->route->getController());
-        $actionFilename = $this->getPath($this->route->getAction());
-        $templateFilename = mb_strtolower(str_replace('*', $actionFilename, $this->route->getTemplate()));
-
         // View
         $view = new View($this->container);
 
-        $view->setFile($moduleDir . '/view/' . $controllerDir . '/' . $templateFilename)
+        $view->setFile($this->getModuleDir() . '/view/' . $this->getControllerDir() . '/' . $this->getTemplateFilename())
             ->setData($this->data);
 
         $this->container['config']
@@ -289,10 +320,16 @@ class Dispatcher
             $this->findRoute()
                 ->invokeAction()
                 ->processResponse();
-        } catch (\Exception $e) {
+        }
+        catch (NotFoundException $e) {
+            $this->setEventRoute('notFound')
+                ->invokeAction()
+                ->processResponse();
+        }
+        catch (\Exception $e) {
             $this->container['exception'] = $e;
 
-            $this->setErrorRoute()
+            $this->setEventRoute('error')
                 ->invokeAction()
                 ->processResponse();
         }
@@ -319,6 +356,8 @@ class Dispatcher
     }
 
     /**
+     * Convert camel cased text to dashed
+     *
      * @param string $str        String to be parsed
      * @param bool   $firstUpper Uppercase first letter?
      *

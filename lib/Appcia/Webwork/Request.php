@@ -70,6 +70,9 @@ class Request
     public function __construct()
     {
         $this->data = array();
+        $this->params = array();
+        $this->post = array();
+        $this->get = array();
     }
 
     /**
