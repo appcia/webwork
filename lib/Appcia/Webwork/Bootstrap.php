@@ -133,7 +133,7 @@ class Bootstrap
      */
     private function loadModule($name, array $config)
     {
-        $path = $this->container['rootPath'] . '/' . trim($config['path'], '/');
+        $path = $this->container['rootPath'] . '/' . $config['path'];
         $file = $path . '/module.php';
 
         if ((@include_once $file) !== 1) {

@@ -17,14 +17,19 @@ class Auth
     private $namespace;
 
     /**
-     * @var Object
+     * @var string
      */
-    private $user;
+    private $userData;
 
     /**
      * @var string
      */
     private $token;
+
+    /**
+     * @var Object
+     */
+    private $user;
 
     /**
      * Constructor
@@ -50,8 +55,8 @@ class Auth
         if ($this->session->has($this->namespace)) {
             $data = $this->session->get($this->namespace);
 
-            $this->user = $data['user'];
-            $this->token = $data['token'];
+            $this->userData = isset($data['userData']) ? $data['userData'] : null;
+            $this->token = isset($data['token']) ? $data['token'] : null;
         }
 
         return $this;
@@ -65,7 +70,7 @@ class Auth
     private function save()
     {
         $data = array(
-            'user' => $this->user,
+            'userData' => $this->userData,
             'token' => $this->token
         );
 
@@ -79,7 +84,7 @@ class Auth
      */
     public function isAuthorized()
     {
-        return $this->user !== null;
+        return $this->userData !== null;
     }
 
     /**
@@ -112,7 +117,11 @@ class Auth
             throw new \ErrorException('Cannot get user when access is unauthorized');
         }
 
-        return $this->wakeupUser($this->user);
+        if ($this->user === null) {
+            $this->user = $this->wakeupUser($this->userData);
+        }
+
+        return $this->user;
     }
 
     /**
@@ -138,7 +147,7 @@ class Auth
      * @return Auth
      */
     public function authorize($user) {
-        $this->user = $this->sleepUser($user);
+        $this->userData = $this->sleepUser($user);
         $this->token = $this->generateToken('32kj43@#132_14'); // @todo improve token security
 
         $this->save();
@@ -150,8 +159,10 @@ class Auth
      * @return Auth
      */
     public function unauthorize() {
-        $this->user = null;
+        $this->userData = null;
         $this->token = null;
+
+        $this->user = null;
 
         $this->save();
 
