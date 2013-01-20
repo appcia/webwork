@@ -184,8 +184,14 @@ class Dispatcher
      */
     private function getControllerClass()
     {
+        $parts = explode('/', $this->route->getController());
+        foreach ($parts as $key => $part) {
+            $parts[$key] = ucfirst($part);
+        }
+        $controller = implode('\\', $parts);
+
         return ucfirst($this->route->getModule())
-            . '\\Controller\\' . ucfirst($this->route->getController()) . 'Controller';
+            . '\\Controller\\' . $controller . 'Controller';
     }
 
     /**
