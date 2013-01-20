@@ -60,7 +60,7 @@ class Session
             throw new \InvalidArgumentException('Specified value does not exist');
         }
 
-        return $this->storage[$key];
+        return unserialize($this->storage[$key]);
     }
 
     /**
@@ -73,7 +73,7 @@ class Session
      */
     public function set($name, $value)
     {
-        $this->storage[$name] = $value;
+        $this->storage[$name] = serialize($value);
 
         return $this;
     }

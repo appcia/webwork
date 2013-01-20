@@ -4,6 +4,9 @@ namespace Appcia\Webwork;
 
 class Router
 {
+    const ROUTE_NOT_FOUND = 'notFound';
+    const ROUTE_ERROR = 'error';
+
     /**
      * All available routes
      *
@@ -45,8 +48,8 @@ class Router
     {
         if (!isset($data['eventRoutes'])) {
             $data['eventRoutes'] = array(
-                'notFound' => 'error_404',
-                'error' => 'error_500'
+                self::ROUTE_NOT_FOUND => 'error_404',
+                self::ROUTE_ERROR => 'error_500'
             );
         }
 
@@ -122,6 +125,22 @@ class Router
     public function getRoutes()
     {
         return $this->routes;
+    }
+
+    /**
+     * Get route by name
+     *
+     * @param string $name Route name
+     *
+     * @return Route
+     * @throws \InvalidArgumentException
+     */
+    public function getRoute($name) {
+        if (!isset($this->routes[$name])) {
+            throw new \InvalidArgumentException(sprintf("Route '%s' does not exist"));
+        }
+
+        return $this->routes[$name];
     }
 
     /**

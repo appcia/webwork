@@ -7,10 +7,19 @@ use Appcia\Webwork\Router\ErrorException;
 
 class Dispatcher
 {
+    const EVENT_START = 'start';
+    const EVENT_ROUTED = 'routed';
+    const EVENT_INVOKED = 'invoked';
+    const EVENT_STOP = 'stop';
+    const EVENT_ERROR = 'error';
+    const EVENT_NOT_FOUND = 'notFound';
+
     /**
      * @var Container
      */
     private $container;
+
+    private $eventListeners = array();
 
     /**
      * @var Request
@@ -40,6 +49,7 @@ class Dispatcher
     public function __construct(Container $container)
     {
         $this->container = $container;
+        $this->eventListeners = array();
         $this->data = array();
     }
 
@@ -64,11 +74,15 @@ class Dispatcher
     }
 
     /**
+     * Force set route
+     *
+     * Useful for event listeners
+     *
      * @param Route $route
      *
      * @return Dispatcher
      */
-    private function setRoute(Route $route)
+    public function setRoute(Route $route)
     {
         $this->route = $route;
 
@@ -332,22 +346,62 @@ class Dispatcher
         try {
             $this->container['exception'] = null;
 
-            $this->findRoute()
+            $this->notifyEvent(self::EVENT_START)
+                ->findRoute()
+                ->notifyEvent(self::EVENT_ROUTED)
                 ->invokeAction()
+                ->notifyEvent(self::EVENT_INVOKED)
                 ->processResponse();
         }
         catch (NotFoundException $e) {
-            $this->setEventRoute('notFound')
+            $this->notifyEvent(self::EVENT_NOT_FOUND)
+                ->setEventRoute(Router::ROUTE_NOT_FOUND)
                 ->invokeAction()
                 ->processResponse();
         }
         catch (\Exception $e) {
             $this->container['exception'] = $e;
 
-            $this->setEventRoute('error')
+            $this->notifyEvent(self::EVENT_ERROR)
+                ->setEventRoute(Router::ROUTE_ERROR)
                 ->invokeAction()
                 ->processResponse();
         }
+
+        $this->notifyEvent(self::EVENT_STOP);
+
+        return $this;
+    }
+
+    /**
+     * Notify listeners about event
+     *
+     * @param $event
+     *
+     * @return Dispatcher
+     */
+    public function notifyEvent($event) {
+        foreach ($this->eventListeners as $listener) {
+            $listener->notify($event);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Register event listener
+     *
+     * @param Listener $listener
+     *
+     * @return Dispatcher
+     * @throws \InvalidArgumentException
+     */
+    public function addEventListener(Listener $listener) {
+        if (in_array($listener, $this->eventListeners)) {
+            throw new \InvalidArgumentException("Specified listener is already registered");
+        }
+
+        $this->eventListeners[] = $listener;
 
         return $this;
     }
