@@ -204,8 +204,10 @@ class Dispatcher
         }
         $controller = implode('\\', $parts);
 
-        return ucfirst($this->route->getModule())
+        $class = ucfirst($this->route->getModule())
             . '\\Controller\\' . $controller . 'Controller';
+
+        return $class;
     }
 
     /**
@@ -213,7 +215,9 @@ class Dispatcher
      */
     private function getControllerMethod()
     {
-        return lcfirst($this->route->getAction()) . 'Action';
+        $method = lcfirst($this->route->getAction()) . 'Action';
+
+        return $method;
     }
 
     /**
@@ -421,7 +425,9 @@ class Dispatcher
             $parts[$key] = $this->camelCaseToDashed($part);
         }
 
-        return implode('/', $parts);
+        $path = implode('/', $parts);
+
+        return $path;
     }
 
     /**

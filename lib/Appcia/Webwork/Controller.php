@@ -40,7 +40,8 @@ class Controller
      */
     public function getRequest()
     {
-        return $this->get('dispatcher')->getRequest();
+        return $this->get('dispatcher')
+            ->getRequest();
     }
 
     /**
@@ -50,7 +51,8 @@ class Controller
      */
     public function getResponse()
     {
-        return $this->get('dispatcher')->getResponse();
+        return $this->get('dispatcher')
+            ->getResponse();
     }
 
     /**

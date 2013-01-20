@@ -83,13 +83,63 @@ class Auth
     }
 
     /**
+     * When inherited, can unserialize user after loading
+     *
+     * @param $user
+     * @return mixed
+     */
+    protected function wakeupUser($user) {
+        return $user;
+    }
+
+    /**
+     * When inherited, can serialize user before saving
+     *
+     * @param string $user
+     *
+     * @return object
+     */
+    protected function sleepUser($user) {
+        return $user;
+    }
+
+    /**
+     * @return Object
+     * @throws \ErrorException
+     */
+    public function getUser() {
+        if (!$this->isAuthorized()) {
+            throw new \ErrorException('Cannot get user when access is unauthorized');
+        }
+
+        return $this->wakeupUser($this->user);
+    }
+
+    /**
+     * @return string
+     */
+    public function getToken()
+    {
+        return $this->token;
+    }
+
+    /**
+     * @param string $value Value to be tokenized
+     *
+     * @return string
+     */
+    public function generateToken($value) {
+        return sha1(md5($value));
+    }
+
+    /**
      * @param Object $user
      *
      * @return Auth
      */
     public function authorize($user) {
-        $this->user = $user;
-        $this->token = sha1(md5('dkl3f$')); // @todo temporary token
+        $this->user = $this->sleepUser($user);
+        $this->token = $this->generateToken('32kj43@#132_14'); // @todo improve token security
 
         $this->save();
 
@@ -106,26 +156,6 @@ class Auth
         $this->save();
 
         return $this;
-    }
-
-    /**
-     * @return Object
-     * @throws \ErrorException
-     */
-    public function getUser() {
-        if (!$this->isAuthorized()) {
-            throw new \ErrorException('Cannot get user when access is unauthorized');
-        }
-
-        return $this->user;
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->token;
     }
 
 }
