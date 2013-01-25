@@ -157,42 +157,6 @@ class Bootstrap
     }
 
     /**
-     * Setup invoked from command line
-     *
-     * @return Bootstrap
-     */
-    public function setup()
-    {
-        foreach ($this->modules as $module) {
-            $module->setup();
-        }
-
-        return $this;
-    }
-
-    /**
-     * Run application in browser
-     *
-     * @return int
-     */
-    public function run()
-    {
-        $request = new Request();
-        $request->loadGlobals();
-
-        $response = new Response();
-
-        $this->container['dispatcher']
-            ->setRequest($request)
-            ->setResponse($response)
-            ->dispatch();
-
-        $response->display();
-
-        return $response->getStatus();
-    }
-
-    /**
      * Get all loaded modules
      *
      * @return array
