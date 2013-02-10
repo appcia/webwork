@@ -20,11 +20,10 @@ class RouteUrl extends Helper
             ->getView()
             ->getContainer();
 
-        $router = $container['router'];
+        $router = $container->get('router');
+        $dispatcher = $container->get('dispatcher');
 
         if ($name === null) {
-            $dispatcher = $container['dispatcher'];
-
             $name = $dispatcher->getRoute()
                 ->getName();
 

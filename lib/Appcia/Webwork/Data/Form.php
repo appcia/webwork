@@ -44,7 +44,7 @@ class Form
     }
 
     /**
-     * @param Form\Field $field
+     * @param Field $field
      *
      * @return Form
      * @throws \InvalidArgumentException
@@ -60,6 +60,23 @@ class Form
         $this->fields[$name] = $field;
 
         return $this;
+    }
+
+    /**
+     * Get field by name
+     *
+     * @param string $name Field name
+     *
+     * @return Field
+     * @throws \InvalidArgumentException
+     */
+    public function getField($name)
+    {
+        if (!isset($this->fields[$name])) {
+            throw new \InvalidArgumentException(sprintf("Field '%s' does not exist", $name));
+        }
+
+        return $this->fields[$name];
     }
 
     /**
@@ -267,23 +284,12 @@ class Form
     }
 
     /**
-     * Get field value using $form->{fieldName}() in templates
+     * Magic getter for $form->{fieldName} in templates
      *
-     * @param string $name Field name
-     * @param array  $args Not used
-     *
-     * @return mixed
-     * @throws \InvalidArgumentException
+     * @param string $name
+     * @return Form\Field
      */
-    public function __call($name, $args) {
-        if (!empty($args)) {
-            throw new\InvalidArgumentException('Arguments are not allowed, when accessing form fields');
-        }
-
-        if (isset($this->fields[$name])) {
-            $field = $this->fields[$name];
-
-            return $field->getValue();
-        }
+    public function __get($name) {
+        return $this->getField($name);
     }
 }

@@ -45,7 +45,7 @@ class App {
         $this->response = new Response();
 
         $container = $this->bootstrap->getContainer();
-        $container['dispatcher']
+        $container->get('dispatcher')
             ->setRequest($this->request)
             ->setResponse($this->response)
             ->dispatch();

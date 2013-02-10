@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Module;
 use Appcia\Webwork\Router\NotFoundException;
 use Appcia\Webwork\Router\ErrorException;
 
@@ -167,7 +168,7 @@ class Dispatcher
      */
     private function findRoute()
     {
-        $router = $this->container['router'];
+        $router = $this->container->get('router');
         $route = $router->match($this->request);
 
         $this->setRoute($route);
@@ -185,7 +186,7 @@ class Dispatcher
      */
     private function setEventRoute($type)
     {
-        $router = $this->container['router'];
+        $router = $this->container->get('router');
         $route = $router->getEventRoute($type);
 
         $this->setRoute($route);
@@ -221,6 +222,25 @@ class Dispatcher
     }
 
     /**
+     * Run module based on current route
+     *
+     * @return Module
+     */
+    private function runModule()
+    {
+        $bootstrap = $this->container->get('bootstrap');
+        $moduleName = $this->getRoute()->getModule();
+
+        $app = $bootstrap->getModule('app');
+        $module = $bootstrap->getModule($moduleName);
+
+        $app->run();
+        $module->run();
+
+        return $module;
+    }
+
+    /**
      * Invoke action
      *
      * @return Dispatcher
@@ -239,7 +259,8 @@ class Dispatcher
             ));
         }
 
-        $controller = new $className($this->container);
+        $module = $this->runModule();
+        $controller = new $className($this->container, $module->getContainer());
 
         $action = array($controller, $methodName);
         if (!is_callable($action)) {
@@ -287,7 +308,7 @@ class Dispatcher
      */
     private function getModuleDir()
     {
-        return $this->container['bootstrap']
+        return $this->container->get('bootstrap')
             ->getModule($this->route->getModule())
             ->getPath();
     }
@@ -326,14 +347,14 @@ class Dispatcher
         $view->setFile($file)
             ->setData($this->data);
 
-        $this->container['config']
+        $this->container->get('config')
             ->get('view')
             ->inject($view);
 
         // Response
         $this->response->setContent($view->render());
 
-        $this->container['config']
+        $this->container->get('config')
             ->get('response')
             ->inject($this->response);
 
@@ -348,7 +369,7 @@ class Dispatcher
     public function dispatch()
     {
         try {
-            $this->container['exception'] = null;
+            $this->container->set('exception', null);
 
             $this->notifyEvent(self::EVENT_START)
                 ->findRoute()
@@ -364,7 +385,7 @@ class Dispatcher
                 ->processResponse();
         }
         catch (\Exception $e) {
-            $this->container['exception'] = $e;
+            $this->container->set('exception', $e);
 
             $this->notifyEvent(self::EVENT_ERROR)
                 ->setEventRoute(Router::ROUTE_ERROR)

@@ -205,4 +205,13 @@ class Field {
 
         return $this->valid;
     }
+
+    /**
+     * Get as string
+     *
+     * @return string
+     */
+    public function __toString() {
+        return (string) $this->value;
+    }
 }

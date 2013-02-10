@@ -5,6 +5,8 @@ namespace Appcia\Webwork;
 class Bootstrap
 {
     /**
+     * Container
+     *
      * @var Container
      */
     private $container;
@@ -13,6 +15,26 @@ class Bootstrap
      * @var array
      */
     private $modules;
+
+    /**
+     * @var string
+     */
+    private $environment;
+
+    /**
+     * @var string
+     */
+    private $rootPath;
+
+    /**
+     * @var string
+     */
+    private $configFile;
+
+    /**
+     * @var object
+     */
+    private $autoloader;
 
     /**
      * Constructor
@@ -24,20 +46,17 @@ class Bootstrap
      */
     public function __construct($env, $rootPath, $configFile, $autoloader)
     {
+        $this->environment = $env;
+        $this->rootPath =  $rootPath;
+        $this->configFile = $configFile;
+        $this->autoloader = $autoloader;
+
         $this->container = new Container();
-
-        $this->container['environment'] = $env;
-        $this->container['rootPath'] = $rootPath;
-        $this->container['configFile'] = $configFile;
-
-        $this->container['bootstrap'] = $this;
-        $this->container['autoloader'] = $autoloader;
-
         $this->modules = array();
     }
 
     /**
-     * Get container for external dependencies
+     * Get container
      *
      * @return Container
      */
@@ -66,16 +85,21 @@ class Bootstrap
      */
     private function loadCore()
     {
-        $this->container->single('config', function ($c) {
+        $bootstrap = $this;
+        $this->container->single('bootstrap', function ($container) use ($bootstrap) {
+            return $bootstrap;
+        });
+
+        $this->container->single('config', function ($container) use ($bootstrap) {
             $config = new Config();
-            $config->loadFile($c['configFile']);
+            $config->loadFile($bootstrap->configFile);
 
             return $config;
         });
 
-        $this->container->single('session', function ($c) {
+        $this->container->single('session', function ($container) {
             $session = new Session();
-            $c['config']
+            $container->get('config')
                 ->get('session')
                 ->inject($session);
 
@@ -84,17 +108,17 @@ class Bootstrap
             return $session;
         });
 
-        $this->container->single('router', function ($c) {
+        $this->container->single('router', function ($container) {
             $router = new Router();
-            $c['config']
+            $container->get('config')
                 ->get('router')
                 ->inject($router);
 
             return $router;
         });
 
-        $this->container->single('dispatcher', function ($c) {
-            return new Dispatcher($c);
+        $this->container->single('dispatcher', function ($container) {
+            return new Dispatcher($container);
         });
 
         return $this;
@@ -108,13 +132,15 @@ class Bootstrap
      */
     private function loadModules()
     {
-        if (empty($this->container['config']['modules'])) {
+        $config = $this->container->get('config');
+        $modules = $config->get('modules');
+
+        if (empty($modules)) {
             throw new \LogicException('None modules specified in config');
         }
 
-        $this->loadModule('app', $this->container['config']['app']);
+        $this->loadModule('app', $config['app']);
 
-        $modules = $this->container['config']['modules'];
         foreach ($modules as $name => $config) {
             $this->loadModule($name, $config);
         }
@@ -133,7 +159,7 @@ class Bootstrap
      */
     private function loadModule($name, array $config)
     {
-        $path = $this->container['rootPath'] . '/' . $config['path'];
+        $path = $this->rootPath . '/' . $config['path'];
         $file = $path . '/module.php';
 
         if ((@include_once $file) !== 1) {
@@ -148,8 +174,8 @@ class Bootstrap
         }
 
         $module = new $className($this->container, $name, $config);
-        $module->register();
-        $module->init();
+        $module->autoload()
+            ->init();
 
         $this->modules[$name] = $module;
 
@@ -180,5 +206,45 @@ class Bootstrap
         }
 
         return $this->modules[$name];
+    }
+
+    /**
+     * Get autoloader
+     *
+     * @return object
+     */
+    public function getAutoloader()
+    {
+        return $this->autoloader;
+    }
+
+    /**
+     * Get config file path
+     *
+     * @return string
+     */
+    public function getConfigFile()
+    {
+        return $this->configFile;
+    }
+
+    /**
+     * Get environment type
+     *
+     * @return string
+     */
+    public function getEnvironment()
+    {
+        return $this->environment;
+    }
+
+    /**
+     * Get root path
+     *
+     * @return string
+     */
+    public function getRootPath()
+    {
+        return $this->rootPath;
     }
 }

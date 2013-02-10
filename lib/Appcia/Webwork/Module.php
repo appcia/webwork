@@ -5,21 +5,29 @@ namespace Appcia\Webwork;
 abstract class Module
 {
     /**
+     * Container
+     *
      * @var Container
      */
     protected $container;
 
     /**
+     * Name
+     *
      * @var string
      */
     private $name;
 
     /**
+     * Namespace
+     *
      * @var string
      */
     private $namespace;
 
     /**
+     * Relative path
+     *
      * @var string
      */
     private $path;
@@ -33,6 +41,8 @@ abstract class Module
      */
     public function __construct(Container $container, $name, array $config)
     {
+        $this->module = new Container();
+
         $this->container = $container;
         $this->name = (string) $name;
         $this->namespace = (string) $config['namespace'];
@@ -71,26 +81,48 @@ abstract class Module
 
     /**
      * Register in autoloader
-     */
-    public function register()
-    {
-        $path = !empty($this->path) ? $this->path . '/lib' : 'lib';
-
-        $this->container['autoloader']
-            ->add($this->namespace, $path);
-    }
-
-    /**
-     * Initialize module (triggered every time on startup)
      *
      * @return Module
      */
-    abstract public function init();
+    public function autoload()
+    {
+        $path = !empty($this->path) ? $this->path . '/lib' : 'lib';
+
+        $bootstrap = $this->container->get('bootstrap');
+        $bootstrap->getAutoloader()
+            ->add($this->namespace, $path);
+
+        return $this;
+    }
 
     /**
-     * Setup module (triggered by hand via command line)
+     * Get module specific container
+     *
+     * @return Container
+     */
+    public function getContainer()
+    {
+        return $this->module;
+    }
+
+    /**
+     * Setup, triggered by hand when creating whole environment
      *
      * @return Module
      */
     abstract public function setup();
+
+    /**
+     * Initialize, do only necessary / light things like adding configuration, routing etc
+     *
+     * @return mixed
+     */
+    abstract public function init();
+
+    /**
+     * Run, prepare heavy things, routing matched current module
+     *
+     * @return Module
+     */
+    abstract public function run();
 }

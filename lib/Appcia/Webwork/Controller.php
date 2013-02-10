@@ -3,6 +3,7 @@
 namespace Appcia\Webwork;
 
 use Appcia\Webwork\Router\NotFoundException;
+use Appcia\Webwork\Router\ErrorException;
 
 class Controller
 {
@@ -14,7 +15,7 @@ class Controller
     /**
      * Constructor
      *
-     * @param Container $container
+     * @param Container $container Container
      */
     public function __construct(Container $container)
     {
@@ -22,15 +23,15 @@ class Controller
     }
 
     /**
-     * Get service or parameter from container
+     * Get service from core container
      *
-     * @param int $id Service ID
+     * @param string $key Service key
      *
      * @return mixed
      */
-    protected function get($id)
+    protected function get($key)
     {
-        return $this->container[$id];
+        return $this->container->get($key);
     }
 
     /**
@@ -58,11 +59,27 @@ class Controller
     /**
      * Shortcut for getting not found page
      *
+     * @param string $message Message
+     *
      * @throws NotFoundException
      * @return void
      */
-    public function goNotFound() {
-        throw new NotFoundException();
+    public function goNotFound($message = null)
+    {
+        throw new NotFoundException($message);
+    }
+
+    /**
+     * Shortcut for triggering error
+     *
+     * @param string $message Message
+     *
+     * @throws ErrorException
+     * @return void
+     */
+    public function goError($message = null)
+    {
+        throw new ErrorException($message);
     }
 
     /**
@@ -73,8 +90,10 @@ class Controller
      *
      * @return mixed
      */
-    public function goRoute($route, array $params = array()) {
-        $this->goRedirect($this->generateUrl($route, $params));
+    public function goRoute($route, array $params = array())
+    {
+        $url = $this->generateUrl($route, $params);
+        $this->goRedirect($url);
     }
 
     /**
@@ -82,8 +101,10 @@ class Controller
      *
      * @param $url
      */
-    public function goRedirect($url) {
-        $this->getResponse()->redirect($url);
+    public function goRedirect($url)
+    {
+        $this->getResponse()
+            ->redirect($url);
     }
 
     /**
@@ -103,7 +124,8 @@ class Controller
      *
      * @param $file
      */
-    public function changeTemplate($file) {
+    public function setTemplate($file)
+    {
         $this->get('dispatcher')
             ->getRoute()
             ->setTemplate($file);

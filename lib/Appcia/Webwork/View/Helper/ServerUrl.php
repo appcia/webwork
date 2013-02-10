@@ -17,7 +17,7 @@ class ServerUrl extends Helper
             ->getView()
             ->getContainer();
 
-        $request = $container['dispatcher']
+        $request = $container->get('dispatcher')
             ->getRequest();
 
         $protocol = $request->getProtocolPrefix();

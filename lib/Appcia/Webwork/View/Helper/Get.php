@@ -16,6 +16,7 @@ class Get extends Helper
     public function get($key)
     {
         return $this->getView()
-            ->getContainer()->get($key);
+            ->getContainer()
+            ->get($key);
     }
 }
