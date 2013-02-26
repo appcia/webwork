@@ -92,7 +92,7 @@ class Bootstrap
 
         $this->container->single('config', function ($container) use ($bootstrap) {
             $config = new Config();
-            $config->loadFile($bootstrap->configFile);
+            $config->loadFile($bootstrap->getConfigFile());
 
             return $config;
         });
@@ -162,8 +162,12 @@ class Bootstrap
         $path = $this->rootPath . '/' . $config['path'];
         $file = $path . '/module.php';
 
-        if ((@include_once $file) !== 1) {
+        if (!file_exists($file)) {
             throw new \ErrorException(sprintf("Cannot find module file '%s'", $file));
+        }
+
+        if ((@include_once($file)) === false) {
+            throw new \ErrorException(sprintf("Cannot include module bootstrap'%s'", $file));
         }
 
         $className = ucfirst($name)

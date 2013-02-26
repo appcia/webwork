@@ -38,10 +38,18 @@ abstract class Module
      * @param Container $container Container
      * @param string    $name      Name
      * @param array     $config    Configuration
+     *
+     * @throws \InvalidArgumentException
      */
     public function __construct(Container $container, $name, array $config)
     {
-        $this->module = new Container();
+        if (!isset($config['namespace'])) {
+            throw new \InvalidArgumentException('Module namespace is not specified');
+        }
+
+        if (!isset($config['path'])) {
+            throw new \InvalidArgumentException('Module path is not specified');
+        }
 
         $this->container = $container;
         $this->name = (string) $name;
@@ -102,7 +110,7 @@ abstract class Module
      */
     public function getContainer()
     {
-        return $this->module;
+        return $this->container;
     }
 
     /**
@@ -110,19 +118,28 @@ abstract class Module
      *
      * @return Module
      */
-    abstract public function setup();
+    public function setup()
+    {
+        return $this;
+    }
 
     /**
      * Initialize, do only necessary / light things like adding configuration, routing etc
      *
-     * @return mixed
+     * @return Module
      */
-    abstract public function init();
+    public function init()
+    {
+        return $this;
+    }
 
     /**
      * Run, prepare heavy things, routing matched current module
      *
      * @return Module
      */
-    abstract public function run();
+    public function run()
+    {
+        return $this;
+    }
 }
