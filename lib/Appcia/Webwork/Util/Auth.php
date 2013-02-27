@@ -88,7 +88,7 @@ class Auth
     }
 
     /**
-     * When inherited, can unserialize user after loading
+     * When inherited, could unserialize user after loading
      *
      * @param $user
      * @return mixed
@@ -98,7 +98,7 @@ class Auth
     }
 
     /**
-     * When inherited, can serialize user before saving
+     * When inherited, could serialize user before saving
      *
      * @param string $user
      *

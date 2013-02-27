@@ -1,5 +1,7 @@
 <?
 
+namespace Appcia\Webwork\Data\Form;
+
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Data\Validator\Email as EmailValidator;
 use Appcia\Webwork\Data\Validator\NotEmpty as NotEmptyValidator;
@@ -9,6 +11,8 @@ use Appcia\Webwork\Data\Filter\FloatNumber as FloatNumberFilter;
 class FieldTest extends \PHPUnit_Framework_TestCase {
 
     /**
+     * @test
+     *
      * @return void
      */
     public function testCreating() {
@@ -16,10 +20,14 @@ class FieldTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals($field->getValue(), null, 'Field default value should be null');
 
         $field = new Field('email', 'foo');
-        $this->assertEquals($field->getValue(), 'foo', 'Field values are not equal');
+
+        $value = $field->getValue();
+        $this->assertEquals('foo', $value, 'Field values are not equal');
     }
 
     /**
+     * @test
+     *
      * @return void
      */
     public function testEmptyValues() {
@@ -35,6 +43,8 @@ class FieldTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @test
+     *
      * @return void
      */
     public function testValidatorChain() {
@@ -50,6 +60,8 @@ class FieldTest extends \PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @test
+     *
      * @return void
      */
     public function testFilterChain() {

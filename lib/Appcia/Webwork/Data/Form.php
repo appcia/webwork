@@ -53,13 +53,25 @@ class Form
     {
         $name = $field->getName();
 
-        if (isset($this->fields[$name])) {
+        if ($this->hasField($name)) {
             throw new \InvalidArgumentException(sprintf("Field '%s' already exist", $name));
         }
 
         $this->fields[$name] = $field;
 
         return $this;
+    }
+
+    /**
+     * Check whether field already exists
+     *
+     * @param string $name Field name
+     *
+     * @return bool
+     */
+    public function hasField($name)
+    {
+        return isset($this->fields[$name]);
     }
 
     /**

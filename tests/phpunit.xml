@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<phpunit>
+<phpunit backupGlobals="true" backupStaticAttributes="true" convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true" convertWarningsToExceptions="true">
     <testsuite name='Appcia Webwork Test Suite'>
-        <directory suffix='.php'>./</directory>
+        <directory suffix="Test.php" phpVersion="5.3.0" phpVersionOperator=">=">./</directory>
     </testsuite>
 </phpunit>

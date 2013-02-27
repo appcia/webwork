@@ -32,7 +32,7 @@ class Same extends Validator
     /**
      * {@inheritdoc}
      */
-    public function validate($data)
+    public function validate($value)
     {
          return $this->base->getValue() == $this->dependent->getValue();
     }

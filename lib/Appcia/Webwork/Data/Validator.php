@@ -11,7 +11,7 @@ abstract class Validator {
      *
      * @return bool
      */
-    abstract public function validate($data);
+    abstract public function validate($value);
 
     /**
      * Get name simplified

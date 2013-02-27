@@ -9,8 +9,12 @@ class NotEmpty extends Validator {
     /**
      * {@inheritdoc}
      */
-    public function validate($data) {
-        return !empty($data);
+    public function validate($value) {
+        if (is_numeric($value) && floatval($value) === 0.0) {
+            return false;
+        }
+
+        return !empty($value);
     }
 
 }

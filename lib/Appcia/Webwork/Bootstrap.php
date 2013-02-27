@@ -167,7 +167,7 @@ class Bootstrap
         }
 
         if ((@include_once($file)) === false) {
-            throw new \ErrorException(sprintf("Cannot include module bootstrap'%s'", $file));
+            throw new \ErrorException(sprintf("Cannot include module bootstrap '%s'", $file));
         }
 
         $className = ucfirst($name)
