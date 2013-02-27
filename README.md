@@ -13,6 +13,10 @@ Main ideas
 
 News
 
+**0.6**
+* dispatcher events, useful for listening (error handling, authorization)
+* unit tests (in progress)
+
 **0.5**
 * PSR-0 autoloader, structure modified
 * composer/packagist support
@@ -47,18 +51,9 @@ To start developing, clone repo:
 git clone git@bitbucket.org:appcia/webwork.git [your_directory]
 }}}
 
-Make a virtual host with document root pointing to [your_directory]. If you want to simplify this, I recommend: http://code.google.com/p/virtualhost-sh/
+Make a virtual host with document root pointing to [your_directory]. If you want to simplify this, I recommend: http://code.google.com/p/virtualhost-sh/ill init your modules and makes public directories accessible (via symlinks).
 
-Also you must to create writable directory for logs, temporarily you can just:
-{{{
-mkdir app/logs -m 0777
-}}}
-
-At the end, you have to setup your application by running in command line:
-{{{
-php index.php -c setup
-}}}
-It will init your modules and makes public directories accessible (via symlinks).
+@todo Application skeleton will be released soon...
 
 Questions, cooperation?
 
