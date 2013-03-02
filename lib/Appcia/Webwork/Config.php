@@ -78,7 +78,7 @@ class Config implements \Iterator, \ArrayAccess
     public function get($key)
     {
         if (!isset($this->data[$key])) {
-            return new Config();
+            return new static();
         }
 
         if (is_array($this->data[$key])) {
@@ -239,7 +239,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function offsetExists($offset)
     {
-        return isset($this->data[$offset]);
+        return array_key_exists($offset, $this->getData());
     }
 
     /**
@@ -247,7 +247,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function offsetGet($offset)
     {
-        return $this->data[$offset];
+        return $this->offsetExists($offset) ? $this->data[$offset] : null;
     }
 
     /**

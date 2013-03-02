@@ -44,11 +44,11 @@ abstract class Module
     public function __construct(Container $container, $name, array $config)
     {
         if (!isset($config['namespace'])) {
-            throw new \InvalidArgumentException('Module namespace is not specified');
+            throw new \InvalidArgumentException(sprintf("Module '%s' does not have namespace specified", $name));
         }
 
         if (!isset($config['path'])) {
-            throw new \InvalidArgumentException('Module path is not specified');
+            throw new \InvalidArgumentException(sprintf("Module '%s' does not have path specified", $name));
         }
 
         $this->container = $container;
