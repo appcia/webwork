@@ -10,19 +10,33 @@ use Appcia\Webwork\Dispatcher\Listener;
 
 class Dispatcher
 {
-    const EVENT_START = 'start';
-    const EVENT_ROUTED = 'routed';
-    const EVENT_INVOKED = 'invoked';
-    const EVENT_STOP = 'stop';
-    const EVENT_ERROR = 'error';
-    const EVENT_NOT_FOUND = 'notFound';
+    const PRE_DISPATCH = 'preDispatch';
+    const ROUTING = 'routing';
+    const ACTION_INVOKING = 'invoking';
+    const RESPONSE_PROCESSING = 'processing';
+    const EXCEPTION_HANDLING = 'exception';
+    const POST_DISPATCH = 'postDispatch';
+
+    /**
+     * @var array
+     */
+    private $events = array(
+        self::PRE_DISPATCH,
+        self::ROUTING,
+        self::ACTION_INVOKING,
+        self::RESPONSE_PROCESSING,
+        self::POST_DISPATCH
+    );
 
     /**
      * @var Container
      */
     private $container;
 
-    private $eventListeners = array();
+    /**
+     * @var array
+     */
+    private $listeners;
 
     /**
      * @var Request
@@ -52,8 +66,10 @@ class Dispatcher
     public function __construct(Container $container)
     {
         $this->container = $container;
-        $this->eventListeners = array();
         $this->data = array();
+
+        $this->handlers = array();
+        $this->listeners = array();
     }
 
     /**
@@ -163,40 +179,6 @@ class Dispatcher
     }
 
     /**
-     * Set route for dispatching using router
-     *
-     * @return Dispatcher
-     * @throws \ErrorException
-     */
-    private function findRoute()
-    {
-        $router = $this->container->get('router');
-        $route = $router->match($this->request);
-
-        $this->setRoute($route);
-
-        return $this;
-    }
-
-    /**
-     * Set route for dispatching using router
-     *
-     * @param string $type Event route type
-     *
-     * @return Dispatcher
-     * @throws \ErrorException
-     */
-    private function setEventRoute($type)
-    {
-        $router = $this->container->get('router');
-        $route = $router->getEventRoute($type);
-
-        $this->setRoute($route);
-
-        return $this;
-    }
-
-    /**
      * @return string
      */
     private function getControllerClass()
@@ -246,8 +228,7 @@ class Dispatcher
      * Invoke action
      *
      * @return Dispatcher
-     * @throws \LogicException
-     * @throws \ErrorException
+     * @throws Exception
      */
     private function invokeAction()
     {
@@ -255,7 +236,7 @@ class Dispatcher
         $methodName = $this->getControllerMethod();
 
         if (!class_exists($className)) {
-            throw new \ErrorException(sprintf(
+            throw new Exception(sprintf(
                 "Controller '%s' could not be loaded. Check paths and autoloader configuration",
                 $className
             ));
@@ -266,40 +247,18 @@ class Dispatcher
 
         $action = array($controller, $methodName);
         if (!is_callable($action)) {
-            throw new \ErrorException(sprintf(
+            throw new Exception(sprintf(
                 "Could not dispatch '%s''. Check whether that controller method really exist",
                 $className . '::' . $methodName
             ));
         }
 
-        $before = array($controller, 'before');
-        if (is_callable($before)) {
-            $data = call_user_func($before);
-            if ($data !== null) {
-                if (!is_array($data)) {
-                    throw new \LogicException("Controller 'before' method must return values as array");
-                }
-                $this->addData($data);
-            }
-        }
-
         $data = call_user_func($action);
         if ($data !== null) {
             if (!is_array($data)) {
-                throw new \LogicException("Controller action must return values as array");
+                throw new Exception("Controller action must return values as array");
             }
             $this->addData($data);
-        }
-
-        $after = array($controller, 'after');
-        if (is_callable($after)) {
-            $data = call_user_func($after);
-            if ($data !== null) {
-                if (!is_array($data)) {
-                    throw new \LogicException("Controller 'after' method must return values as array");
-                }
-                $this->addData($data);
-            }
         }
 
         return $this;
@@ -364,38 +323,129 @@ class Dispatcher
     }
 
     /**
-     * Dispatch request
+     * Dispatch by request
      *
      * @return Dispatcher
+     * @throws Exception\NotFound
+     * @throws \Exception
      */
     public function dispatch()
     {
+        $this->container->set('exception', null);
+
+        $this->notify(self::PRE_DISPATCH);
+
         try {
-            $this->container->set('exception', null);
+            $router = $this->container->get('router');
+            $route = $router->match($this->request);
 
-            $this->notifyEvent(self::EVENT_START)
-                ->findRoute()
-                ->notifyEvent(self::EVENT_ROUTED)
-                ->invokeAction()
-                ->notifyEvent(self::EVENT_INVOKED)
-                ->processResponse();
-        }
-        catch (NotFound $e) {
-            $this->notifyEvent(self::EVENT_NOT_FOUND)
-                ->setEventRoute(Router::ROUTE_NOT_FOUND)
-                ->invokeAction()
-                ->processResponse();
-        }
-        catch (Exception $e) {
-            $this->container->set('exception', $e);
+            if ($route === null) {
+                throw new NotFound('Cannot find any route by request');
+            }
 
-            $this->notifyEvent(self::EVENT_ERROR)
-                ->setEventRoute(Router::ROUTE_ERROR)
+            $this->setRoute($route);
+
+            $this->notify(self::ROUTING)
                 ->invokeAction()
-                ->processResponse();
+                ->notify(self::ACTION_INVOKING)
+                ->processResponse()
+                ->notify(self::RESPONSE_PROCESSING);
+
+            $this->invokeAction();
+            $this->processResponse();
+        } catch (\Exception $e) {
+            $handled = false;
+
+            foreach ($this->handlers as $handler) {
+                $exception = $handler['exception'];
+                $callback = $handler['callback'];
+
+                if (get_class($e) === get_class($exception)) {
+                    call_user_func_array($callback, array($this->container));
+                    $handled = true;
+                }
+            }
+
+            if (!$handled) {
+                throw $e;
+            }
         }
 
-        $this->notifyEvent(self::EVENT_STOP);
+        $this->notify(self::POST_DISPATCH);
+
+        return $this;
+    }
+
+    /**
+     * Dispatch again by route (forced)
+     *
+     * @param string $routeName Route name
+     *
+     * @return Dispatcher
+     * @throws Error
+     */
+    public function redispatch($routeName) {
+        $router = $this->container->get('router');
+        $route = $router->getRoute($routeName);
+
+        if ($route === null) {
+            throw new Error(sprintf("Cannot find route by name: '%s'", $routeName));
+        }
+
+        $this->setRoute($route);
+
+        $this->invokeAction();
+        $this->processResponse();
+
+        return $this;
+    }
+
+    /**
+     * Register exception handler
+     *
+     * @param \Exception $exception Exception object to handle
+     * @param callable   $callback  Callback function
+     * @throws Exception
+     */
+    public function handle($exception, \Closure $callback)
+    {
+        if (!is_object($exception)) {
+            throw new Exception('Invalid exception to handle');
+        }
+
+        if (!is_callable($callback)) {
+            throw new Exception('Listener callback is not callable');
+        }
+
+        $this->handlers[] = array(
+            'exception' => $exception,
+            'callback' => $callback
+        );
+    }
+
+    /**
+     * Register event listener
+     *
+     * @param string   $event    Event type
+     * @param \Closure $callback Callback
+     *
+     * @return Dispatcher
+     * @throws Exception
+     */
+    public function listen($event, \Closure $callback)
+    {
+        if (!in_array($event, $this->events, true)) {
+            throw new Exception(sprintf("Invalid event type: '%s'", $event));
+        }
+
+        if (!is_callable($callback)) {
+            throw new Exception('Listener callback is not callable');
+        }
+
+        $this->listeners[] = array(
+            'event' => $event,
+            'callback' => $callback
+        );
 
         return $this;
     }
@@ -407,28 +457,13 @@ class Dispatcher
      *
      * @return Dispatcher
      */
-    public function notifyEvent($event) {
-        foreach ($this->eventListeners as $listener) {
-            $listener->notify($event);
+    public function notify($event)
+    {
+        foreach ($this->listeners as $listener) {
+            if ($listener['event'] === $event) {
+                call_user_func_array($listener['callback'], array($this->container));
+            }
         }
-
-        return $this;
-    }
-
-    /**
-     * Register event listener
-     *
-     * @param Listener $listener
-     *
-     * @return Dispatcher
-     * @throws \InvalidArgumentException
-     */
-    public function addEventListener(Listener $listener) {
-        if (in_array($listener, $this->eventListeners)) {
-            throw new \InvalidArgumentException("Specified listener is already registered");
-        }
-
-        $this->eventListeners[] = $listener;
 
         return $this;
     }

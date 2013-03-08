@@ -6,9 +6,6 @@ use Appcia\Webwork\Router\Route;
 
 class Router
 {
-    const ROUTE_NOT_FOUND = 'notFound';
-    const ROUTE_ERROR = 'error';
-
     /**
      * All available routes
      *
@@ -48,12 +45,6 @@ class Router
      */
     public function setSettings($data)
     {
-        if (!isset($data['eventRoutes'])) {
-            $data['eventRoutes'] = array(
-                self::ROUTE_NOT_FOUND => 'error_404',
-                self::ROUTE_ERROR => 'error_500'
-            );
-        }
 
         $this->settings = $data;
 
@@ -146,35 +137,6 @@ class Router
     }
 
     /**
-     * Get event route, if previously not found by fetching, search again whole collection
-     *
-     * @param string $type Type of route
-     * @return mixed
-     * @throws \InvalidArgumentException
-     */
-    public function getEventRoute($type) {
-        if (!isset($this->settings['eventRoutes'][$type])) {
-            throw new \InvalidArgumentException('Invalid event route type');
-        }
-
-        $name = $this->settings['eventRoutes'][$type];
-
-        if (isset($this->eventRoutes[$type])) {
-            return $this->eventRoutes[$type];
-        }
-
-        foreach ($this->routes as $route) {
-            if ($route->getName() == $name) {
-                $this->eventRoutes[$type] = $route;
-
-                return $route;
-            }
-        }
-
-        throw new \InvalidArgumentException(sprintf("Event route of type '%s' cannot be found: '%s'", $type, $name));
-    }
-
-    /**
      * Process request path with route pattern, retrieve parameters
      *
      * @param Request $request Source request
@@ -184,7 +146,9 @@ class Router
      */
     private function process($request, $route)
     {
-        if ($route->hasParams()) {
+        if ($request->getPath() == $route->getPath()) {
+            return true;
+        } else if ($route->hasParams()) {
             $match = array();
             if (preg_match($route->getPattern(), $request->getPath(), $match)) {
                 unset($match[0]);
@@ -200,25 +164,9 @@ class Router
                 // Invalid parameters / empty values
                 return false;
             }
-        } else if ($request->getPath() == $route->getPath()) {
-            return true;
         }
 
         return false;
-    }
-
-    /**
-     * Check whether specific route is a event route
-     * If does, store it
-     *
-     * @param Route $route
-     */
-    private function fetch(Route $route) {
-        foreach ($this->settings['eventRoutes'] as $name) {
-            if ($route->getName() == $name) {
-                $this->eventRoutes[$name] = $route;
-            }
-        }
     }
 
     /**
@@ -232,14 +180,12 @@ class Router
     public function match(Request $request)
     {
         foreach ($this->routes as $route) {
-            $this->fetch($route);
-
             if ($this->process($request, $route)) {
                 return $route;
             }
         }
 
-        return $this->getEventRoute('notFound');
+        return null;
     }
 
     /**
