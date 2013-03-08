@@ -3,8 +3,10 @@
 namespace Appcia\Webwork;
 
 use Appcia\Webwork\Module;
-use Appcia\Webwork\Router\NotFoundException;
-use Appcia\Webwork\Router\ErrorException;
+use Appcia\Webwork\Router\Route;
+use Appcia\Webwork\Exception\Error;
+use Appcia\Webwork\Exception\NotFound;
+use Appcia\Webwork\Dispatcher\Listener;
 
 class Dispatcher
 {
@@ -378,13 +380,13 @@ class Dispatcher
                 ->notifyEvent(self::EVENT_INVOKED)
                 ->processResponse();
         }
-        catch (NotFoundException $e) {
+        catch (NotFound $e) {
             $this->notifyEvent(self::EVENT_NOT_FOUND)
                 ->setEventRoute(Router::ROUTE_NOT_FOUND)
                 ->invokeAction()
                 ->processResponse();
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             $this->container->set('exception', $e);
 
             $this->notifyEvent(self::EVENT_ERROR)

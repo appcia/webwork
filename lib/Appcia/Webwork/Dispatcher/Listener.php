@@ -1,6 +1,8 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Dispatcher;
+
+use Appcia\Webwork\Container;
 
 abstract class Listener {
 

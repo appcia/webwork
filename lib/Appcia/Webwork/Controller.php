@@ -2,8 +2,8 @@
 
 namespace Appcia\Webwork;
 
-use Appcia\Webwork\Router\NotFoundException;
-use Appcia\Webwork\Router\ErrorException;
+use Appcia\Webwork\Exception\NotFound;
+use Appcia\Webwork\Exception\Error;
 
 class Controller
 {
@@ -61,12 +61,12 @@ class Controller
      *
      * @param string $message Message
      *
-     * @throws NotFoundException
+     * @throws NotFound
      * @return void
      */
     public function goNotFound($message = null)
     {
-        throw new NotFoundException($message);
+        throw new NotFound($message);
     }
 
     /**
@@ -74,12 +74,12 @@ class Controller
      *
      * @param string $message Message
      *
-     * @throws ErrorException
+     * @throws Error
      * @return void
      */
     public function goError($message = null)
     {
-        throw new ErrorException($message);
+        throw new Error($message);
     }
 
     /**

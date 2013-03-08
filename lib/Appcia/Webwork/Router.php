@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Router\Route;
+
 class Router
 {
     const ROUTE_NOT_FOUND = 'notFound';
