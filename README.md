@@ -1,17 +1,35 @@
-Appcia Framework
+Appcia Webwork
 ================
-codename webwork, version 0.5
+PHP Framework, codename 'Webwork', version 0.6
 
-Main ideas
+#### Main ideas
 
-* light and fast MVC, //simplicity is a solution,//
-* modern code using namespaces, dependency injection, closures (PHP >= 5.3.1)
-* absolutely non-static, easy to unit test implementing / mock injecting
-* unified configuration, all in one place, per app / module
+* very lightweight and clean MVC - 'simplicity as solution'
+* modern code using namespaces, dependency injection, closures (PHP >= 5.3)
+* standarized code via PSR-0, composer
+* easy for unit test implementing, mock injecting / free from static methods etc
 * scalable by modules
-* views with multiple block extending
+* views with block extending
 
-News
+#### Quickstart
+
+To start developing, clone application skeleton from repo:
+```
+git clone git@bitbucket.org:appcia/webwork.git [your_directory] -b skeleton
+```
+* Create a virtual host with document root pointing to your directory. If you want to simplify this, I recommend: http://code.google.com/p/virtualhost-sh/ill 
+* Make public directories accessible (via symlinks): module/[name]/public -> public/[name]
+* Run (download if you do not have) composer to satisfy framework dependency:
+```
+composer update
+```
+
+#### Questions, cooperation?
+
+Please send me messages on priv.
+Also it would be great, if you like this project and wanna cooperate. 
+
+#### News
 
 **0.6**
 * dispatcher events, useful for listening (error handling, authorization)
@@ -40,22 +58,5 @@ News
 **0.1**
 * working framework skeleton
 
-Live example
-
+#### Live example (old)
 http://webwork.appcia.linuxpl.info/
-
-Quickstart
-
-To start developing, clone repo:
-{{{
-git clone git@bitbucket.org:appcia/webwork.git [your_directory]
-}}}
-
-Make a virtual host with document root pointing to [your_directory]. If you want to simplify this, I recommend: http://code.google.com/p/virtualhost-sh/ill init your modules and makes public directories accessible (via symlinks).
-
-@todo Application skeleton will be released soon...
-
-Questions, cooperation?
-
-Please send me messages on priv.
-Also it would be great, if you like this project and wanna cooperate. 
