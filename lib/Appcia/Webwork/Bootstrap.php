@@ -72,18 +72,18 @@ class Bootstrap
      */
     public function init()
     {
-        $this->loadCore();
+        $this->loadApp();
         $this->loadModules();
 
         return $this;
     }
 
     /**
-     * Load core components
+     * Load core module
      *
      * @return Bootstrap
      */
-    private function loadCore()
+    private function loadApp()
     {
         $bootstrap = $this;
         $this->container->single('bootstrap', function ($container) use ($bootstrap) {
@@ -118,7 +118,12 @@ class Bootstrap
         });
 
         $this->container->single('dispatcher', function ($container) {
-            return new Dispatcher($container);
+            $dispatcher = new Dispatcher($container);
+            $container->get('config')
+                ->get('dispatcher')
+                ->inject($dispatcher);
+
+            return $dispatcher;
         });
 
         return $this;
@@ -128,18 +133,25 @@ class Bootstrap
      * Load all modules basing on config
      *
      * @return Bootstrap
-     * @throws \LogicException
+     * @throws \ErrorException
      */
     private function loadModules()
     {
         $config = $this->container->get('config');
-        $modules = $config->get('modules');
 
-        if (empty($modules)) {
-            throw new \LogicException('None modules specified in config');
+        $core = $config->get('app');
+        if (empty($core)) {
+            throw new \ErrorException("App module configuration is empty."
+                ." Check whether key 'core' really exist in config file.");
         }
 
         $this->loadModule('app', $config['app']);
+
+        $modules = $config->get('modules');
+        if (empty($modules)) {
+            throw new \ErrorException("Module configuration is empty."
+                ." Check whether key 'modules' has at least one module specified.");
+        }
 
         foreach ($modules as $name => $config) {
             $this->loadModule($name, $config);
@@ -159,11 +171,17 @@ class Bootstrap
      */
     private function loadModule($name, array $config)
     {
+        if (!isset($config['path'])) {
+            throw new \ErrorException(sprintf("Module '%s' does not have path specified", $name));
+        }
+
         $path = $this->rootPath . '/' . $config['path'];
         $file = $path . '/module.php';
 
+        $config['path'] = $path;
+
         if (!file_exists($file)) {
-            throw new \ErrorException(sprintf("Cannot find module file '%s'", $file));
+            throw new \ErrorException(sprintf("Cannot find module bootstrap '%s'", $file));
         }
 
         if ((@include_once($file)) === false) {
@@ -174,7 +192,7 @@ class Bootstrap
             . '\\' . ucfirst($name) . 'Module';
 
         if (!class_exists($className)) {
-            throw new \ErrorException(sprintf("Module file '%s' does not contain class '%s'", $file, $className));
+            throw new \ErrorException(sprintf("Module bootstrap '%s' does not contain class '%s'", $file, $className));
         }
 
         $module = new $className($this->container, $name, $config);
