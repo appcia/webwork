@@ -13,16 +13,7 @@ PHP Framework, codename 'Webwork', version 0.6
 
 #### Quickstart
 
-To start developing, clone application skeleton from repo:
-```
-git clone git@bitbucket.org:appcia/webwork.git [your_directory] -b skeleton
-```
-* Create a virtual host with document root pointing to your directory. If you want to simplify this, I recommend: http://code.google.com/p/virtualhost-sh/ill 
-* Make public directories accessible (via symlinks): module/[name]/public -> public/[name]
-* Run (download if you do not have) composer to satisfy framework dependency:
-```
-composer update
-```
+Use application skeleton: https://github.com/appcia/webwork/blob/skeleton/README.md
 
 #### Questions, cooperation?
 
