@@ -364,7 +364,7 @@ class Dispatcher
     }
 
     /**
-     * Handle exception from dispatched request
+     * Handle exception catched by some dispatching
      * Returns true if handled by any handler
      *
      * @param \Exception $e Exception
@@ -385,30 +385,6 @@ class Dispatcher
         }
 
         return $handled;
-    }
-
-    /**
-     * Dispatch again by route (forced)
-     *
-     * @param string $routeName Route name
-     *
-     * @return Dispatcher
-     * @throws Error
-     */
-    public function redispatch($routeName) {
-        $router = $this->container->get('router');
-        $route = $router->getRoute($routeName);
-
-        if ($route === null) {
-            throw new Error(sprintf("Cannot find route by name: '%s'", $routeName));
-        }
-
-        $this->setRoute($route);
-
-        $this->invokeAction();
-        $this->processResponse();
-
-        return $this;
     }
 
     /**
