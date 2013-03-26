@@ -45,10 +45,14 @@ class App {
         $this->response = new Response();
 
         $container = $this->bootstrap->getContainer();
-        $container->get('dispatcher')
+
+        $router = $container->get('router');
+        $route = $router->match($this->request);
+
+        $dispatcher = $container->get('dispatcher')
             ->setRequest($this->request)
             ->setResponse($this->response)
-            ->dispatch();
+            ->dispatch($route);
 
         $this->response->display();
 

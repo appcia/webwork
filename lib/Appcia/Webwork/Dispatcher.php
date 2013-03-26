@@ -10,22 +10,22 @@ use Appcia\Webwork\Dispatcher\Listener;
 
 class Dispatcher
 {
-    const PRE_DISPATCH = 'preDispatch';
-    const ROUTING = 'routing';
-    const ACTION_INVOKING = 'invoking';
-    const RESPONSE_PROCESSING = 'processing';
-    const EXCEPTION_HANDLING = 'exception';
-    const POST_DISPATCH = 'postDispatch';
+    const E_INIT = 'init';
+    const E_FIND_ROUTE = 'route';
+    const E_INVOKE_ACTION = 'invoke';
+    const E_PROCESS_RESPONSE = 'process';
+    const E_HANDLE_EXCEPTION = 'exception';
+    const E_FINISH = 'finish';
 
     /**
      * @var array
      */
     private $events = array(
-        self::PRE_DISPATCH,
-        self::ROUTING,
-        self::ACTION_INVOKING,
-        self::RESPONSE_PROCESSING,
-        self::POST_DISPATCH
+        self::E_INIT,
+        self::E_FIND_ROUTE,
+        self::E_INVOKE_ACTION,
+        self::E_PROCESS_RESPONSE,
+        self::E_FINISH
     );
 
     /**
@@ -323,57 +323,68 @@ class Dispatcher
     }
 
     /**
-     * Dispatch by request
+     * Dispatch specified route
+     *
+     * @param mixed $route Route object or name
      *
      * @return Dispatcher
-     * @throws Exception\NotFound
-     * @throws \Exception
      */
-    public function dispatch()
+    public function dispatch($route)
     {
-        $this->container->set('exception', null);
+        if (is_string($route)) {
+            $router = $this->container->get('router');
+            $route = $router->getRoute($route);
+        }
 
-        $this->notify(self::PRE_DISPATCH);
+        $this->container->set('exception', null);
+        $this->notify(self::E_INIT);
 
         try {
-            $router = $this->container->get('router');
-            $route = $router->match($this->request);
-
             if ($route === null) {
-                throw new NotFound('Cannot find any route by request');
+                throw new NotFound('Route not found');
             }
 
-            $this->setRoute($route);
-
-            $this->notify(self::ROUTING)
+            $this->setRoute($route)
+                ->notify(self::E_FIND_ROUTE)
                 ->invokeAction()
-                ->notify(self::ACTION_INVOKING)
+                ->notify(self::E_INVOKE_ACTION)
                 ->processResponse()
-                ->notify(self::RESPONSE_PROCESSING);
-
-            $this->invokeAction();
-            $this->processResponse();
+                ->notify(self::E_PROCESS_RESPONSE);
         } catch (\Exception $e) {
-            $handled = false;
+            $this->container->set('exception', $e);
 
-            foreach ($this->handlers as $handler) {
-                $exception = $handler['exception'];
-                $callback = $handler['callback'];
-
-                if (get_class($e) === get_class($exception)) {
-                    call_user_func_array($callback, array($this->container));
-                    $handled = true;
-                }
-            }
-
-            if (!$handled) {
+            if (!$this->handle($e)) {
                 throw $e;
             }
         }
 
-        $this->notify(self::POST_DISPATCH);
+        $this->notify(self::E_FINISH);
 
         return $this;
+    }
+
+    /**
+     * Handle exception from dispatched request
+     * Returns true if handled by any handler
+     *
+     * @param \Exception $e Exception
+     * @return bool
+     */
+    public function handle($e)
+    {
+        $handled = false;
+
+        foreach ($this->handlers as $handler) {
+            $exceptionClass = $handler['exceptionClass'];
+            $callback = $handler['callback'];
+
+            if (get_class($e) === $exceptionClass) {
+                call_user_func_array($callback, array($this->container));
+                $handled = true;
+            }
+        }
+
+        return $handled;
     }
 
     /**
@@ -403,22 +414,30 @@ class Dispatcher
     /**
      * Register exception handler
      *
-     * @param \Exception $exception Exception object to handle
+     * @param mixed $exception Exception object / or class name to handle
      * @param callable   $callback  Callback function
      * @throws Exception
      */
-    public function handle($exception, \Closure $callback)
+    public function addHandler($exception, \Closure $callback)
     {
-        if (!is_object($exception)) {
-            throw new Exception('Invalid exception to handle');
+        if (!is_callable($callback)) {
+            throw new Exception('Handler callback is invalid');
         }
 
-        if (!is_callable($callback)) {
-            throw new Exception('Listener callback is not callable');
+        $exceptionClass = null;
+        if (is_string($exception)) {
+            $exceptionClass = $exception;
+        }
+        else {
+            if (!$exception instanceof \Exception) {
+                throw new Exception('Invalid exception to be handled');
+            }
+
+            $exceptionClass = get_class($exception);
         }
 
         $this->handlers[] = array(
-            'exception' => $exception,
+            'exceptionClass' => $exceptionClass,
             'callback' => $callback
         );
     }
@@ -432,14 +451,14 @@ class Dispatcher
      * @return Dispatcher
      * @throws Exception
      */
-    public function listen($event, \Closure $callback)
+    public function addListener($event, \Closure $callback)
     {
         if (!in_array($event, $this->events, true)) {
-            throw new Exception(sprintf("Invalid event type: '%s'", $event));
+            throw new Exception(sprintf("Invalid event to be listened: '%s'", $event));
         }
 
         if (!is_callable($callback)) {
-            throw new Exception('Listener callback is not callable');
+            throw new Exception('Listener callback is invalid');
         }
 
         $this->listeners[] = array(
