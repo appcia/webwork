@@ -96,7 +96,9 @@ abstract class Module
     {
         $path = !empty($this->path) ? $this->path . '/lib' : 'lib';
 
-        $bootstrap = $this->container->get('bootstrap');
+        $bootstrap = $this->container
+            ->get('bootstrap');
+
         $bootstrap->getAutoloader()
             ->add($this->namespace, $path);
 
@@ -111,16 +113,6 @@ abstract class Module
     public function getContainer()
     {
         return $this->container;
-    }
-
-    /**
-     * Setup, triggered by hand when creating whole environment
-     *
-     * @return Module
-     */
-    public function setup()
-    {
-        return $this;
     }
 
     /**

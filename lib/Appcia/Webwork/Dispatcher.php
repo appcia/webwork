@@ -328,6 +328,8 @@ class Dispatcher
      * @param mixed $route Route object or name
      *
      * @return Dispatcher
+     * @throws NotFound
+     * @throws \Exception
      */
     public function dispatch($route)
     {

@@ -178,8 +178,6 @@ class Bootstrap
         $path = $this->rootPath . '/' . $config['path'];
         $file = $path . '/module.php';
 
-        $config['path'] = $path;
-
         if (!file_exists($file)) {
             throw new \ErrorException(sprintf("Cannot find module bootstrap '%s'", $file));
         }
@@ -217,7 +215,8 @@ class Bootstrap
     /**
      * Get loaded module by name
      *
-     * @param $name
+     * @param string $name Name
+     *
      * @return mixed
      * @throws \InvalidArgumentException
      */
@@ -231,7 +230,7 @@ class Bootstrap
     }
 
     /**
-     * Get autoloader
+     * Get autoloader (provided by composer)
      *
      * @return object
      */
