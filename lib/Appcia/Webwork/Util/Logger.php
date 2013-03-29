@@ -2,10 +2,13 @@
 
 namespace Appcia\Webwork\Util;
 
+use Appcia\Webwork\System\File;
+use Appcia\Webwork\Exception;
+
 class Logger
 {
     /**
-     * @var string
+     * @var File
      */
     private $file;
 
@@ -22,39 +25,16 @@ class Logger
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct($file)
     {
         $this->dateFormat = 'Y-m-d H:i:s';
         $this->messageFormat = '{level}: {date} {message}';
-    }
 
-    /**
-     * Set file
-     *
-     * @param string $file
-     *
-     * @return Logger
-     * @throws \InvalidArgumentException
-     */
-    public function setFile($file)
-    {
-        $file = (string) $file;
-
-        if (!file_exists($file)) {
-            @touch($file);
-
-            if (!file_exists($file)) {
-                throw new \InvalidArgumentException(sprintf("Cannot create log file: '%s'", $file));
-            }
-        }
-
-        if (!is_writable($file)) {
-            throw new \InvalidArgumentException(sprintf("Log file is not writeable: '%s'", $file));
+        if (!$file instanceof File) {
+            $file = new File($file);
         }
 
         $this->file = $file;
-
-        return $this;
     }
 
     /**
@@ -111,24 +91,17 @@ class Logger
      * @param string $level   Level
      *
      * @return void
-     * @throws \LogicException
-     * @throws \ErrorException
+     * @throws Exception
      */
     public function write($message, $level)
     {
-        if ($this->file === null) {
-            throw new \LogicException("Log file is not specified");
-        }
-
         $message = str_replace(
             array('{level}', '{date}', '{message}'),
             array(mb_strtoupper($level), date($this->dateFormat), (string) $message),
             $this->messageFormat
         ) . PHP_EOL;
 
-        if (!@file_put_contents($this->file, $message, FILE_APPEND)) {
-            throw new \ErrorException(sprintf("Cannot write message to log file: '%s'", $this->file));
-        }
+        $this->file->append($message);
     }
 
     /**

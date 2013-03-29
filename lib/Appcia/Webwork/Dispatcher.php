@@ -394,6 +394,8 @@ class Dispatcher
      *
      * @param mixed $exception Exception object / or class name to handle
      * @param callable   $callback  Callback function
+     *
+     * @return Dispatcher
      * @throws Exception
      */
     public function addHandler($exception, \Closure $callback)
@@ -418,6 +420,8 @@ class Dispatcher
             'exceptionClass' => $exceptionClass,
             'callback' => $callback
         );
+
+        return $this;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Util;
 
 use Appcia\Webwork\Session;
+use Appcia\Webwork\Exception;
 
 class Auth
 {
@@ -110,11 +111,11 @@ class Auth
 
     /**
      * @return Object
-     * @throws \ErrorException
+     * @throws Exception
      */
     public function getUser() {
         if (!$this->isAuthorized()) {
-            throw new \ErrorException('Cannot get user when access is unauthorized');
+            throw new Exception('Cannot get user when access is unauthorized');
         }
 
         if ($this->user === null) {

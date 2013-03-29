@@ -49,18 +49,17 @@ class Config implements \Iterator, \ArrayAccess
      * @param string $file Path to file to be loaded
      *
      * @return Config
-     * @throws \LogicException
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function loadFile($file)
     {
         if (!file_exists($file)) {
-            throw new \InvalidArgumentException(sprintf("Config file not exists: '%s'", $file));
+            throw new Exception(sprintf("Config file not exists: '%s'", $file));
         }
 
         $data = @include($file);
         if ($data === false) {
-            throw new \LogicException("Cannot load values from config");
+            throw new Exception("Cannot load values from config");
         }
 
         $this->extend(new self($data));

@@ -57,12 +57,12 @@ class View
      * Can be used only in view created by dispatcher
      *
      * @return Container
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function getContainer()
     {
         if ($this->container === null) {
-            throw new \InvalidArgumentException('Invalid use. There is no container associated with view');
+            throw new Exception('Invalid use. There is no container associated with view');
         }
 
         return $this->container;
@@ -158,7 +158,7 @@ class View
      * @param string $file File path
      *
      * @return string
-     * @throws \ErrorException
+     * @throws Exception
      */
     public function render($file = null)
     {
@@ -167,7 +167,7 @@ class View
         }
 
         if (!file_exists($file)) {
-            throw new \ErrorException(sprintf("View file not found: '%s'", $file));
+            throw new Exception(sprintf("View file not found: '%s'", $file));
         }
 
         extract($this->data);
@@ -175,7 +175,7 @@ class View
         ob_start();
 
         if ((@include $file) !== 1) {
-            throw new \ErrorException(sprintf("View file cannot be included properly: '%s'", $file));
+            throw new Exception(sprintf("View file cannot be included properly: '%s'", $file));
         }
 
         return ob_get_clean();
@@ -187,7 +187,7 @@ class View
      * @param string $name Name
      *
      * @return Helper
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function getHelper($name)
     {
@@ -195,7 +195,7 @@ class View
             $className = 'Appcia\\Webwork\\View\\Helper\\' . ucfirst($name);
 
             if (!class_exists($className)) {
-                throw new \InvalidArgumentException(sprintf("Helper '%s' does not exist", $className));
+                throw new Exception(sprintf("Helper '%s' does not exist", $className));
             }
 
             $helper = new $className();
@@ -213,12 +213,12 @@ class View
      * @param string $name Key
      *
      * @return mixed
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function getSetting($name)
     {
         if (!isset($this->settings[$name])) {
-            throw new \InvalidArgumentException(sprintf("View setting '%s' does not exist", $name));
+            throw new Exception(sprintf("View setting '%s' does not exist", $name));
         }
 
         return $this->settings[$name];
@@ -231,7 +231,7 @@ class View
      * @param $args Helper arguments
      *
      * @return mixed
-     * @throws \ErrorException
+     * @throws Exception
      */
     public function __call($name, $args)
     {
@@ -241,7 +241,7 @@ class View
         $callback = array($helper, $method);
 
         if (!is_callable($callback)) {
-            throw new \ErrorException(sprintf("View helper '%s' does not have accessible method: '%s", $name, $method));
+            throw new Exception(sprintf("View helper '%s' does not have accessible method: '%s", $name, $method));
         }
 
         return call_user_func_array($callback, $args);

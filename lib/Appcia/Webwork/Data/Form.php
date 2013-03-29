@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Data;
 
 use Appcia\Webwork\Data\Form\Field;
+use Appcia\Webwork\Exception;
 
 class Form
 {
@@ -47,14 +48,14 @@ class Form
      * @param Field $field
      *
      * @return Form
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function addField(Field $field)
     {
         $name = $field->getName();
 
         if ($this->hasField($name)) {
-            throw new \InvalidArgumentException(sprintf("Field '%s' already exist", $name));
+            throw new Exception(sprintf("Field '%s' already exist", $name));
         }
 
         $this->fields[$name] = $field;
@@ -80,12 +81,12 @@ class Form
      * @param string $name Field name
      *
      * @return Field
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function getField($name)
     {
         if (!isset($this->fields[$name])) {
-            throw new \InvalidArgumentException(sprintf("Field '%s' does not exist", $name));
+            throw new Exception(sprintf("Field '%s' does not exist", $name));
         }
 
         return $this->fields[$name];
@@ -105,12 +106,12 @@ class Form
      * @param string $name Field name
      *
      * @return mixed
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function get($name)
     {
         if (!isset($this->fields[$name])) {
-            throw new \InvalidArgumentException(sprintf("Field '%s' does not exist", $name));
+            throw new Exception(sprintf("Field '%s' does not exist", $name));
         }
 
         $field = $this->fields[$name];
@@ -140,12 +141,12 @@ class Form
      * @param mixed  $value Field value
      *
      * @return Form
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function set($name, $value)
     {
         if (!isset($this->fields[$name])) {
-            throw new \InvalidArgumentException(sprintf("Field '%s' does not exist", $name));
+            throw new Exception(sprintf("Field '%s' does not exist", $name));
         }
 
         $field = $this->fields[$name];
@@ -176,11 +177,11 @@ class Form
     /**
      * Populate form by data
      *
-     * @param array $data     Input data
-     * @param bool  $unknowns Accept unknown values
-     *
      * When unknowns flag is true, then fields are created automatically
      * Safer when false, prevent for XSRF attacks
+     *
+     * @param array $data     Input data
+     * @param bool  $unknowns Accept unknown values
      *
      * @return Form
      */
@@ -278,7 +279,9 @@ class Form
     /**
      * Suck values from object using getters
      *
-     * @param $obj
+     * @param object  $obj Source object
+     *
+     * @return Form
      */
     public function suck($obj)
     {
@@ -293,12 +296,15 @@ class Form
                 }
             }
         }
+
+        return $this;
     }
 
     /**
      * Magic getter for $form->{fieldName} in templates
      *
-     * @param string $name
+     * @param string $name Field name
+     *
      * @return Form\Field
      */
     public function __get($name) {

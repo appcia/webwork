@@ -49,13 +49,12 @@ class Container
      * @param string $id The unique identifier for the parameter or object
      *
      * @return mixed The value of the parameter or an object
-     *
-     * @throws \InvalidArgumentException if the identifier is not defined
+     * @throws Exception if the identifier is not defined
      */
     public function get($id)
     {
         if (!array_key_exists($id, $this->values)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+            throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
         }
 
         $isFactory = is_object($this->values[$id]) && method_exists($this->values[$id], '__invoke');
@@ -139,12 +138,12 @@ class Container
      *
      * @return mixed The value of the parameter or the closure defining an object
      *
-     * @throws \InvalidArgumentException if the identifier is not defined
+     * @throws Exception if the identifier is not defined
      */
     public function raw($id)
     {
         if (!array_key_exists($id, $this->values)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+            throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
         }
 
         return $this->values[$id];
@@ -161,18 +160,18 @@ class Container
      *
      * @return \Closure The wrapped closure
      *
-     * @throws \InvalidArgumentException if the identifier is not defined
+     * @throws Exception if the identifier is not defined
      */
     public function extend($id, \Closure $callable)
     {
         if (!array_key_exists($id, $this->values)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" is not defined.', $id));
+            throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
         }
 
         $factory = $this->values[$id];
 
         if (!($factory instanceof \Closure)) {
-            throw new \InvalidArgumentException(sprintf('Identifier "%s" does not contain an object definition.', $id));
+            throw new Exception(sprintf('Identifier "%s" does not contain an object definition.', $id));
         }
 
         return $this->values[$id] = function ($c) use ($callable, $factory) {

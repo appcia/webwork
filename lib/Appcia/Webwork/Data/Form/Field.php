@@ -2,8 +2,9 @@
 
 namespace Appcia\Webwork\Data\Form;
 
-use Appcia\Webwork\Data\Validator;
 use Appcia\Webwork\Data\Filter;
+use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Exception;
 
 class Field {
 
@@ -119,13 +120,13 @@ class Field {
      * Attach filter to field
      *
      * @param Filter $filter
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function addFilter(Filter $filter) {
         $name = $filter->getName();
 
         if (isset($this->filters[$name])) {
-            throw new \InvalidArgumentException(sprintf("Filter '%s' already exist"));
+            throw new Exception(sprintf("Filter '%s' already exist"));
         }
 
         $this->filters[$name] = $filter;
@@ -155,13 +156,13 @@ class Field {
      * Attach validator to field
      *
      * @param Validator $validator
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function addValidator(Validator $validator) {
         $name = $validator->getName();
 
         if (isset($this->validators[$name])) {
-            throw new \InvalidArgumentException(sprintf("Validator '%s' already exist"));
+            throw new Exception(sprintf("Validator '%s' already exist"));
         }
 
         $this->validators[$name] = $validator;

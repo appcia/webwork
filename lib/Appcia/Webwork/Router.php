@@ -14,11 +14,6 @@ class Router
     private $routes;
 
     /**
-     * @var array
-     */
-    private $eventRoutes;
-
-    /**
      * Default settings
      *
      * @var array
@@ -31,21 +26,18 @@ class Router
     public function __construct()
     {
         $this->routes = array();
-        $this->eventRoutes = array();
-
-        $this->setSettings(array());
+        $this->settings = array();
     }
 
     /**
      * Set default values
      *
-     * @param array $data
+     * @param array $data Data
      *
      * @return Router
      */
     public function setSettings($data)
     {
-
         $this->settings = $data;
 
         return $this;
@@ -67,7 +59,7 @@ class Router
      * @param array $routes
      *
      * @return Router
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function setRoutes(array $routes)
     {
@@ -84,7 +76,7 @@ class Router
      *
      * @param array $route Route data
      *
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function addRoute(array $route)
     {
@@ -94,11 +86,11 @@ class Router
         }
 
         if (!is_array($route)) {
-            throw new \InvalidArgumentException('Route data is not an array');
+            throw new Exception('Route data is not an array');
         }
 
         if (!isset($route['name'])) {
-            throw new \InvalidArgumentException('Route name is not specified');
+            throw new Exception('Route name is not specified');
         }
 
         $config = new Config($defaults);
@@ -107,7 +99,8 @@ class Router
         $route = new Route();
         $config->inject($route);
 
-        $this->routes[$route->getName()] = $route;
+        $name = $route->getName();
+        $this->routes[$name] = $route;
     }
 
     /**
@@ -123,14 +116,14 @@ class Router
     /**
      * Get route by name
      *
-     * @param string $name Route name
+     * @param string $name Name
      *
      * @return Route
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function getRoute($name) {
         if (!isset($this->routes[$name])) {
-            throw new \InvalidArgumentException(sprintf("Route '%s' does not exist"));
+            throw new Exception(sprintf("Route '%s' does not exist"));
         }
 
         return $this->routes[$name];
@@ -175,7 +168,6 @@ class Router
      * @param Request $request Source request
      *
      * @return array
-     * @throws \LogicException
      */
     public function match(Request $request)
     {
@@ -196,12 +188,12 @@ class Router
      * @param array   $params Route or / and GET params
      *
      * @return string
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function assemble($route, array $params = array())
     {
         if (!isset($this->routes[$route])) {
-            throw new \InvalidArgumentException(sprintf("Route '%s' does not exist", $route));
+            throw new Exception(sprintf("Route '%s' does not exist", $route));
         }
 
         $route = $this->routes[$route];
@@ -230,7 +222,7 @@ class Router
 
         // Check that all params from map are used
         if (!empty($map)) {
-            throw new \InvalidArgumentException(sprintf("Route parameter '%s' is not mapped (or it is redundant)", key($map)));
+            throw new Exception(sprintf("Route parameter '%s' is not mapped (or it is redundant)", key($map)));
         }
 
         // Inject params to path

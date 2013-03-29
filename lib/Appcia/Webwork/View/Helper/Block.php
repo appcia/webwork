@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\View\Helper;
 
 use Appcia\Webwork\View\Helper;
+use Appcia\Webwork\Exception;
 
 class Block extends Helper
 {
@@ -51,12 +52,12 @@ class Block extends Helper
      * @param string $name Block name
      *
      * @return void
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function block($name)
     {
         if (!isset($this->blocks[$name])) {
-            throw new \InvalidArgumentException(sprintf("Block '%s' does not exist", $name));
+            throw new Exception(sprintf("Block '%s' does not exist", $name));
         }
 
         echo $this->blocks[$name];
@@ -68,13 +69,13 @@ class Block extends Helper
      * @param string $name Block name
      * @param string $file View to be extended
      *
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function begin($name, $file = null)
     {
         if ($file) {
             if (!file_exists($file)) {
-                throw new \InvalidArgumentException(sprintf('View file for extending does not exist', $file));
+                throw new Exception(sprintf('View file for extending does not exist', $file));
             }
 
             // Associate block with extending
@@ -96,7 +97,7 @@ class Block extends Helper
      * @param $name
      *
      * @return mixed|string
-     * @throws \ErrorException
+     * @throws Exception
      */
     public function end($name = null)
     {
@@ -105,7 +106,7 @@ class Block extends Helper
         if (!$name) {
             $name = $check;
         } else if ($name !== $check) {
-            throw new \ErrorException('Block begin / end structure is not consistent');
+            throw new Exception('Block begin / end structure is not consistent');
         }
 
         // Get captured block

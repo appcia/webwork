@@ -133,7 +133,7 @@ class Bootstrap
      * Load all modules basing on config
      *
      * @return Bootstrap
-     * @throws \ErrorException
+     * @throws Exception
      */
     private function loadModules()
     {
@@ -141,7 +141,7 @@ class Bootstrap
 
         $core = $config->get('app');
         if (empty($core)) {
-            throw new \ErrorException("App module configuration is empty."
+            throw new Exception("App module configuration is empty."
                 ." Check whether key 'core' really exist in config file.");
         }
 
@@ -149,7 +149,7 @@ class Bootstrap
 
         $modules = $config->get('modules');
         if (empty($modules)) {
-            throw new \ErrorException("Module configuration is empty."
+            throw new Exception("Module configuration is empty."
                 ." Check whether key 'modules' has at least one module specified.");
         }
 
@@ -167,33 +167,39 @@ class Bootstrap
      * @param array  $config Native data
      *
      * @return Bootstrap
-     * @throws \ErrorException
+     * @throws Exception
      */
     private function loadModule($name, array $config)
     {
         if (!isset($config['path'])) {
-            throw new \ErrorException(sprintf("Module '%s' does not have path specified", $name));
+            throw new Exception(sprintf("Module '%s' does not have path specified", $name));
         }
 
         $path = $this->rootPath . '/' . $config['path'];
         $file = $path . '/module.php';
 
         if (!file_exists($file)) {
-            throw new \ErrorException(sprintf("Cannot find module bootstrap '%s'", $file));
+            throw new Exception(sprintf("Cannot find module bootstrap '%s'", $file));
         }
 
         if ((@include_once($file)) === false) {
-            throw new \ErrorException(sprintf("Cannot include module bootstrap '%s'", $file));
+            throw new Exception(sprintf("Cannot include module bootstrap '%s'", $file));
         }
 
         $className = ucfirst($name)
             . '\\' . ucfirst($name) . 'Module';
 
         if (!class_exists($className)) {
-            throw new \ErrorException(sprintf("Module bootstrap '%s' does not contain class '%s'", $file, $className));
+            throw new Exception(sprintf("Module bootstrap '%s' does not contain class '%s'", $file, $className));
         }
 
-        $module = new $className($this->container, $name, $config);
+        $module = new $className(
+            $this->container,
+            $name,
+            $config['namespace'],
+            $config['path']
+        );
+
         $module->autoload()
             ->init();
 
@@ -218,12 +224,12 @@ class Bootstrap
      * @param string $name Name
      *
      * @return mixed
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function getModule($name)
     {
         if (!isset($this->modules[$name])) {
-            throw new \InvalidArgumentException(sprintf("Module '%s' does not exist", $name));
+            throw new Exception(sprintf("Module '%s' does not exist", $name));
         }
 
         return $this->modules[$name];

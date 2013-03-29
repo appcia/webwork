@@ -9,7 +9,7 @@ class Number extends Helper
     /**
      * Caller
      *
-     * @param float  $number Value to be treated as integer number
+     * @param float $number Value to be treated as integer number
      *
      * @return string
      */

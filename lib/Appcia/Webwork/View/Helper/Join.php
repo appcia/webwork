@@ -39,6 +39,8 @@ class Join extends Helper
             $data = $values;
         }
 
-        return implode($separator, $data);
+        $list = implode($separator, $data);
+
+        return $list;
     }
 }

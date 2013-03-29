@@ -37,24 +37,17 @@ abstract class Module
      *
      * @param Container $container Container
      * @param string    $name      Name
-     * @param array     $config    Configuration
+     * @param string    $namespace Namespace
+     * @param string    $path      Path
      *
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
-    public function __construct(Container $container, $name, array $config)
+    public function __construct(Container $container, $name, $namespace, $path)
     {
-        if (!isset($config['namespace'])) {
-            throw new \InvalidArgumentException(sprintf("Module '%s' does not have namespace specified", $name));
-        }
-
-        if (!isset($config['path'])) {
-            throw new \InvalidArgumentException(sprintf("Module '%s' does not have path specified", $name));
-        }
-
         $this->container = $container;
         $this->name = (string) $name;
-        $this->namespace = (string) $config['namespace'];
-        $this->path = (string) $config['path'];
+        $this->namespace = $namespace;
+        $this->path = $path;
     }
 
     /**
@@ -116,7 +109,8 @@ abstract class Module
     }
 
     /**
-     * Initialize, do only necessary / light things like adding configuration, routing etc
+     * Initialize, do only light-weight things like adding configuration, routing etc.
+     * Executed by all modules
      *
      * @return Module
      */
@@ -126,7 +120,8 @@ abstract class Module
     }
 
     /**
-     * Run, prepare heavy things, routing matched current module
+     * Run, prepare heavy things
+     * Executed only by target module (according to current route)
      *
      * @return Module
      */

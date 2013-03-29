@@ -52,12 +52,12 @@ class Session
      * @param $key Key
      *
      * @return mixed
-     * @throws \InvalidArgumentException
+     * @throws Exception
      */
     public function get($key)
     {
         if (!isset($this->storage[$key])) {
-            throw new \InvalidArgumentException('Specified value does not exist');
+            throw new Exception('Specified value does not exist');
         }
 
         return unserialize($this->storage[$key]);
