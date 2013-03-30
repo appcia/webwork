@@ -68,6 +68,8 @@ class Dispatcher
     const FINISH = 'finish';
 
     /**
+     * Event collection
+     *
      * @var array
      */
     private $events = array(
@@ -106,6 +108,8 @@ class Dispatcher
     }
 
     /**
+     * Get current request
+     *
      * @return Request
      */
     public function getRequest()
@@ -114,15 +118,13 @@ class Dispatcher
     }
 
     /**
-     * Force set route
+     * Set route
      *
-     * Useful for event listeners
-     *
-     * @param Route $route
+     * @param Route $route Route
      *
      * @return Dispatcher
      */
-    public function setRoute(Route $route)
+    private function setRoute(Route $route)
     {
         $this->route = $route;
 
@@ -210,6 +212,18 @@ class Dispatcher
     }
 
     /**
+     * Get possible events
+     *
+     * @return array
+     */
+    public function getEvents()
+    {
+        return $this->events;
+    }
+
+    /**
+     * Get controller class name basing on current route
+     *
      * @return string
      */
     private function getControllerClass()
@@ -227,6 +241,8 @@ class Dispatcher
     }
 
     /**
+     * Get controller method name basing on current route
+     *
      * @return string
      */
     private function getControllerMethod()
@@ -441,11 +457,11 @@ class Dispatcher
      * Register exception handler
      *
      * Exception could be:
-     * - object     for example: new NotFound()
+     * - object     for example: new Appcia\Webwork\NotFound\NotFound()
      * - class name for example: Appcia\Webwork\NotFound
      * - bool       if should always / never handle any type of exception
      *
-     * @param mixed $exception Exception to be handled, see description!
+     * @param mixed    $exception Exception to be handled, see description!
      * @param callable $callback  Callback function
      *
      * @return Dispatcher
@@ -486,7 +502,7 @@ class Dispatcher
     /**
      * Register event listener
      *
-     * @param string $event    Event type
+     * @param string   $event    Event
      * @param \Closure $callback Callback
      *
      * @return Dispatcher
