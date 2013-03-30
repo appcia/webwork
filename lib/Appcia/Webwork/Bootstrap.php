@@ -19,11 +19,6 @@ class Bootstrap
     /**
      * @var string
      */
-    private $environment;
-
-    /**
-     * @var string
-     */
     private $rootPath;
 
     /**
@@ -37,17 +32,47 @@ class Bootstrap
     private $autoloader;
 
     /**
+     * @var string
+     */
+    private $environment;
+
+    const DEVELOPMENT = 'development';
+    const TEST = 'test';
+    const PRODUCTION = 'production';
+
+    /**
+     * @var array
+     */
+    private $environments = array(
+        self::DEVELOPMENT,
+        self::TEST,
+        self::PRODUCTION
+    );
+
+    /**
      * Constructor
      *
      * @param string $env        Environment
      * @param string $rootPath   Root directory
      * @param string $configFile Global configuration
      * @param object $autoloader Autoloader
+     *
+     * @throws Exception
      */
     public function __construct($env, $rootPath, $configFile, $autoloader)
     {
+        if (!in_array($env, $this->environments)) {
+            throw new Exception('Environment not specified.' . PHP_EOL
+                . "Set environmental variable named 'APPLICATION_ENV' in vhost configuration." . PHP_EOL
+                . "If you are running CLI, to set this variable, you could use 'export' command.", $env);
+        }
+
+        if (!in_array($env, $this->environments)) {
+            throw new Exception(sprintf("Invalid environment: '%s'", $env));
+        }
+
         $this->environment = $env;
-        $this->rootPath =  $rootPath;
+        $this->rootPath = $rootPath;
         $this->configFile = $configFile;
         $this->autoloader = $autoloader;
 
@@ -79,18 +104,17 @@ class Bootstrap
     }
 
     /**
-     * Load core module
+     * Load app module
      *
      * @return Bootstrap
      */
     private function loadApp()
     {
-        $bootstrap = $this;
-        $this->container->single('bootstrap', function ($container) use ($bootstrap) {
-            return $bootstrap;
-        });
+        $this->container->set('bootstrap', $this);
 
-        $this->container->single('config', function ($container) use ($bootstrap) {
+        $this->container->single('config', function ($container) {
+            $bootstrap = $container->get('bootstrap');
+
             $config = new Config();
             $config->loadFile($bootstrap->getConfigFile());
 
@@ -139,18 +163,17 @@ class Bootstrap
     {
         $config = $this->container->get('config');
 
-        $core = $config->get('app');
-        if (empty($core)) {
-            throw new Exception("App module configuration is empty."
-                ." Check whether key 'core' really exist in config file.");
+        if (empty($config['app'])) {
+            throw new Exception("Configuration for base application module is empty."
+                . " Check whether key 'app' really exist in config file.");
         }
 
         $this->loadModule('app', $config['app']);
 
         $modules = $config->get('modules');
         if (empty($modules)) {
-            throw new Exception("Module configuration is empty."
-                ." Check whether key 'modules' has at least one module specified.");
+            throw new Exception("Configuration for modules is empty."
+                . " Check whether key 'modules' has at least one module specified.");
         }
 
         foreach ($modules as $name => $config) {
@@ -164,7 +187,7 @@ class Bootstrap
      * Load single module
      *
      * @param string $name   Keyword name
-     * @param array  $config Native data
+     * @param array $config Native data
      *
      * @return Bootstrap
      * @throws Exception
@@ -256,13 +279,23 @@ class Bootstrap
     }
 
     /**
-     * Get environment type
+     * Get current environment
      *
      * @return string
      */
     public function getEnvironment()
     {
         return $this->environment;
+    }
+
+    /**
+     * Get all possible environments
+     *
+     * @return array
+     */
+    public function getEnvironments()
+    {
+        return $this->environments;
     }
 
     /**

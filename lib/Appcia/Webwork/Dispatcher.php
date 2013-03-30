@@ -4,46 +4,46 @@ namespace Appcia\Webwork;
 
 use Appcia\Webwork\Module;
 use Appcia\Webwork\Router\Route;
-use Appcia\Webwork\Exception\Error;
 use Appcia\Webwork\Exception\NotFound;
-use Appcia\Webwork\Dispatcher\Listener;
 
 class Dispatcher
 {
-    const E_INIT = 'init';
-    const E_FIND_ROUTE = 'route';
-    const E_INVOKE_ACTION = 'invoke';
-    const E_PROCESS_RESPONSE = 'process';
-    const E_HANDLE_EXCEPTION = 'exception';
-    const E_FINISH = 'finish';
-
-    /**
-     * @var array
-     */
-    private $events = array(
-        self::E_INIT,
-        self::E_FIND_ROUTE,
-        self::E_INVOKE_ACTION,
-        self::E_PROCESS_RESPONSE,
-        self::E_FINISH
-    );
-
     /**
      * @var Container
      */
     private $container;
 
     /**
+     * Dispatching event listeners
+     *
      * @var array
      */
     private $listeners;
 
     /**
+     * Specific exception handlers
+     *
+     * @var array
+     */
+    private $handlers;
+
+    /**
+     * Handler for all exceptions
+     *
+     * @var \Closure
+     */
+    private $handler;
+
+    /**
+     * Current request
+     *
      * @var Request
      */
     private $request;
 
     /**
+     * Matched route
+     *
      * @var Route
      */
     private $route;
@@ -54,9 +54,29 @@ class Dispatcher
     private $data;
 
     /**
+     * Current response
+     *
      * @var Response
      */
     private $response;
+
+    const INIT = 'init';
+    const FIND_ROUTE = 'route';
+    const INVOKE_ACTION = 'invoke';
+    const PROCESS_RESPONSE = 'process';
+    const HANDLE_EXCEPTION = 'exception';
+    const FINISH = 'finish';
+
+    /**
+     * @var array
+     */
+    private $events = array(
+        self::INIT,
+        self::FIND_ROUTE,
+        self::INVOKE_ACTION,
+        self::PROCESS_RESPONSE,
+        self::FINISH
+    );
 
     /**
      * Constructor
@@ -70,6 +90,7 @@ class Dispatcher
 
         $this->handlers = array();
         $this->listeners = array();
+        $this->exceptions = array();
     }
 
     /**
@@ -179,6 +200,16 @@ class Dispatcher
     }
 
     /**
+     * Get captured exceptions
+     *
+     * @return array
+     */
+    public function getExceptions()
+    {
+        return $this->exceptions;
+    }
+
+    /**
      * @return string
      */
     private function getControllerClass()
@@ -248,7 +279,7 @@ class Dispatcher
         $action = array($controller, $methodName);
         if (!is_callable($action)) {
             throw new Exception(sprintf(
-                "Could not dispatch '%s''. Check whether that controller method really exist",
+                "Could not dispatch '%s''. Check whether controller method really exist",
                 $className . '::' . $methodName
             ));
         }
@@ -265,6 +296,8 @@ class Dispatcher
     }
 
     /**
+     * Get module path basing on current route
+     *
      * @return string
      */
     private function getModuleDir()
@@ -275,6 +308,8 @@ class Dispatcher
     }
 
     /**
+     * Get controller path basing on current route
+     *
      * @return string
      */
     private function getControllerDir()
@@ -283,6 +318,9 @@ class Dispatcher
     }
 
     /**
+     * Get view template filename basing on current route
+     * If template name contains '*' it will be replaced by route action
+     *
      * @return string
      */
     private function getTemplateFilename()
@@ -338,62 +376,77 @@ class Dispatcher
             $route = $router->getRoute($route);
         }
 
-        $this->container->set('exception', null);
-        $this->notify(self::E_INIT);
+        $this->notify(self::INIT);
 
         try {
             if ($route === null) {
-                throw new NotFound('Route not found');
+                throw new NotFound('Cannot dispatch. Route not found');
             }
 
             $this->setRoute($route)
-                ->notify(self::E_FIND_ROUTE)
+                ->notify(self::FIND_ROUTE)
                 ->invokeAction()
-                ->notify(self::E_INVOKE_ACTION)
+                ->notify(self::INVOKE_ACTION)
                 ->processResponse()
-                ->notify(self::E_PROCESS_RESPONSE);
+                ->notify(self::PROCESS_RESPONSE);
         } catch (\Exception $e) {
-            $this->container->set('exception', $e);
+            $this->exceptions[] = $e;
 
             if (!$this->handle($e)) {
                 throw $e;
             }
         }
 
-        $this->notify(self::E_FINISH);
+        $this->notify(self::FINISH);
 
         return $this;
     }
 
     /**
-     * Handle exception catched by some dispatching
-     * Returns true if handled by any handler
+     * Do handler action if exception occurred
      *
      * @param \Exception $e Exception
      * @return bool
      */
     public function handle($e)
     {
-        $handled = false;
+        $exception = get_class($e);
+        $specificHandler = null;
+        $allHandler = null;
 
         foreach ($this->handlers as $handler) {
-            $exceptionClass = $handler['exceptionClass'];
-            $callback = $handler['callback'];
+            if ($handler['exception'] === true) {
+                $allHandler = $handler;
+            }
 
-            if (get_class($e) === $exceptionClass) {
-                call_user_func_array($callback, array($this->container));
-                $handled = true;
+            if ($handler['exception'] === $exception) {
+                $specificHandler = $handler;
             }
         }
 
-        return $handled;
+        $handler = $allHandler;
+        if ($specificHandler !== null) {
+            $handler = $specificHandler;
+        }
+
+        if ($handler !== null) {
+            call_user_func_array($handler['callback'], array($this->container));
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * Register exception handler
      *
-     * @param mixed $exception Exception object / or class name to handle
-     * @param callable   $callback  Callback function
+     * Exception could be:
+     * - object     for example: new NotFound()
+     * - class name for example: Appcia\Webwork\NotFound
+     * - bool       if should always / never handle any type of exception
+     *
+     * @param mixed $exception Exception to be handled, see description!
+     * @param callable $callback  Callback function
      *
      * @return Dispatcher
      * @throws Exception
@@ -404,20 +457,16 @@ class Dispatcher
             throw new Exception('Handler callback is invalid');
         }
 
-        $exceptionClass = null;
-        if (is_string($exception)) {
-            $exceptionClass = $exception;
-        }
-        else {
+        if (is_object($exception)) {
             if (!$exception instanceof \Exception) {
                 throw new Exception('Invalid exception to be handled');
             }
 
-            $exceptionClass = get_class($exception);
+            $exception = get_class($exception);
         }
 
         $this->handlers[] = array(
-            'exceptionClass' => $exceptionClass,
+            'exception' => $exception,
             'callback' => $callback
         );
 
@@ -425,9 +474,19 @@ class Dispatcher
     }
 
     /**
+     * Set handler for all exceptions
+     *
+     * @param callable $callback
+     */
+    public function setHandler(\Closure $callback)
+    {
+        $this->handler = $callback;
+    }
+
+    /**
      * Register event listener
      *
-     * @param string   $event    Event type
+     * @param string $event    Event type
      * @param \Closure $callback Callback
      *
      * @return Dispatcher
@@ -452,9 +511,9 @@ class Dispatcher
     }
 
     /**
-     * Notify listeners about event
+     * Notify listeners about dispatching event
      *
-     * @param $event
+     * @param string $event Event
      *
      * @return Dispatcher
      */
@@ -472,7 +531,7 @@ class Dispatcher
     /**
      * Convert class with namespace to path
      *
-     * @param $class
+     * @param string $class Class
      *
      * @return string
      */
@@ -492,8 +551,8 @@ class Dispatcher
     /**
      * Convert camel cased text to dashed
      *
-     * @param string $str        String to be parsed
-     * @param bool   $firstUpper Uppercase first letter?
+     * @param string $str      String to be parsed
+     * @param bool $firstUpper Uppercase first letter?
      *
      * @return string
      */
