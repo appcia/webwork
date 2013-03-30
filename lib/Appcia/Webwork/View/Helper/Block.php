@@ -74,10 +74,6 @@ class Block extends Helper
     public function begin($name, $file = null)
     {
         if ($file) {
-            if (!file_exists($file)) {
-                throw new Exception(sprintf('View file for extending does not exist', $file));
-            }
-
             // Associate block with extending
             $this->extends[$name] = $file;
         }

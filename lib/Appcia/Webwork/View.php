@@ -145,11 +145,26 @@ class View
     }
 
     /**
+     * Get template file
+     *
      * @return string
      */
     public function getFile()
     {
         return $this->file;
+    }
+
+    /**
+     * Get view path in current module
+     *
+     * @return string
+     */
+    public function getModulePath()
+    {
+        $dispatcher = $this->container->get('dispatcher');
+        $path = $dispatcher->getModulePath() . '/view';
+
+        return $path;
     }
 
     /**
@@ -167,7 +182,13 @@ class View
         }
 
         if (!file_exists($file)) {
-            throw new Exception(sprintf("View file not found: '%s'", $file));
+            $moduleFile = $this->getModulePath() . '/' . $file;
+
+            if (!file_exists($moduleFile)) {
+                throw new Exception(sprintf("View file not found: '%s'", $file));
+            }
+
+            $file = $moduleFile;
         }
 
         extract($this->data);

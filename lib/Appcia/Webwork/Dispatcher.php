@@ -118,13 +118,13 @@ class Dispatcher
     }
 
     /**
-     * Set route
+     * Force route
      *
      * @param Route $route Route
      *
      * @return Dispatcher
      */
-    private function setRoute(Route $route)
+    public function setRoute(Route $route)
     {
         $this->route = $route;
 
@@ -316,7 +316,7 @@ class Dispatcher
      *
      * @return string
      */
-    private function getModuleDir()
+    public function getModulePath()
     {
         return $this->container->get('bootstrap')
             ->getModule($this->route->getModule())
@@ -328,7 +328,7 @@ class Dispatcher
      *
      * @return string
      */
-    private function getControllerDir()
+    public function getControllerPath()
     {
         return $this->getPath($this->route->getController());
     }
@@ -339,7 +339,7 @@ class Dispatcher
      *
      * @return string
      */
-    private function getTemplateFilename()
+    public function getTemplateFilename()
     {
         $action = $this->getPath($this->route->getAction());
         $template = mb_strtolower(str_replace('*', $action, $this->route->getTemplate()));
@@ -357,7 +357,7 @@ class Dispatcher
         // View
         $view = new View($this->container);
 
-        $file = $this->getModuleDir() . '/view/' . $this->getControllerDir() . '/' . $this->getTemplateFilename();
+        $file = $this->getModulePath() . '/view/' . $this->getControllerPath() . '/' . $this->getTemplateFilename();
 
         $view->setFile($file)
             ->setData($this->data);
