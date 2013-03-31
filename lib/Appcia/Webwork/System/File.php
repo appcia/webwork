@@ -67,6 +67,27 @@ class File
     }
 
     /**
+     * Get detailed information about file
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function getStat()
+    {
+        if (!$this->exists()) {
+            throw new Exception('Cannot stat non-existing file');
+        }
+
+        $stat = @stat($this->path);
+
+        if ($stat === false) {
+            throw new Exception(sprintf("Cannot stat file: '%s'", $this->path));
+        }
+
+        return $stat;
+    }
+
+    /**
      * Get file name without extension
      *
      * @return string
@@ -114,7 +135,7 @@ class File
      */
     public function remove()
     {
-        if (!unlink($this->path)) {
+        if (!@unlink($this->path)) {
             throw new Exception(sprintf(
                 "Cannot remove a file: '%s'" . PHP_EOL
                     . 'Verify access permissions', $this->path
@@ -132,7 +153,7 @@ class File
      */
     public function create()
     {
-        if (!touch($this->path)) {
+        if (!@touch($this->path)) {
             throw new Exception(sprintf(
                 "Cannot create a file: '%s'" . PHP_EOL
                     . 'Verify access permissions', $this->path
@@ -143,24 +164,62 @@ class File
     }
 
     /**
-     * Move file to another directory
+     * Move file to another location
      *
-     * @param Dir|string $dir Target directory
+     * @param string $file     Target file
+     * @param bool $createPath Create path if does not exist
      *
      * @return File
      * @throws Exception
      */
-    public function move($dir)
+    public function move($file, $createPath = true)
     {
-        if (!$dir instanceof Dir) {
-            $dir = new Dir($dir);
+        if (!$file instanceof File) {
+            $file = new self($file);
         }
 
-        $targetPath = $dir->getPath($this->getBaseName());
+        if ($createPath) {
+            $dir = $file->getDir();
 
-        if (!rename($this->path, $targetPath)) {
-            throw new Exception(sprintf("Cannot move a file to directory: %s -> %s" . PHP_EOL
-                . 'Verify access permissions', $this->path, $targetPath));
+            if (!$dir->exists()) {
+                $dir->create();
+            }
+        }
+
+        if (!@rename($this->path, $file->path)) {
+            throw new Exception(sprintf("Cannot move a file to location: %s -> %s" . PHP_EOL
+                . 'Verify access permissions', $this->path, $file->path));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Move file to another location
+     *
+     * @param string $file     Target file
+     * @param bool $createPath Create path if does not exist
+     *
+     * @return File
+     * @throws Exception
+     */
+    public function copy($file, $createPath = true)
+    {
+        if (!$file instanceof File) {
+            $file = new self($file);
+        }
+
+        if ($createPath) {
+            $dir = $file->getDir();
+
+            if (!$dir->exists()) {
+                $dir->create();
+            }
+        }
+
+        if (!@copy($this->path, $file->path)) {
+            throw new Exception(sprintf("Cannot copy a file to location: %s -> %s" . PHP_EOL
+                . 'Verify access permissions', $this->path, $file->path));
         }
 
         return $this;
@@ -186,11 +245,11 @@ class File
 
         $link = new self($file);
 
-        if ($link->isLink() && !unlink($file)) {
+        if ($link->isLink() && !@unlink($file)) {
             throw new Exception(sprintf("Cannot remove an existing link: '%s'", $file));
         }
 
-        if (!symlink($this->getAbsolutePath(), $link->getAbsolutePath())) {
+        if (!@symlink($this->getAbsolutePath(), $link->getAbsolutePath())) {
             throw new Exception(sprintf('Cannot create a link to file: %s -> %s', $this->getPath(), $link->getPath()));
         }
 
@@ -209,7 +268,7 @@ class File
             throw new Exception(sprintf("Cannot read from non-existing file: '%s'", $this->path));
         }
 
-        $data = file_get_contents($this->path);
+        $data = @file_get_contents($this->path);
 
         if ($data === false) {
             throw new Exception(sprintf("Cannot read from file: '%s'", $this->path));
@@ -233,7 +292,7 @@ class File
             throw new Exception(sprintf("Cannot overwrite file. File already exists: '%s'", $this->path));
         }
 
-        if (!file_put_contents($this->path, $data)) {
+        if (!@file_put_contents($this->path, $data)) {
             throw new Exception(sprintf("Cannot write data to file: '%s'" . PHP_EOL
                 . 'Verify access permissions', $this->path));
         }
@@ -255,7 +314,7 @@ class File
             throw new Exception(sprintf("Cannot append data to non-existing file: '%s'", $this->path));
         }
 
-        $bytes = file_put_contents($this->path, $data, FILE_APPEND);
+        $bytes = @file_put_contents($this->path, $data, FILE_APPEND);
 
         if ($bytes === false) {
             throw new Exception(sprintf("Cannot append data to file: '%s'" . PHP_EOL

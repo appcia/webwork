@@ -49,7 +49,7 @@ class Session
     /**
      * Get stored value by key
      *
-     * @param $key Key
+     * @param string $key Key
      *
      * @return mixed
      * @throws Exception

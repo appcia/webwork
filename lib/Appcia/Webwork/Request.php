@@ -57,6 +57,11 @@ class Request
     /**
      * @var array
      */
+    private $files;
+
+    /**
+     * @var array
+     */
     private $get;
 
     /**
@@ -73,6 +78,7 @@ class Request
         $this->params = array();
         $this->post = array();
         $this->get = array();
+        $this->files = array();
     }
 
     /**
@@ -84,6 +90,7 @@ class Request
     {
         $this->setPost($_POST);
         $this->setGet($_GET);
+        $this->setFiles($_FILES);
 
         $this->setScriptFile($_SERVER['SCRIPT_NAME'])
             ->setServer($_SERVER['SERVER_NAME'])
@@ -427,6 +434,31 @@ class Request
     public function getGet()
     {
         return $this->get;
+    }
+
+    /**
+     * Set uploaded files data
+     *
+     * @param array $files
+     *
+     * @return Request
+     */
+    public function setFiles($files)
+    {
+        $this->files = $files;
+        $this->data = Config::merge($this->data, $files);
+
+        return $this;
+    }
+
+    /**
+     * Get uploaded files data
+     *
+     * @return array
+     */
+    public function getFiles()
+    {
+        return $this->files;
     }
 
     /**

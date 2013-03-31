@@ -144,7 +144,7 @@ class Dir
      */
     public function create($permission = 0777, $recursive = true)
     {
-        if (!mkdir($this->path, $permission, $recursive)) {
+        if (!@mkdir($this->path, $permission, $recursive)) {
             throw new Exception(sprintf(
                 'Cannot create a directory: %s ' . PHP_EOL
                     . 'Verify access permissions', $this->path
@@ -197,7 +197,7 @@ class Dir
                 ));
             }
         } else {
-            if (!rmdir($this->path)) {
+            if (!@rmdir($this->path)) {
                 throw new Exception(sprintf(
                     'Cannot remove a directory: %s ' . PHP_EOL
                         . 'Make sure that it is empty or specify recursive parameter', $this->path
@@ -221,14 +221,14 @@ class Dir
             return;
         }
 
-        $nodes = scandir($path);
+        $nodes = @scandir($path);
         if ($nodes === false) {
             return;
         }
 
         $nodes = array_diff($nodes, array('.', '..'));
         foreach ($nodes as $node) {
-            $type = filetype($path . '/' . $node);
+            $type = @filetype($path . '/' . $node);
             if ($type === false) {
                 continue;
             }
@@ -236,7 +236,7 @@ class Dir
             if ($type == 'dir') {
                 $this->removeRecursive($path . '/' . $node);
             } else {
-                unlink($path . '/' . $node);
+                @unlink($path . '/' . $node);
             }
         }
 
@@ -263,7 +263,7 @@ class Dir
             $dir = new self($dir);
         }
 
-        if ($dir->isLink() && !unlink($dir->getPath())) {
+        if ($dir->isLink() && !@unlink($dir->getPath())) {
             throw new Exception(sprintf("Cannot remove an existing link: '%s'", $dir));
         }
 
@@ -279,7 +279,7 @@ class Dir
             }
         }
 
-        if (!symlink($this->getAbsolutePath(), $parent->getAbsolutePath() . '/' . $dir->getName())) {
+        if (!@symlink($this->getAbsolutePath(), $parent->getAbsolutePath() . '/' . $dir->getName())) {
             throw new Exception(sprintf("Cannot create a link to directory: %s -> %s", $this->getPath(), $dir->getPath()));
         }
 
