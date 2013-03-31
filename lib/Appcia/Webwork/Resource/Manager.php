@@ -155,7 +155,7 @@ class Manager
      * Process file to get more params available for naming
      *
      * @param Resource $resource Resource
-     * @param array $params   Path parameters
+     * @param array    $params   Path parameters
      *
      * @return array
      */
@@ -197,7 +197,7 @@ class Manager
      * Load resource from source path
      *
      * @param string $name   Name
-     * @param array $params Path parameters
+     * @param array  $params Path parameters
      *
      * @return Resource
      */
@@ -208,20 +208,24 @@ class Manager
 
         $resource = new Resource($path);
 
+        if (!$resource->getFile()->exists()) {
+            return null;
+        }
+
         return $resource;
     }
 
     /**
      * Save resource in target path
      *
-     * @param string $name   Name
-     * @param array $params Path parameters
-     * @param Resource $source External resource (could be temporary)
+     * @param string   $resourceName Name
+     * @param array    $params       Path parameters
+     * @param Resource $source       External resource (could be temporary)
      *
      * @return Resource
      * @throws Exception
      */
-    public function save($name, array $params, $source)
+    public function save($resourceName, array $params, $source)
     {
         if ($source === null) {
             throw new Exception('Invalid resource');
@@ -233,7 +237,7 @@ class Manager
         }
 
         $params = $this->processParams($source, $params);
-        $config = $this->getConfig($name);
+        $config = $this->getConfig($resourceName);
         $path = $this->parsePath($config['path'], $params);
 
         $file->copy($path);
