@@ -2,8 +2,8 @@
 
 namespace Appcia\Webwork\Resource;
 
-use Appcia\Webwork\Resource;
 use Appcia\Webwork\Exception;
+use Appcia\Webwork\Resource;
 use Appcia\Webwork\Session;
 
 class Manager
@@ -20,6 +20,8 @@ class Manager
 
     /**
      * Constructor
+     *
+     * @todo Remove session dependency, only use tokens passed from controller
      */
     public function __construct(Session $session, $namespace = 'resourceManager')
     {
@@ -240,15 +242,32 @@ class Manager
         $config = $this->getConfig($resourceName);
         $path = $this->parsePath($config['path'], $params);
 
+        $target = new Resource($path);
+        if ($source->isEqualTo($target)) {
+            return $source;
+        }
+
         $file->copy($path);
 
         if ($source->isTemporary()) {
             $file->remove();
         }
 
-        $target = new Resource($path);
-
         return $target;
+    }
+
+    /**
+     * Remove resource from filesystem
+     *
+     * @param $resourceName
+     * @param array $params
+     * @return $this
+     */
+    public function remove($resourceName, array $params)
+    {
+        //@todo Complete removing resource
+
+        return $this;
     }
 
     /**

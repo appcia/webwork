@@ -62,6 +62,23 @@ class Resource
     }
 
     /**
+     * Compare resources on same filesystem
+     *
+     * @param Resource $resource Resource
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public function isEqualTo($resource)
+    {
+        if (!$resource instanceof self) {
+            throw new Exception('Invalid resource to be compared');
+        }
+
+        return $this->getFile()->getAbsolutePath() === $resource->getFile()->getAbsolutePath();
+    }
+
+    /**
      * Get file path
      *
      * @return string
