@@ -195,6 +195,33 @@ class File
     }
 
     /**
+     * Move uploaded file to target path
+     *
+     * @param File|string $file File object or path
+     *
+     * @return File
+     * @throws Exception
+     */
+    public function moveUploaded($file)
+    {
+        if (!$file instanceof File) {
+            $file = new self($file);
+        }
+
+        $dir = $file->getDir();
+
+        if ($dir->isWritable()) {
+            throw new Exception(sprintf("Target file directory is not writable: '%s'", $dir->getPath()));
+        }
+
+        if (!@move_uploaded_file($this->path, $file->getPath())) {
+            throw new Exception(sprintf("Cannot move uploaded file: %s -> %s", $this->path, $file->getPath()));
+        }
+
+        return $this;
+    }
+
+    /**
      * Move file to another location
      *
      * @param string $file     Target file

@@ -4,35 +4,31 @@ namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\Exception;
 use Appcia\Webwork\Resource;
-use Appcia\Webwork\Session;
+use Appcia\Webwork\System\Dir;
 
 class Manager
 {
     /**
+     * Resource locations and other configurations
+     *
      * @var array
      */
     private $map;
 
     /**
-     * @var
+     * Directory for temporary files
+     *
+     * @var Dir
      */
-    private $temporaryPath;
+    private $tempDir;
 
     /**
      * Constructor
-     *
-     * @todo Remove session dependency, only use tokens passed from controller
      */
-    public function __construct(Session $session, $namespace = 'resourceManager')
+    public function __construct()
     {
-        $this->session = $session;
-        $this->namespace = $namespace;
-        $this->tokens = array();
-
         $this->map = array();
-        $this->temporaryPath = sys_get_temp_dir();
-
-        $this->loadTokens();
+        $this->tempDir = new Dir(sys_get_temp_dir());
     }
 
     /**
@@ -56,59 +52,37 @@ class Manager
     }
 
     /**
-     * Get path for temporary files
+     * Set path for temporary files
      *
-     * @param string $temporaryPath Path
+     * @param Dir|string $dir Dir object or path
      *
      * @return Manager
      */
-    public function setTemporaryPath($temporaryPath)
+    public function setTempDir($dir)
     {
-        $this->temporaryPath = $temporaryPath;
+        if (!$dir instanceof Dir) {
+            $dir = new Dir($dir);
+        }
+
+        $this->tempDir = $dir;
 
         return $this;
     }
 
     /**
-     * Set path for temporary files
+     * Get path for temporary files
      *
      * @return string
      */
-    public function getTemporaryPath()
+    public function getTempDir()
     {
-        return $this->temporaryPath;
-    }
-
-    /**
-     * Load tokens from session
-     *
-     * @return Manager
-     */
-    private function loadTokens()
-    {
-        if ($this->session->has($this->namespace)) {
-            $this->tokens = $this->session->get($this->namespace);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Save tokens in session
-     *
-     * @return Manager
-     */
-    private function saveTokens()
-    {
-        $this->session->set($this->namespace, $this->tokens);
-
-        return $this;
+        return $this->tempDir;
     }
 
     /**
      * Get resource config from map
      *
-     * @param string $resourceName
+     * @param string $resourceName Resource name
      *
      * @return mixed
      * @throws Exception
@@ -130,10 +104,10 @@ class Manager
 
     /**
      * Inject data into path
-     * Format: '/public/news/{year}/{id}.{ext}'
+     * Example format: '/public/news/{year}/{id}.{ext}'
      *
-     * @param string $path
-     * @param array $params
+     * @param string $path  Path
+     * @param array $params Parameters
      *
      * @return mixed
      */
@@ -175,24 +149,6 @@ class Manager
         }
 
         return $params;
-    }
-
-    /**
-     * Get temporary file name with correct extension
-     *
-     * @param string $origin Origin file path
-     * @return string
-     */
-    private function getTemporaryFile($origin)
-    {
-        $temp = null;
-        $ext = pathinfo($origin, PATHINFO_EXTENSION);
-
-        do {
-            $temp = $this->temporaryPath . '/' . uniqid('', true) . '.' . $ext;
-        } while (file_exists($temp));
-
-        return $temp;
     }
 
     /**
@@ -259,8 +215,8 @@ class Manager
     /**
      * Remove resource from filesystem
      *
-     * @param $resourceName
-     * @param array $params
+     * @param string $resourceName Resource name
+     * @param array  $params       Path parameters
      * @return $this
      */
     public function remove($resourceName, array $params)
@@ -271,23 +227,33 @@ class Manager
     }
 
     /**
-     * @param $token
+     * Find resource by token
+     *
+     * @param string $token Previously generated token
+     *
      * @return Resource|null
+     * @throws Exception
      */
     public function find($token)
     {
-        if (!isset($this->tokens[$token])) {
-            return null;
+        if (empty($token)) {
+            throw new Exception('Token cannot be empty');
         }
 
-        $path = $this->tokens[$token];
+        $files = $this->tempDir->glob($token . '.*');
+        $count = count($files);
+
+        if (empty($files)) {
+            return null;
+        } elseif ($count > 1) {
+            throw new Exception(sprintf("More than one file (%d) matched resource with token: '%s'", $count, $token));
+        }
+
+        $path = array_pop($files);
 
         $resource = new Resource($path);
-        $resource->setTemporary(true);
-
-        if (!$resource->getFile()->exists()) {
-            return null;
-        }
+        $resource->setTemporary(true)
+            ->setToken($token);
 
         return $resource;
     }
@@ -295,8 +261,8 @@ class Manager
     /**
      * Upload resource to temporary path
      *
-     * @param array $data
-     * @param string $token
+     * @param array  $data  File data
+     * @param string $token Token
      *
      * @return Resource
      * @throws Exception
@@ -337,24 +303,16 @@ class Manager
             }
         }
 
-        $sourcePath = $data['tmp_name'];
-        $targetPath = $this->getTemporaryFile($data['name']);
+        $sourceFile = new File($data['tmp_name']);
 
-        if (!is_writable($this->temporaryPath)) {
-            throw new Exception(sprintf("Temporary path is not writeable: '%s'", $this->temporaryPath));
-        }
+        $extension = pathinfo($data['name'], PATHINFO_EXTENSION);
+        $targetFile = $this->tempDir->generateRandomFile($extension);
 
-        if (!move_uploaded_file($sourcePath, $targetPath)) {
-            throw new Exception(sprintf("Cannot move uploaded file: %s -> %s", $sourcePath, $targetPath));
-        }
-
-        $file = $this->temporaryPath . '/' . basename($targetPath);
+        $sourceFile->moveUploaded($targetFile);
 
         $resource = new Resource($file);
         $resource->setTemporary(true);
-
-        $this->tokens[$token] = $resource->getFile()->getPath();
-        $this->saveTokens();
+        $resource->setToken($token);
 
         return $resource;
     }

@@ -158,7 +158,7 @@ class Dir
      * Delete all specified paths and create them again with specified permission
      *
      * @param array $paths      Paths
-     * @param int   $permission Value for CHMOD
+     * @param int $permission Value for CHMOD
      *
      * @return Dir
      */
@@ -287,6 +287,51 @@ class Dir
     }
 
     /**
+     * Generate non-existing file (optionally with specified extension)
+     *
+     * @param string|null $extension Extension
+     *
+     * @return File
+     */
+    public function generateRandomFile($extension = null)
+    {
+        do {
+            $file = $this->path . '/' . uniqid('', true);
+
+            if ($extension !== null) {
+                $file .= '.' . $extension;
+            }
+        } while (file_exists($file));
+
+        return new File($file);
+    }
+
+    /**
+     * Find files that matched specified pattern
+     *
+     * @param string $pattern Pattern (with wildcards etc)
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function glob($pattern)
+    {
+        $pattern = $this->path . '/' . $pattern;
+
+        $files = @glob($pattern);
+        if ($files === false) {
+            throw new Exception(sprintf("Cannot glob path '%s' with pattern: '%s'", $this->path, $pattern));
+        }
+
+        // For sure, when result is null (on some systems)
+        if (empty($files)) {
+            return array();
+        }
+
+        return $files;
+    }
+
+    /**
      * Check whether it really exist
      *
      * @return bool
@@ -297,12 +342,22 @@ class Dir
     }
 
     /**
-     * Check whether it is a symbolic link
+     * Check whether a path is symbolic link
      *
      * @return bool
      */
     public function isLink()
     {
         return is_link($this->path);
+    }
+
+    /**
+     * Check whether a path is writable
+     *
+     * @return bool
+     */
+    public function isWritable()
+    {
+        return is_writable($this->path);
     }
 }

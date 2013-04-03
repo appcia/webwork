@@ -17,6 +17,11 @@ class Resource
     private $temporary;
 
     /**
+     * @var string
+     */
+    private $token;
+
+    /**
      * Constructor
      */
     public function __construct($file)
@@ -30,11 +35,21 @@ class Resource
     }
 
     /**
+     * Set file
+     *
      * @param File $file
+     *
+     * @return Resource
      */
     public function setFile($file)
     {
+        if (!$file instanceof File) {
+            $file = new File($file);
+        }
+
         $this->file = $file;
+
+        return $this;
     }
 
     /**
@@ -46,11 +61,17 @@ class Resource
     }
 
     /**
+     * Mark / unmark as temporary
+     *
      * @param bool $temporary
+     *
+     * @return Resource
      */
     public function setTemporary($temporary)
     {
-        $this->temporary = $temporary;
+        $this->temporary = (bool) $temporary;
+
+        return $this;
     }
 
     /**
@@ -59,6 +80,26 @@ class Resource
     public function isTemporary()
     {
         return $this->temporary;
+    }
+
+    /**
+     * @return string
+     */
+    public function getToken()
+    {
+        return $this->token;
+    }
+
+    /**
+     * @param string $token
+     *
+     * @return Resource
+     */
+    public function setToken($token)
+    {
+        $this->token = (string) $token;
+
+        return $this;
     }
 
     /**
@@ -85,8 +126,10 @@ class Resource
      */
     public function __toString()
     {
-        return (string) $this->getFile()
+        $path = (string) $this->getFile()
             ->getPath();
+
+        return $path;
     }
 
 }
