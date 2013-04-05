@@ -4,6 +4,7 @@ namespace Appcia\Webwork\Data;
 
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Exception;
+use Appcia\Webwork\Resource\Manager as ResourceManager;
 
 class Form
 {
@@ -129,6 +130,20 @@ class Form
         $field = $this->fields[$name];
 
         return $field->getValue();
+    }
+
+    /**
+     * Is field contain not empty value
+     *
+     * @param string $name Field name
+     *
+     * @return bool
+     */
+    public function has($name)
+    {
+        $value = $this->get($name);
+
+        return !empty($value);
     }
 
     /**
@@ -327,7 +342,7 @@ class Form
             throw new Exception('Token key should be a number or string');
         }
 
-        $key = (string)$key . implode('', array_keys($this->fields));
+        $key = (string) $key . implode('', array_keys($this->fields));
         $token = sha1(md5($key . self::TOKEN_SALT));
 
         return $token;
@@ -343,5 +358,64 @@ class Form
     public function __get($name)
     {
         return $this->getField($name);
+    }
+
+    /**
+     * Load resources using resource manager
+     * Upload files or retrieve previously uploaded from temporaries
+     *
+     * @param ResourceManager $rm    Resource manager
+     * @param string          $token Form token
+     *
+     * @return Form
+     */
+    public function load(ResourceManager $rm, $token)
+    {
+        foreach ($this->fields as $name => $field) {
+            if (!$field->isUploadable()) {
+                continue;
+            }
+
+            // Retrieve file from temporaries
+            $resource = $rm->find($token, $name);
+
+            // Service file upload
+            $data = $rm->normalizeUpload($field->getValue());
+            if (!empty($data)) {
+                $resource = $rm->upload($token, $name, $data);
+            }
+
+            $this->set($name, $resource);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Unload resources previously loaded by resource manager
+     * Remove files from temporaries
+     *
+     * @param ResourceManager $rm    Resource manager
+     * @param string          $token Token
+     *
+     * @return Form
+     */
+    public function unload(ResourceManager $rm, $token)
+    {
+        foreach ($this->fields as $name => $field) {
+            if (!$field->isUploadable()) {
+                continue;
+            }
+
+            // Retrieve file from temporaries
+            $resource = $rm->find($token, $name);
+
+            if ($resource !== null) {
+                $resource->getFile()
+                    ->remove();
+            }
+        }
+
+        return $this;
     }
 }

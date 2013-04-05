@@ -187,7 +187,7 @@ class Manager
      */
     public function save($resourceName, array $params, $source)
     {
-        if ($source === null) {
+        if (!$source instanceof Resource) {
             throw new Exception('Invalid resource');
         }
 
@@ -238,6 +238,36 @@ class Manager
     }
 
     /**
+     * Normalize uploaded file data
+     *
+     * @param array $data Data
+     *
+     * @return array|null
+     */
+    public function normalizeUpload(array $data)
+    {
+        // Trim empty values to null
+        if (empty($data['tmp_name'])) {
+            return null;
+        }
+
+        // Normalize for multiple files
+        if (is_array($data['tmp_name'])) {
+            $result = array();
+
+            foreach ($data as $key => $all) {
+                foreach ($all as $i => $val) {
+                    $result[$i][$key] = $val;
+                }
+            }
+
+            return $result;
+        }
+
+        return $data;
+    }
+
+    /**
      * Upload resource to temporary path
      *
      * @param string $token Token
@@ -247,10 +277,10 @@ class Manager
      * @return Resource
      * @throws Exception
      */
-    public function upload($token, $key, array $data)
+    public function upload($token, $key, $data)
     {
         if (empty($data)) {
-            throw new Exception('Invalid file data');
+            throw new Exception('Invalid uploaded file data');
         }
 
         $path = $data['name'];
@@ -286,16 +316,15 @@ class Manager
         $sourceFile = new File($data['tmp_name']);
 
         $extension = pathinfo($data['name'], PATHINFO_EXTENSION);
-        $suffix = $key . '_';
+        $suffix = '_' . (string) $key;
+        $targetFile = new File($this->tempDir->getPath($token . $suffix . '.' . $extension));
 
-        $targetFile = $this->tempDir->generateRandomFile($extension, null, $suffix);
         $sourceFile->moveUploaded($targetFile);
 
-        $resource = $this->createTemporary($path, $token);
+        $resource = $this->createTemporary($targetFile->getPath(), $token);
 
         return $resource;
     }
-
 
     /**
      * Find resource by token

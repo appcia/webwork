@@ -24,11 +24,6 @@ class Field {
     private $rawValue;
 
     /**
-     * @var bool
-     */
-    private $valid;
-
-    /**
      * @var array
      */
     private $validators;
@@ -37,6 +32,16 @@ class Field {
      * @var array
      */
     private $filters;
+
+    /**
+     * @var bool
+     */
+    private $valid;
+
+    /**
+     * @var bool
+     */
+    private $uploadable;
 
     /**
      * Constructor
@@ -48,6 +53,7 @@ class Field {
         $this->validators = array();
         $this->filters = array();
         $this->valid = true;
+        $this->uploadable = false;
 
         $this->setName($name);
 
@@ -133,6 +139,17 @@ class Field {
     }
 
     /**
+     * Check whether filter exists
+     *
+     * @param string $name Filter name
+     *
+     * @return bool
+     */
+    public function hasFilter($name) {
+        return isset($this->filters[$name]);
+    }
+
+    /**
      * @return array
      */
     public function getFilters()
@@ -166,6 +183,17 @@ class Field {
         }
 
         $this->validators[$name] = $validator;
+    }
+
+    /**
+     * Check whether validator exists
+     *
+     * @param string $name Validator name
+     *
+     * @return bool
+     */
+    public function hasValidator($name) {
+        return isset($this->validators[$name]);
     }
 
     /**
@@ -205,6 +233,26 @@ class Field {
         }
 
         return $this->valid;
+    }
+
+    /**
+     * Treat value as file that can be uploaded
+     *
+     * @param boolean $flag
+     */
+    public function setUploadable($flag)
+    {
+        $this->uploadable = $flag;
+    }
+
+    /**
+     * Check whether value is a file that can be uploaded
+     *
+     * @return boolean
+     */
+    public function isUploadable()
+    {
+        return $this->uploadable;
     }
 
     /**
