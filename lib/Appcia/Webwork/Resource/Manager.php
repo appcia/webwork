@@ -6,6 +6,7 @@ use Appcia\Webwork\Exception;
 use Appcia\Webwork\Resource;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
+use Appcia\Webwork\Data\Form;
 
 class Manager
 {
@@ -107,8 +108,8 @@ class Manager
      * Inject data into path
      * Example format: '/public/news/{year}/{id}.{ext}'
      *
-     * @param string $path  Path
-     * @param array $params Parameters
+     * @param string $path   Path
+     * @param array  $params Parameters
      *
      * @return mixed
      */
@@ -218,88 +219,66 @@ class Manager
      *
      * @param string $resourceName Resource name
      * @param array  $params       Path parameters
-     * @return $this
+     *
+     * @return Manager
      */
     public function remove($resourceName, array $params)
     {
-        //@todo Complete removing resource
+        $config = $this->getConfig($resourceName);
+        $path = $this->parsePath($config['path'], $params);
+
+        $resource = new Resource($path);
+        $file = $resource->getFile();
+
+        if ($file->exists()) {
+            $file->remove();
+        }
 
         return $this;
     }
 
     /**
-     * Find resource by token
-     *
-     * @param string $token Previously generated token
-     *
-     * @return Resource|null
-     * @throws Exception
-     */
-    public function find($token)
-    {
-        if (empty($token)) {
-            throw new Exception('Token cannot be empty');
-        }
-
-        $files = $this->tempDir->glob($token . '.*');
-        $count = count($files);
-
-        if (empty($files)) {
-            return null;
-        } elseif ($count > 1) {
-            throw new Exception(sprintf("More than one file (%d) matched resource with token: '%s'", $count, $token));
-        }
-
-        $path = array_pop($files);
-
-        $resource = new Resource($path);
-        $resource->setTemporary(true)
-            ->setToken($token);
-
-        return $resource;
-    }
-
-    /**
      * Upload resource to temporary path
      *
-     * @param array  $data  File data
      * @param string $token Token
+     * @param string $key   Resource key
+     * @param array  $data  File data
      *
      * @return Resource
      * @throws Exception
      */
-    public function upload(array $data, $token)
+    public function upload($token, $key, array $data)
     {
         if (empty($data)) {
             throw new Exception('Invalid file data');
         }
 
-        $file = $data['name'];
+        $path = $data['name'];
         $sizeLimit = ini_get('upload_max_filesize');
 
         if ($data['error'] != UPLOAD_ERR_OK) {
             switch ($data['error']) {
                 case UPLOAD_ERR_INI_SIZE:
-                    throw new Exception(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $file, $sizeLimit));
+                    throw new Exception(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $path, $sizeLimit));
                     break;
                 case UPLOAD_ERR_FORM_SIZE:
-                    throw new Exception(sprintf("Uploaded file '%s' size exceeds form limit", $file));
+                    throw new Exception(sprintf("Uploaded file '%s' size exceeds form limit", $path));
                     break;
                 case UPLOAD_ERR_PARTIAL:
-                    throw new Exception(sprintf("Uploaded file '%s' is only partially completed", $file));
+                    throw new Exception(sprintf("Uploaded file '%s' is only partially completed", $path));
                     break;
                 case UPLOAD_ERR_NO_FILE:
                     throw new Exception("File has not been uploaded");
                     break;
                 case UPLOAD_ERR_NO_TMP_DIR:
-                    throw new Exception(sprintf("Missing temporary directory for uploaded file: '%s'", $file));
+                    throw new Exception(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
                     break;
                 case UPLOAD_ERR_CANT_WRITE:
-                    throw new Exception(sprintf("Failed to write uploaded file to disk: '%s'", $file));
+                    throw new Exception(sprintf("Failed to write uploaded file to disk: '%s'", $path));
                     break;
                 case UPLOAD_ERR_EXTENSION:
                 default:
-                    throw new Exception(sprintf("Unknown upload error: '%s'", $file));
+                    throw new Exception(sprintf("Unknown upload error: '%s'", $path));
                     break;
             }
         }
@@ -307,11 +286,88 @@ class Manager
         $sourceFile = new File($data['tmp_name']);
 
         $extension = pathinfo($data['name'], PATHINFO_EXTENSION);
-        $targetFile = $this->tempDir->generateRandomFile($extension);
+        $suffix = $key . '_';
 
+        $targetFile = $this->tempDir->generateRandomFile($extension, null, $suffix);
         $sourceFile->moveUploaded($targetFile);
 
-        $resource = new Resource($file);
+        $resource = $this->createTemporary($path, $token);
+
+        return $resource;
+    }
+
+
+    /**
+     * Find resource by token
+     *
+     * @param string $token Token
+     * @param string $key   Resource key
+     *
+     * @return Resource|null
+     * @throws Exception
+     */
+    public function find($token, $key)
+    {
+        if (empty($token)) {
+            throw new Exception('Token cannot be empty');
+        }
+
+        if (empty($key)) {
+            throw new Exception('Resource key cannot be empty');
+        }
+
+        $pattern = $token . '_' . (string) $key . '.*';
+        $paths = $this->tempDir->glob($pattern);
+        $count = count($paths);
+
+        if (empty($paths)) {
+            return null;
+        } elseif ($count > 1) {
+            throw new Exception(sprintf("More than one resource (%d) matched token: '%s'", $count, $token));
+        }
+
+        $resource = $this->createTemporary($paths[0], $token);
+
+        return $resource;
+    }
+
+    /**
+     * Find all resources by token
+     *
+     * @param string $token Previously generated token
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function findAll($token)
+    {
+        if (empty($token)) {
+            throw new Exception('Token cannot be empty');
+        }
+
+        $pattern = $token . '.*';
+        $paths = $this->tempDir->glob($pattern);
+
+        $resources = array();
+        foreach ($paths as $path) {
+            $resource = $this->createTemporary($path, $token);
+            $resources[] = $resource;
+        }
+
+        return $resources;
+    }
+
+    /**
+     * Create temporary resource from path
+     *
+     * @param string $token Token
+     * @param string $path  Resource path
+     *
+     * @return Resource
+     */
+    private function createTemporary($path, $token)
+    {
+        $resource = new Resource($path);
         $resource->setTemporary(true);
         $resource->setToken($token);
 

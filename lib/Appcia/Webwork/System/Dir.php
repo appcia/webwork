@@ -301,20 +301,32 @@ class Dir
      * Generate non-existing file (optionally with specified extension)
      *
      * @param string|null $extension Extension
+     * @param string|null $prefix    Name prefix
+     * @param string|null $suffix    Name suffix
      *
      * @return File
      */
-    public function generateRandomFile($extension = null)
+    public function generateRandomFile($extension = null, $prefix = null, $suffix = null)
     {
         do {
-            $file = $this->path . '/' . uniqid('', true);
+            $path = $this->path . '/';
+
+            if ($prefix !== null) {
+                $path .= (string) $prefix;
+            }
+
+            $path .= uniqid('', true);
+
+            if ($suffix !== null) {
+                $path .= (string) $suffix;
+            }
 
             if ($extension !== null) {
-                $file .= '.' . $extension;
+                $path .= '.' . (string) $extension;
             }
-        } while (file_exists($file));
+        } while (file_exists($path));
 
-        return new File($file);
+        return new File($path);
     }
 
     /**
