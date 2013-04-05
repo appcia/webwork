@@ -7,6 +7,8 @@ use Appcia\Webwork\Exception;
 
 class Form
 {
+    const TOKEN_SALT = 'dskljakld32#%$@#343_';
+
     /**
      * @var bool
      */
@@ -298,6 +300,26 @@ class Form
         }
 
         return $this;
+    }
+
+    /**
+     * Generate token basing on field names and custom key
+     *
+     * @param string|null $key Custom key, could be some date if token should expire after some time
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function tokenize($key = null)
+    {
+        if (!is_string($key) && !is_numeric($key)) {
+            throw new Exception('Token key should be a number or string');
+        }
+
+        $key = (string) $key . implode('', array_keys($this->fields));
+        $token = sha1(md5($key . self::TOKEN_SALT));
+
+        return $token;
     }
 
     /**

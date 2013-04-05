@@ -11,9 +11,9 @@ class File extends Filter
      */
     public function filter($data)
     {
-        // Trim empty values to empty array
+        // Trim empty values to null
         if (empty($data['tmp_name'])) {
-            return array();
+            return null;
         }
 
         // Normalize multi upload
