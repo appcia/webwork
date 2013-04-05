@@ -6,12 +6,17 @@ use Appcia\Webwork\Exception;
 
 class Dir
 {
+    /**
+     * Location path
+     *
+     * @var string
+     */
     private $path;
 
     /**
      * Constructor
      *
-     * @param string $path
+     * @param string $path Path
      *
      * @throws Exception
      */
@@ -110,7 +115,9 @@ class Dir
      */
     public function getParent()
     {
-        return new self(dirname($this->path));
+        $path = dirname($this->path);
+
+        return new self($path);
     }
 
     /**
@@ -120,7 +127,9 @@ class Dir
      */
     public static function getCurrent()
     {
-        return new self(getcwd());
+        $path = getcwd();
+
+        return new self($path);
     }
 
     /**
@@ -130,17 +139,19 @@ class Dir
      */
     public static function getHome()
     {
-        return new self(getenv('HOME'));
+        $path = getenv('HOME');
+
+        return new self($path);
     }
 
     /**
      * Creates a directory
      *
-     * @param int $permission Value for CHMOD
-     * @param bool $recursive Create also parent directories
+     * @param int  $permission Value for CHMOD
+     * @param bool $recursive  Create also parent directories
      *
      * @return $this
-     * @throws \Appcia\Webwork\Exception
+     * @throws Exception
      */
     public function create($permission = 0777, $recursive = true)
     {
@@ -158,7 +169,7 @@ class Dir
      * Delete all specified paths and create them again with specified permission
      *
      * @param array $paths      Paths
-     * @param int $permission Value for CHMOD
+     * @param int   $permission Value for CHMOD
      *
      * @return Dir
      */
@@ -248,7 +259,7 @@ class Dir
      * Create a symlink pointing to this directory
      *
      * @param Dir|string $dir         Dir object or path
-     * @param bool $createPaths Create paths (if don't exist)
+     * @param bool       $createPaths Create paths (if don't exist)
      *
      * @return Dir
      * @throws Exception
@@ -342,7 +353,7 @@ class Dir
     }
 
     /**
-     * Check whether a path is symbolic link
+     * Check whether is a symbolic link
      *
      * @return bool
      */
@@ -352,7 +363,7 @@ class Dir
     }
 
     /**
-     * Check whether a path is writable
+     * Check whether is writable
      *
      * @return bool
      */

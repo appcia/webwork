@@ -7,6 +7,8 @@ use Appcia\Webwork\Exception;
 class File
 {
     /**
+     * Location path
+     *
      * @var string
      */
     private $path;
@@ -75,13 +77,13 @@ class File
     public function getStat()
     {
         if (!$this->exists()) {
-            throw new Exception('Cannot stat non-existing file');
+            throw new Exception('Cannot stat a non-existing file');
         }
 
         $stat = @stat($this->path);
 
         if ($stat === false) {
-            throw new Exception(sprintf("Cannot stat file: '%s'", $this->path));
+            throw new Exception(sprintf("Cannot stat a file: '%s'", $this->path));
         }
 
         return $stat;
@@ -167,7 +169,7 @@ class File
      * Move file to another location
      *
      * @param string $file     Target file
-     * @param bool $createPath Create path if does not exist
+     * @param bool $createPath Create a path to target file if does not exist
      *
      * @return File
      * @throws Exception
@@ -197,12 +199,13 @@ class File
     /**
      * Move uploaded file to target path
      *
-     * @param File|string $file File object or path
+     * @param File|string $file       File object or path
+     * @param bool        $createPath Create a path to target file if does not exist
      *
      * @return File
      * @throws Exception
      */
-    public function moveUploaded($file)
+    public function moveUploaded($file, $createPath = true)
     {
         if (!$file instanceof File) {
             $file = new self($file);
@@ -210,7 +213,11 @@ class File
 
         $dir = $file->getDir();
 
-        if ($dir->isWritable()) {
+        if ($createPath && !$dir->exists()) {
+            $dir->create();
+        }
+
+        if (!$dir->isWritable()) {
             throw new Exception(sprintf("Target file directory is not writable: '%s'", $dir->getPath()));
         }
 
@@ -224,8 +231,8 @@ class File
     /**
      * Move file to another location
      *
-     * @param string $file     Target file
-     * @param bool $createPath Create path if does not exist
+     * @param string $file       Target file
+     * @param bool   $createPath Create a path to target file if does not exist
      *
      * @return File
      * @throws Exception

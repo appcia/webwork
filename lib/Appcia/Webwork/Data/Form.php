@@ -10,11 +10,15 @@ class Form
     const TOKEN_SALT = 'dskljakld32#%$@#343_';
 
     /**
+     * Validation result
+     *
      * @var bool
      */
     private $valid;
 
     /**
+     * Fields
+     *
      * @var array
      */
     private $fields;
@@ -31,6 +35,8 @@ class Form
     }
 
     /**
+     * Set fields
+     *
      * @param array $fields
      *
      * @return Form
@@ -47,6 +53,8 @@ class Form
     }
 
     /**
+     * Add a field
+     *
      * @param Field $field
      *
      * @return Form
@@ -95,6 +103,8 @@ class Form
     }
 
     /**
+     * Get all fields
+     *
      * @return array
      */
     public function getFields()
@@ -126,7 +136,8 @@ class Form
      *
      * @return array
      */
-    public function getAll() {
+    public function getAll()
+    {
         $values = array();
 
         foreach ($this->fields as $field) {
@@ -160,7 +171,8 @@ class Form
     /**
      * @return bool
      */
-    public function isValid() {
+    public function isValid()
+    {
         return $this->valid;
     }
 
@@ -193,8 +205,7 @@ class Form
             if (isset($this->fields[$name])) {
                 $field = $this->fields[$name];
                 $field->setValue($value);
-            }
-            else if ($unknowns) {
+            } else if ($unknowns) {
                 $field = new Field($name);
                 $field->setValue($value);
 
@@ -281,7 +292,7 @@ class Form
     /**
      * Suck values from object using getters
      *
-     * @param object  $obj Source object
+     * @param object $obj Source object
      *
      * @return Form
      */
@@ -312,11 +323,11 @@ class Form
      */
     public function tokenize($key = null)
     {
-        if (!is_string($key) && !is_numeric($key)) {
+        if ($key !== null && !is_string($key) && !is_numeric($key)) {
             throw new Exception('Token key should be a number or string');
         }
 
-        $key = (string) $key . implode('', array_keys($this->fields));
+        $key = (string)$key . implode('', array_keys($this->fields));
         $token = sha1(md5($key . self::TOKEN_SALT));
 
         return $token;
@@ -327,9 +338,10 @@ class Form
      *
      * @param string $name Field name
      *
-     * @return Form\Field
+     * @return Field
      */
-    public function __get($name) {
+    public function __get($name)
+    {
         return $this->getField($name);
     }
 }
