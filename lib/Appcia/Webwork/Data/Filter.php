@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Data;
 
-abstract class Filter {
+abstract class Filter extends Component {
 
     /**
      * Filter data
@@ -13,12 +13,4 @@ abstract class Filter {
      */
     abstract public function filter($data);
 
-    /**
-     * Get name simplified
-     *
-     * @return string
-     */
-    public function getName() {
-        return lcfirst(substr(get_class($this), strlen(__CLASS__ . '\\')));
-    }
 }

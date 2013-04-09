@@ -17,6 +17,7 @@ class File
      * Constructor
      *
      * @param string $path Path
+     *
      * @throws Exception
      */
     public function __construct($path)
@@ -69,6 +70,16 @@ class File
     }
 
     /**
+     * Get file name without extension
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return pathinfo($this->path, PATHINFO_FILENAME);
+    }
+
+    /**
      * Get detailed information about file
      *
      * @return array
@@ -87,16 +98,6 @@ class File
         }
 
         return $stat;
-    }
-
-    /**
-     * Get file name without extension
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return pathinfo($this->path, PATHINFO_FILENAME);
     }
 
     /**
@@ -168,8 +169,8 @@ class File
     /**
      * Move file to another location
      *
-     * @param string $file     Target file
-     * @param bool $createPath Create a path to target file if does not exist
+     * @param string $file       Target file
+     * @param bool   $createPath Create a path to target file if does not exist
      *
      * @return File
      * @throws Exception
@@ -191,38 +192,6 @@ class File
         if (!@rename($this->path, $file->path)) {
             throw new Exception(sprintf("Cannot move a file to location: %s -> %s" . PHP_EOL
                 . 'Verify access permissions', $this->path, $file->path));
-        }
-
-        return $this;
-    }
-
-    /**
-     * Move uploaded file to target path
-     *
-     * @param File|string $file       File object or path
-     * @param bool        $createPath Create a path to target file if does not exist
-     *
-     * @return File
-     * @throws Exception
-     */
-    public function moveUploaded($file, $createPath = true)
-    {
-        if (!$file instanceof File) {
-            $file = new self($file);
-        }
-
-        $dir = $file->getDir();
-
-        if ($createPath && !$dir->exists()) {
-            $dir->create();
-        }
-
-        if (!$dir->isWritable()) {
-            throw new Exception(sprintf("Target file directory is not writable: '%s'", $dir->getPath()));
-        }
-
-        if (!@move_uploaded_file($this->path, $file->getPath())) {
-            throw new Exception(sprintf("Cannot move uploaded file: %s -> %s", $this->path, $file->getPath()));
         }
 
         return $this;
@@ -251,9 +220,16 @@ class File
             }
         }
 
-        if (!@copy($this->path, $file->path)) {
-            throw new Exception(sprintf("Cannot copy a file to location: %s -> %s" . PHP_EOL
-                . 'Verify access permissions', $this->path, $file->path));
+        if (is_uploaded_file($this->path)) {
+            if (!@move_uploaded_file($this->path, $file->path)) {
+                throw new Exception(sprintf("Cannot move uploaded file to location: %s -> %s" . PHP_EOL
+                    . 'Verify access permissions', $this->path, $file->path));
+            }
+        } else {
+            if (!@copy($this->path, $file->path)) {
+                throw new Exception(sprintf("Cannot copy a file to location: %s -> %s" . PHP_EOL
+                    . 'Verify access permissions', $this->path, $file->path));
+            }
         }
 
         return $this;
@@ -314,8 +290,8 @@ class File
     /**
      * Write data to file
      *
-     * @param mixed $data     Data
-     * @param bool $overwrite Overwrite file if it does not exist
+     * @param mixed $data      Data
+     * @param bool  $overwrite Overwrite file if it does not exist
      *
      * @return File
      * @throws Exception
@@ -356,5 +332,26 @@ class File
         }
 
         return $this;
+    }
+
+    /**
+     * Guess file extension if wildcard used
+     *
+     * @return File|null
+     * @throws Exception
+     */
+    public function guessExtension()
+    {
+        $dir = $this->getDir();
+        $paths = $dir->glob($this->getBaseName());
+        $count = count($paths);
+
+        if (empty($paths)) {
+            throw new Exception(sprintf("Cannot guess any extension for path: '%s'", $this->path));
+        } elseif ($count > 1) {
+            throw new Exception(sprintf("More than one file match (%d) when guessing path '%s'", $count, $this->path));
+        }
+
+        $this->path = $paths[0];
     }
 }

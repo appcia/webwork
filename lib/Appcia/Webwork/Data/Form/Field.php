@@ -96,6 +96,14 @@ class Field {
     }
 
     /**
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        return empty($this->value);
+    }
+
+    /**
      * @return mixed
      */
     public function getRawValue()

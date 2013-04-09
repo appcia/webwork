@@ -2,27 +2,27 @@
 
 namespace Appcia\Webwork\Resource;
 
+use Appcia\Webwork\Data\Form;
 use Appcia\Webwork\Exception;
 use Appcia\Webwork\Resource;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
-use Appcia\Webwork\Data\Form;
 
 class Manager
 {
+    const TEMPORARY = self::TEMPORARY;
+    
     /**
-     * Resource locations and other configurations
+     * Resource map: locations and other configurations
      *
      * @var array
      */
     private $map;
 
     /**
-     * Directory for temporary files
-     *
-     * @var Dir
+     * @var array
      */
-    private $tempDir;
+    private $plugins;
 
     /**
      * Constructor
@@ -30,7 +30,7 @@ class Manager
     public function __construct()
     {
         $this->map = array();
-        $this->tempDir = new Dir(sys_get_temp_dir());
+        $this->plugins = array();
     }
 
     /**
@@ -54,45 +54,17 @@ class Manager
     }
 
     /**
-     * Set path for temporary files
-     *
-     * @param Dir|string $dir Dir object or path
-     *
-     * @return Manager
-     */
-    public function setTempDir($dir)
-    {
-        if (!$dir instanceof Dir) {
-            $dir = new Dir($dir);
-        }
-
-        $this->tempDir = $dir;
-
-        return $this;
-    }
-
-    /**
-     * Get path for temporary files
-     *
-     * @return string
-     */
-    public function getTempDir()
-    {
-        return $this->tempDir;
-    }
-
-    /**
-     * Get resource config from map
+     * Get specific resource configuration
      *
      * @param string $resourceName Resource name
      *
      * @return mixed
      * @throws Exception
      */
-    private function getConfig($resourceName)
+    public function getConfig($resourceName)
     {
         if (!isset($this->map[$resourceName])) {
-            throw new Exception('Invalid resource name');
+            throw new Exception(sprintf("Invalid resource name '%s'", $resourceName));
         }
 
         $config = $this->map[$resourceName];
@@ -105,132 +77,80 @@ class Manager
     }
 
     /**
-     * Inject data into path
-     * Example format: '/public/news/{year}/{id}.{ext}'
+     * Get resource file
      *
-     * @param string $path   Path
-     * @param array  $params Parameters
-     *
-     * @return mixed
-     */
-    private function parsePath($path, array $params)
-    {
-        if (empty($params)) {
-            return $path;
-        }
-
-        foreach ($params as $key => $value) {
-            $params['{' . $key . '}'] = $value;
-            unset($params[$key]);
-        }
-
-        $path = str_replace(array_keys($params), array_values($params), $path);
-
-        return $path;
-    }
-
-    /**
-     * Process file to get more params available for naming
-     *
-     * @param Resource $resource Resource
-     * @param array    $params   Path parameters
-     *
-     * @return array
-     */
-    private function processParams(Resource $resource, array $params)
-    {
-        $file = $resource->getFile();
-
-        $params = array_merge($params, array(
-            'name' => $file->getName(),
-            'ext' => $file->getExtension()
-        ));
-
-        if ($file->exists()) {
-            $params = array_merge($params, $file->getStat());
-        }
-
-        return $params;
-    }
-
-    /**
-     * Load resource from source path
-     *
-     * @param string $name   Name
-     * @param array  $params Path parameters
+     * @param Manager $manager      Origin factory
+     * @param string  $resourceName Resource type
+     * @param array   $params       Path parameters
      *
      * @return Resource
      */
-    public function load($name, array $params)
+    public function load($resourceName, array $params)
     {
-        $config = $this->getConfig($name);
-        $path = $this->parsePath($config['path'], $params);
-
-        $resource = new Resource($path);
-
-        if (!$resource->getFile()->exists()) {
-            return null;
+        $resource = new Resource($this, $resourceName, $params);
+        
+        $file = $resource->getFile();
+        if ($file === null) {
+            throw new Exception(sprintf("Cannot determine resource file for name '%s'", $resourceName));
         }
 
         return $resource;
     }
 
     /**
-     * Save resource in target path
+     * Save file as resource
      *
-     * @param string   $resourceName Name
-     * @param array    $params       Path parameters
-     * @param Resource $source       External resource (could be temporary)
+     * @param string $resourceName Resource name
+     * @param array  $params       Path parameters
+     * @param File   $file         File to be saved
      *
      * @return Resource
      * @throws Exception
      */
-    public function save($resourceName, array $params, $source)
+    public function save($resourceName, array $params, $file)
     {
-        if (!$source instanceof Resource) {
-            throw new Exception('Invalid resource');
+        if (!$file instanceof File) {
+            $file = new File($file);
         }
 
-        $file = $source->getFile();
         if (!$file->exists()) {
             throw new Exception(sprintf("Cannot save resource related with non-existing file: '%s'", $file->getPath()));
         }
 
-        $params = $this->processParams($source, $params);
-        $config = $this->getConfig($resourceName);
-        $path = $this->parsePath($config['path'], $params);
-
-        $target = new Resource($path);
-        if ($source->isEqualTo($target)) {
-            return $source;
+        $resource = new Resource($this, $resourceName, $params);
+        $targetFile = $resource->getFile();
+        if ($targetFile === null) {
+            throw new Exception(sprintf("Cannot determine resource target file for name: '%s", $resourceName));
         }
 
-        $file->copy($path);
+        // Copy source file to target resource path
+        $file->copy($targetFile);
 
-        if ($source->isTemporary()) {
+        // Remove source temporary file
+        if ($resourceName === self::TEMPORARY) {
             $file->remove();
         }
 
-        return $target;
+        // Create resource subtypes
+        $resource->createTypes();
+
+        return $resource;
     }
 
     /**
      * Remove resource from filesystem
      *
-     * @param string $resourceName Resource name
-     * @param array  $params       Path parameters
+     * @param string $type   Resource type
+     * @param array  $params Path parameters
      *
      * @return Manager
      */
-    public function remove($resourceName, array $params)
+    public function remove($type, array $params)
     {
-        $config = $this->getConfig($resourceName);
-        $path = $this->parsePath($config['path'], $params);
-
-        $resource = new Resource($path);
+        $resource = $this->load($type, $params);
         $file = $resource->getFile();
 
-        if ($file->exists()) {
+        if ($file !== null && $file->exists()) {
             $file->remove();
         }
 
@@ -313,94 +233,23 @@ class Manager
             }
         }
 
-        $sourceFile = new File($data['tmp_name']);
-
-        $extension = pathinfo($data['name'], PATHINFO_EXTENSION);
+        $sourceFile = new File($data['name']);
+        $extension = $sourceFile->getExtension();
         $suffix = '_' . (string) $key;
         $targetFile = new File($this->tempDir->getPath($token . $suffix . '.' . $extension));
 
-        $sourceFile->moveUploaded($targetFile);
+        $tempFile = new File($data['tmp_name']);
+        $tempFile->moveUploaded($targetFile);
 
-        $resource = $this->createTemporary($targetFile->getPath(), $token);
-
-        return $resource;
-    }
-
-    /**
-     * Find resource by token
-     *
-     * @param string $token Token
-     * @param string $key   Resource key
-     *
-     * @return Resource|null
-     * @throws Exception
-     */
-    public function find($token, $key)
-    {
-        if (empty($token)) {
-            throw new Exception('Token cannot be empty');
-        }
-
-        if (empty($key)) {
-            throw new Exception('Resource key cannot be empty');
-        }
-
-        $pattern = $token . '_' . (string) $key . '.*';
-        $paths = $this->tempDir->glob($pattern);
-        $count = count($paths);
-
-        if (empty($paths)) {
-            return null;
-        } elseif ($count > 1) {
-            throw new Exception(sprintf("More than one resource (%d) matched token: '%s'", $count, $token));
-        }
-
-        $resource = $this->createTemporary($paths[0], $token);
+        $resource = $this->save(
+            self::TEMPORARY,
+            array(
+                'token' => $token,
+                'key' => $key
+            ),
+            $tempFile
+        );
 
         return $resource;
     }
-
-    /**
-     * Find all resources by token
-     *
-     * @param string $token Previously generated token
-     *
-     * @return array
-     * @throws Exception
-     */
-    public function findAll($token)
-    {
-        if (empty($token)) {
-            throw new Exception('Token cannot be empty');
-        }
-
-        $pattern = $token . '.*';
-        $paths = $this->tempDir->glob($pattern);
-
-        $resources = array();
-        foreach ($paths as $path) {
-            $resource = $this->createTemporary($path, $token);
-            $resources[] = $resource;
-        }
-
-        return $resources;
-    }
-
-    /**
-     * Create temporary resource from path
-     *
-     * @param string $token Token
-     * @param string $path  Resource path
-     *
-     * @return Resource
-     */
-    private function createTemporary($path, $token)
-    {
-        $resource = new Resource($path);
-        $resource->setTemporary(true);
-        $resource->setToken($token);
-
-        return $resource;
-    }
-
 }

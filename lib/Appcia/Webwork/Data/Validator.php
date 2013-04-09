@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Data;
 
-abstract class Validator {
+abstract class Validator extends Component {
 
     /**
      * Validate data
@@ -12,13 +12,4 @@ abstract class Validator {
      * @return bool
      */
     abstract public function validate($value);
-
-    /**
-     * Get name simplified
-     *
-     * @return string
-     */
-    public function getName() {
-        return lcfirst(substr(get_class($this), strlen(__CLASS__ . '\\')));
-    }
 }

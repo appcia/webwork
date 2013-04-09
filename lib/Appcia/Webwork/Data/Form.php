@@ -408,8 +408,15 @@ class Form
             }
 
             // Retrieve file from temporaries
-            $resource = $rm->find($token, $name);
+            $resource = $rm->load(
+                ResourceManager::TEMPORARY,
+                array(
+                    'token' => $token,
+                    'key' => $name
+                )
+            );
 
+            // And remove it
             if ($resource !== null) {
                 $resource->getFile()
                     ->remove();

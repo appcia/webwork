@@ -2,54 +2,83 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Resource\Manager;
+use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
 
 class Resource
 {
     /**
+     * @var Manager
+     */
+    private $manager;
+
+    /**
+     * @var string
+     */
+    private $name;
+
+    /**
+     * Parameters (to be used in path generating)
+     *
+     * @var array
+     */
+    private $params;
+
+    /**
+     * Lazy loaded file
+     *
      * @var File
      */
     private $file;
 
     /**
-     * @var bool
+     * @var array
      */
-    private $temporary;
-
-    /**
-     * @var string
-     */
-    private $token;
+    private $types;
 
     /**
      * Constructor
+     *
+     * @param Manager      $manager Manager
+     * @param string       $name    Name
+     * @param string|array $params  Parameters
      */
-    public function __construct($file)
+    public function __construct(Manager $manager, $name, array $params)
     {
-        if (!$file instanceof File) {
-            $file = new File($file);
-        }
-
-        $this->file = $file;
-        $this->temporary = false;
+        $this->manager = $manager;
+        $this->name = $name;
+        $this->params = $params;
+        $this->types = null;
+        $this->file = null;
     }
 
     /**
-     * Set file
+     * Get origin factory
      *
-     * @param File $file
-     *
-     * @return Resource
+     * @return Manager
      */
-    public function setFile($file)
+    public function getManager()
     {
-        if (!$file instanceof File) {
-            $file = new File($file);
-        }
+        return $this->manager;
+    }
 
-        $this->file = $file;
+    /**
+     * Get type
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
 
-        return $this;
+    /**
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->params;
     }
 
     /**
@@ -57,79 +86,37 @@ class Resource
      */
     public function getFile()
     {
+        // @todo Generate path basing on manager config and parameter
+        // @todo If extension is unknown guess using glob
+        if ($this->file === null) {
+            // @todo Lazy loading
+            $this->file = new File('');
+        }
+
         return $this->file;
     }
 
     /**
-     * Mark / unmark as temporary
-     *
-     * @param bool $temporary
-     *
-     * @return Resource
+     * @return array
      */
-    public function setTemporary($temporary)
+    public function getTypes()
     {
-        $this->temporary = (bool) $temporary;
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isTemporary()
-    {
-        return $this->temporary;
-    }
-
-    /**
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->token;
-    }
-
-    /**
-     * @param string $token
-     *
-     * @return Resource
-     */
-    public function setToken($token)
-    {
-        $this->token = (string) $token;
-
-        return $this;
-    }
-
-    /**
-     * Compare resources on same filesystem
-     *
-     * @param Resource $resource Resource
-     *
-     * @return bool
-     * @throws Exception
-     */
-    public function isEqualTo($resource)
-    {
-        if (!$resource instanceof self) {
-            throw new Exception('Invalid resource to be compared');
+        // @todo Generate paths in the same way like file for file
+        if ($this->types === null) {
+            // @todo Lazy loading
+            $this->types = array();
         }
 
-        return $this->getFile()->getAbsolutePath() === $resource->getFile()->getAbsolutePath();
+        return $this->types;
     }
 
-    /**
-     * Get file path
-     *
-     * @return string
-     */
-    public function __toString()
+    public function getType($type)
     {
-        $path = (string) $this->getFile()
-            ->getPath();
+        if (!array_key_exists($type, $this->types)) {
+            throw new Exception(sprintf("Invalid resource type: '%s'", $type));
+        }
 
-        return $path;
+        return $this->types[$type];
     }
 
 }
