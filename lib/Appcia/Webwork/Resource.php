@@ -38,10 +38,11 @@ class Resource extends Type
     {
         $this->manager = $manager;
         $this->name = $name;
-        $this->types = array();
         $this->processors = array();
+        $this->types = null;
 
         $config = $manager->getConfig($name);
+
         parent::__construct($config['path'], $params);
     }
 
@@ -68,6 +69,10 @@ class Resource extends Type
      */
     public function getTypes()
     {
+        if ($this->types === null) {
+            $this->types = $this->loadTypes();
+        }
+
         return $this->types;
     }
 
@@ -81,6 +86,10 @@ class Resource extends Type
      */
     public function getType($type)
     {
+        if ($this->types === null) {
+            $this->types = $this->loadTypes();
+        }
+
         if (!isset($type, $this->types)) {
             throw new Exception(sprintf("Invalid type specified '%s'", $type));
         }
@@ -89,6 +98,8 @@ class Resource extends Type
     }
 
     /**
+     * Create subtypes basing on original resource
+     *
      * @return Resource
      * @throws Exception
      */
@@ -101,8 +112,8 @@ class Resource extends Type
 
         $types = array();
         $configs = $config['type'];
-        foreach ($configs as $typeName => $config) {
-            $processor = $this->getProcessor($typeName, $config);
+        foreach ($configs as $name => $config) {
+            $processor = $this->getProcessor($name, $config);
 
             $settings = null;
             if (!empty($config['processor']['settings'])) {
@@ -115,13 +126,13 @@ class Resource extends Type
             }
 
             $params = $this->getParams();
-            $params['type'] = $typeName;
+            $params['type'] = $name;
 
             foreach ($files as $fileKey => $file) {
                 $params['key'] = $fileKey;
 
                 $type = new Type($config['path'], $params);
-                $types[] = $type;
+                $types[$name] = $type;
 
                 $file->move($type->getFile(true));
             }
@@ -130,6 +141,32 @@ class Resource extends Type
         $this->types = $types;
 
         return $this;
+    }
+
+    /**
+     * Locate produced subtypes
+     *
+     * @return array
+     */
+    public function loadTypes()
+    {
+        $config = $this->manager->getConfig($this->name);
+
+        if (empty($config['type'])) {
+            return array();
+        }
+
+        $types = array();
+        $configs = $config['type'];
+        foreach ($configs as $name => $config) {
+            $params = $this->getParams();
+            $params['type'] = $name;
+
+            $type = new Type($config['path'], $params);
+            $types[$name] = $type;
+        }
+
+        return $types;
     }
 
     /**

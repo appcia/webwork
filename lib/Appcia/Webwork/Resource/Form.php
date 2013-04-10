@@ -30,7 +30,7 @@ class Form extends BasicForm
      * Load resources using resource manager
      * Upload files or retrieve previously uploaded from temporaries
      *
-     * @param string $token   Form token
+     * @param string $token Form token
      *
      * @return Form
      */
@@ -84,6 +84,8 @@ class Form extends BasicForm
                     'key' => $name
                 )
             );
+
+            $this->set($name, null);
         }
 
         return $this;
