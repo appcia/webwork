@@ -4,7 +4,7 @@ namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\Resource;
 
-abstract class Plugin {
+abstract class Processor {
 
     /**
      * @var Manager
@@ -29,7 +29,7 @@ abstract class Plugin {
 
     /**
      * Process and create derivative resources basing on original resource
-     * Should return array of produced resources with their names as keys
+     * Should return array of produced types (optionally with their names as keys)
      *
      * Each resource key can be used in path mapping
      *

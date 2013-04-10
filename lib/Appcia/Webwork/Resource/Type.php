@@ -64,16 +64,21 @@ class Type
     }
 
     /**
+     * @param bool $force Throw exception when cannot be done
+     *
      * @return File|null
+     * @throws Exception
      */
-    public function getFile()
+    public function getFile($force = false)
     {
         if ($this->file === null) {
             $file = $this->manager->determineFile($this->name, $this->params);
 
             if ($file !== null) {
-                $this->params['extension'] = $file->getExtension();
+                $this->params['ext'] = $file->getExtension();
                 $this->file = $file;
+            } else if ($force) {
+                throw new Exception(sprintf("Cannot determine target file for resource '%s'", $this->name));
             }
         }
 

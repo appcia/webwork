@@ -378,7 +378,7 @@ class Form
 
             // Retrieve file from temporaries
             $resource = $manager->load(
-                ResourceManager::TEMPORARY,
+                'temporary',
                 array(
                     'token' => $token,
                     'key' => $name
@@ -413,9 +413,8 @@ class Form
                 continue;
             }
 
-            // Retrieve file from temporaries
             $manager->remove(
-                ResourceManager::TEMPORARY,
+                'temporary',
                 array(
                     'token' => $token,
                     'key' => $name

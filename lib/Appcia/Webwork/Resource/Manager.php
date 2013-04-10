@@ -10,14 +10,16 @@ use Appcia\Webwork\System\File;
 
 class Manager
 {
-    const TEMPORARY = 'temporary';
-
     /**
+     * Resource map
+     *
      * @var array
      */
     private $map;
 
-
+    /**
+     * Constructor
+     */
     public function __construct()
     {
         $this->map = array();
@@ -48,20 +50,23 @@ class Manager
      */
     public function save($name, array $params, $path)
     {
+        // Hook for removing when path is null
         if ($path === null) {
             $this->remove($name, $params);
             return null;
         }
 
-        $resource = new Resource($this, $name, $params);
-
         $sourceFile = $this->retrieveFile($path);
-        $targetFile = $resource->getFile();
 
-        if ($targetFile === null) {
-            throw new Exception(sprintf("Resource '%s' has some problem with target file determining", $name));
+        // Add extension as param if not specified
+        if (!isset($params['ext'])) {
+            $params['ext'] = $sourceFile->getExtension();
         }
 
+        $resource = new Resource($this, $name, $params);
+        $targetFile = $resource->getFile(true);
+
+        // Copy only when it is required
         if (!$sourceFile->equals($targetFile)) {
             $sourceFile->copy($targetFile);
         }
@@ -138,7 +143,7 @@ class Manager
         $tempFile = new File($data['tmp_name']);
 
         $resource = $this->save(
-            self::TEMPORARY,
+            'temporary',
             array(
                 'token' => $token,
                 'key' => $key,
@@ -190,19 +195,31 @@ class Manager
     {
         $file = null;
 
-        if ($resource instanceof Resource) {
-            $file = $resource->getFile();
-        } elseif ($resource instanceof File) {
-            $file = $resource;
-        } elseif (is_string($resource)) {
-            $file = new File($resource);
-        } else {
+        if (empty($resource)) {
             throw new Exception('Invalid resource provided');
+        } else {
+            if ($resource instanceof Resource) {
+                $file = $resource->getFile(true);
+            } elseif ($resource instanceof File) {
+                $file = $resource;
+            } elseif (is_string($resource)) {
+                $file = new File($resource);
+            } else {
+                throw new Exception('Invalid type of resource');
+            }
         }
 
         return $file;
     }
 
+    /**
+     * Get resource configuration by name
+     *
+     * @param string $name
+     *
+     * @return mixed
+     * @throws Exception
+     */
     private function getConfig($name)
     {
         if (!isset($this->map[$name])) {
@@ -253,6 +270,7 @@ class Manager
             $paths = $dir->glob($file->getBaseName());
             $count = count($paths);
 
+            // Only when exactly one match file name
             if ($count === 1) {
                 $file->setPath($paths[0]);
             } else {
