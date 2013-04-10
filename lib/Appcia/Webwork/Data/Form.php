@@ -4,7 +4,6 @@ namespace Appcia\Webwork\Data;
 
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Exception;
-use Appcia\Webwork\Resource\Manager as ResourceManager;
 
 class Form
 {
@@ -360,68 +359,4 @@ class Form
         return $this->getField($name);
     }
 
-    /**
-     * Load resources using resource manager
-     * Upload files or retrieve previously uploaded from temporaries
-     *
-     * @param ResourceManager $manager Resource manager
-     * @param string          $token   Form token
-     *
-     * @return Form
-     */
-    public function load(ResourceManager $manager, $token)
-    {
-        foreach ($this->fields as $name => $field) {
-            if (!$field->isUploadable()) {
-                continue;
-            }
-
-            // Retrieve file from temporaries
-            $resource = $manager->load(
-                'temporary',
-                array(
-                    'token' => $token,
-                    'key' => $name
-                )
-            );
-
-            // Service file upload
-            $data = $manager->normalizeUpload($field->getValue());
-            if (!empty($data)) {
-                $resource = $manager->upload($token, $name, $data);
-            }
-
-            $this->set($name, $resource);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Unload resources previously loaded by resource manager
-     * Remove files from temporaries
-     *
-     * @param ResourceManager $manager Resource manager
-     * @param string          $token   Token
-     *
-     * @return Form
-     */
-    public function unload(ResourceManager $manager, $token)
-    {
-        foreach ($this->fields as $name => $field) {
-            if (!$field->isUploadable()) {
-                continue;
-            }
-
-            $manager->remove(
-                'temporary',
-                array(
-                    'token' => $token,
-                    'key' => $name
-                )
-            );
-        }
-
-        return $this;
-    }
 }

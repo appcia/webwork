@@ -3,21 +3,14 @@
 namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\Exception;
-use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
 
 class Type
 {
-
-    /**
-     * @var Manager
-     */
-    private $manager;
-
     /**
      * @var string
      */
-    private $name;
+    private $path;
 
     /**
      * @var array
@@ -29,30 +22,22 @@ class Type
      */
     private $file;
 
-    public function __construct(Manager $manager, $name, array $params = array())
+    /**
+     * @param string $path
+     * @param array  $params
+     */
+    public function __construct($path, array $params = array())
     {
-        $this->manager = $manager;
-        $this->name = $name;
+        $this->path = $path;
         $this->params = $params;
         $this->file = null;
     }
-
-    /**
-     * Get origin factory
-     *
-     * @return Manager
-     */
-    public function getManager()
-    {
-        return $this->manager;
-    }
-
     /**
      * @return string
      */
-    public function getName()
+    public function getPath()
     {
-        return $this->name;
+        return $this->path;
     }
 
     /**
@@ -72,7 +57,7 @@ class Type
     public function getFile($force = false)
     {
         if ($this->file === null) {
-            $file = $this->manager->determineFile($this->name, $this->params);
+            $file = $this->determineFile($this->path, $this->params);
 
             if ($file !== null) {
                 $this->params['ext'] = $file->getExtension();
@@ -83,6 +68,49 @@ class Type
         }
 
         return $this->file;
+    }
+
+    /**
+     * @param string $path
+     * @param array  $params
+     *
+     * @return File|null
+     */
+    private function determineFile($path, array $params)
+    {
+        // Extension usually is unknown so use wildcard (except case when saving resource)
+        if (!isset($params['ext'])) {
+            $params['ext'] = '*';
+        }
+
+        foreach ($params as $key => $value) {
+            $params['{' . $key . '}'] = $value;
+            unset($params[$key]);
+        }
+
+        $path = str_replace(
+            array_keys($params),
+            array_values($params),
+            $path
+        );
+
+        // Use glob to know extension
+        $file = new File($path);
+
+        if ($file->getExtension() === '*') {
+            $dir = $file->getDir();
+            $paths = $dir->glob($file->getBaseName());
+            $count = count($paths);
+
+            // Only when exactly one match file name
+            if ($count === 1) {
+                $file->setPath($paths[0]);
+            } else {
+                return null;
+            }
+        }
+
+        return $file;
     }
 
     /**
