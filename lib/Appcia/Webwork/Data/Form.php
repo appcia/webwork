@@ -364,12 +364,12 @@ class Form
      * Load resources using resource manager
      * Upload files or retrieve previously uploaded from temporaries
      *
-     * @param ResourceManager $rm    Resource manager
-     * @param string          $token Form token
+     * @param ResourceManager $manager Resource manager
+     * @param string          $token   Form token
      *
      * @return Form
      */
-    public function load(ResourceManager $rm, $token)
+    public function load(ResourceManager $manager, $token)
     {
         foreach ($this->fields as $name => $field) {
             if (!$field->isUploadable()) {
@@ -377,12 +377,18 @@ class Form
             }
 
             // Retrieve file from temporaries
-            $resource = $rm->find($token, $name);
+            $resource = $manager->load(
+                ResourceManager::TEMPORARY,
+                array(
+                    'token' => $token,
+                    'key' => $name
+                )
+            );
 
             // Service file upload
-            $data = $rm->normalizeUpload($field->getValue());
+            $data = $manager->normalizeUpload($field->getValue());
             if (!empty($data)) {
-                $resource = $rm->upload($token, $name, $data);
+                $resource = $manager->upload($token, $name, $data);
             }
 
             $this->set($name, $resource);
@@ -395,12 +401,12 @@ class Form
      * Unload resources previously loaded by resource manager
      * Remove files from temporaries
      *
-     * @param ResourceManager $rm    Resource manager
-     * @param string          $token Token
+     * @param ResourceManager $manager Resource manager
+     * @param string          $token   Token
      *
      * @return Form
      */
-    public function unload(ResourceManager $rm, $token)
+    public function unload(ResourceManager $manager, $token)
     {
         foreach ($this->fields as $name => $field) {
             if (!$field->isUploadable()) {
@@ -408,19 +414,13 @@ class Form
             }
 
             // Retrieve file from temporaries
-            $resource = $rm->load(
+            $manager->remove(
                 ResourceManager::TEMPORARY,
                 array(
                     'token' => $token,
                     'key' => $name
                 )
             );
-
-            // And remove it
-            if ($resource !== null) {
-                $resource->getFile()
-                    ->remove();
-            }
         }
 
         return $this;

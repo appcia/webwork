@@ -30,6 +30,14 @@ class File
     }
 
     /**
+     * @param string $path
+     */
+    public function setPath($path)
+    {
+        $this->path = $path;
+    }
+
+    /**
      * Get relative path
      *
      * @return string
@@ -334,24 +342,18 @@ class File
         return $this;
     }
 
-    /**
-     * Guess file extension if wildcard used
-     *
-     * @return File|null
-     * @throws Exception
-     */
-    public function guessExtension()
+    public function equals(File $file)
     {
-        $dir = $this->getDir();
-        $paths = $dir->glob($this->getBaseName());
-        $count = count($paths);
+        $samePaths = $this->getAbsolutePath() === $file->getAbsolutePath();
 
-        if (empty($paths)) {
-            throw new Exception(sprintf("Cannot guess any extension for path: '%s'", $this->path));
-        } elseif ($count > 1) {
-            throw new Exception(sprintf("More than one file match (%d) when guessing path '%s'", $count, $this->path));
-        }
+        return $samePaths;
+    }
 
-        $this->path = $paths[0];
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return (string) $this->path;
     }
 }

@@ -10,39 +10,25 @@ use Appcia\Webwork\System\File;
 
 class Manager
 {
-    const TEMPORARY = self::TEMPORARY;
-    
+    const TEMPORARY = 'temporary';
+
     /**
-     * Resource map: locations and other configurations
-     *
      * @var array
      */
     private $map;
 
-    /**
-     * @var array
-     */
-    private $plugins;
 
-    /**
-     * Constructor
-     */
     public function __construct()
     {
         $this->map = array();
-        $this->plugins = array();
     }
 
     /**
      * @param array $map
-     *
-     * @return Manager
      */
-    public function setMap(array $map)
+    public function setMap($map)
     {
         $this->map = $map;
-
-        return $this;
     }
 
     /**
@@ -54,137 +40,52 @@ class Manager
     }
 
     /**
-     * Get specific resource configuration
+     * @param string $name
+     * @param array  $params
+     * @param string $path
      *
-     * @param string $resourceName Resource name
-     *
-     * @return mixed
-     * @throws Exception
+     * @return Resource|null
      */
-    public function getConfig($resourceName)
+    public function save($name, array $params, $path)
     {
-        if (!isset($this->map[$resourceName])) {
-            throw new Exception(sprintf("Invalid resource name '%s'", $resourceName));
+        if ($path === null) {
+            $this->remove($name, $params);
+            return null;
         }
 
-        $config = $this->map[$resourceName];
+        $resource = new Resource($this, $name, $params);
 
-        if (!isset($config['path'])) {
-            throw new Exception(sprintf("Path for resource '%s' not specified", $resourceName));
-        }
-
-        return $config;
-    }
-
-    /**
-     * Get resource file
-     *
-     * @param Manager $manager      Origin factory
-     * @param string  $resourceName Resource type
-     * @param array   $params       Path parameters
-     *
-     * @return Resource
-     */
-    public function load($resourceName, array $params)
-    {
-        $resource = new Resource($this, $resourceName, $params);
-        
-        $file = $resource->getFile();
-        if ($file === null) {
-            throw new Exception(sprintf("Cannot determine resource file for name '%s'", $resourceName));
-        }
-
-        return $resource;
-    }
-
-    /**
-     * Save file as resource
-     *
-     * @param string $resourceName Resource name
-     * @param array  $params       Path parameters
-     * @param File   $file         File to be saved
-     *
-     * @return Resource
-     * @throws Exception
-     */
-    public function save($resourceName, array $params, $file)
-    {
-        if (!$file instanceof File) {
-            $file = new File($file);
-        }
-
-        if (!$file->exists()) {
-            throw new Exception(sprintf("Cannot save resource related with non-existing file: '%s'", $file->getPath()));
-        }
-
-        $resource = new Resource($this, $resourceName, $params);
+        $sourceFile = $this->retrieveFile($path);
         $targetFile = $resource->getFile();
+
         if ($targetFile === null) {
-            throw new Exception(sprintf("Cannot determine resource target file for name: '%s", $resourceName));
+            throw new Exception(sprintf("Resource '%s' has some problem with target file determining", $name));
         }
 
-        // Copy source file to target resource path
-        $file->copy($targetFile);
-
-        // Remove source temporary file
-        if ($resourceName === self::TEMPORARY) {
-            $file->remove();
+        if (!$sourceFile->equals($targetFile)) {
+            $sourceFile->copy($targetFile);
         }
-
-        // Create resource subtypes
-        $resource->createTypes();
 
         return $resource;
     }
 
-    /**
-     * Remove resource from filesystem
-     *
-     * @param string $type   Resource type
-     * @param array  $params Path parameters
-     *
-     * @return Manager
-     */
-    public function remove($type, array $params)
+    public function load($name, array $params)
     {
-        $resource = $this->load($type, $params);
+        $resource = new Resource($this, $name, $params);
+
+        return $resource;
+    }
+
+    public function remove($name, array $params)
+    {
+        $resource = $this->load($name, $params);
         $file = $resource->getFile();
 
-        if ($file !== null && $file->exists()) {
+        if ($file !== null) {
             $file->remove();
         }
 
         return $this;
-    }
-
-    /**
-     * Normalize uploaded file data
-     *
-     * @param array $data Data
-     *
-     * @return array|null
-     */
-    public function normalizeUpload(array $data)
-    {
-        // Trim empty values to null
-        if (empty($data['tmp_name'])) {
-            return null;
-        }
-
-        // Normalize for multiple files
-        if (is_array($data['tmp_name'])) {
-            $result = array();
-
-            foreach ($data as $key => $all) {
-                foreach ($all as $i => $val) {
-                    $result[$i][$key] = $val;
-                }
-            }
-
-            return $result;
-        }
-
-        return $data;
     }
 
     /**
@@ -234,22 +135,132 @@ class Manager
         }
 
         $sourceFile = new File($data['name']);
-        $extension = $sourceFile->getExtension();
-        $suffix = '_' . (string) $key;
-        $targetFile = new File($this->tempDir->getPath($token . $suffix . '.' . $extension));
-
         $tempFile = new File($data['tmp_name']);
-        $tempFile->moveUploaded($targetFile);
 
         $resource = $this->save(
             self::TEMPORARY,
             array(
                 'token' => $token,
-                'key' => $key
+                'key' => $key,
+                'ext' => $sourceFile->getExtension()
             ),
             $tempFile
         );
 
         return $resource;
     }
+
+    /**
+     * Normalize uploaded file data
+     *
+     * @param array $data Data
+     *
+     * @return array|null
+     */
+    public function normalizeUpload(array $data)
+    {
+        // Trim empty values to null
+        if (empty($data['tmp_name'])) {
+            return null;
+        }
+
+        // Normalize for multiple files
+        if (is_array($data['tmp_name'])) {
+            $result = array();
+
+            foreach ($data as $key => $all) {
+                foreach ($all as $i => $val) {
+                    $result[$i][$key] = $val;
+                }
+            }
+
+            return $result;
+        }
+
+        return $data;
+    }
+
+    /**
+     * @param Resource|File|string $resource
+     *
+     * @return File|null
+     * @throws Exception
+     */
+    public function retrieveFile($resource)
+    {
+        $file = null;
+
+        if ($resource instanceof Resource) {
+            $file = $resource->getFile();
+        } elseif ($resource instanceof File) {
+            $file = $resource;
+        } elseif (is_string($resource)) {
+            $file = new File($resource);
+        } else {
+            throw new Exception('Invalid resource provided');
+        }
+
+        return $file;
+    }
+
+    private function getConfig($name)
+    {
+        if (!isset($this->map[$name])) {
+            throw new Exception(sprintf("Configuration for resource '%s' not found", $name));
+        }
+
+        $config = $this->map[$name];
+
+        if (!isset($config['path'])) {
+            throw new Exception(sprintf("Path for resource '%s' is not specified"));
+        }
+
+        return $config;
+    }
+
+    /**
+     * @param string $name
+     * @param array  $params
+     *
+     * @return File|null
+     */
+    public function determineFile($name, array $params)
+    {
+        // Inject params into path from configuration
+        $config = $this->getConfig($name);
+
+        // Extension usually is unknown so use wildcard (except case when saving resource)
+        if (!isset($params['ext'])) {
+            $params['ext'] = '*';
+        }
+
+        foreach ($params as $key => $value) {
+            $params['{' . $key . '}'] = $value;
+            unset($params[$key]);
+        }
+
+        $path = str_replace(
+            array_keys($params),
+            array_values($params),
+            $config['path']
+        );
+
+        // Use glob to know extension
+        $file = new File($path);
+
+        if ($file->getExtension() === '*') {
+            $dir = $file->getDir();
+            $paths = $dir->glob($file->getBaseName());
+            $count = count($paths);
+
+            if ($count === 1) {
+                $file->setPath($paths[0]);
+            } else {
+                return null;
+            }
+        }
+
+        return $file;
+    }
+
 }
