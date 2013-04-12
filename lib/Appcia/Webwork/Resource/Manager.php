@@ -56,6 +56,10 @@ class Manager
             $dir = new Dir($dir);
         }
 
+        if (!$dir->exists()) {
+            $dir->create();
+        }
+
         $this->tempDir = $dir;
     }
 
