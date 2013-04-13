@@ -142,7 +142,12 @@ class Resource extends Type
                 $type = new Type($this, $config['path'], $params);
                 $types[$name] = $type;
 
-                $file->move($type->getFile());
+                $targetFile = $type->getFile();
+                if ($targetFile->exists()) {
+                    $targetFile->remove();
+                }
+
+                $file->move($targetFile);
             }
         }
 
