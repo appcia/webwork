@@ -9,28 +9,29 @@ class Date extends Helper
     /**
      * Caller
      *
-     * @param mixed  $value  Unix timestamp or string, e.g '+ 1 week'
-     * @param string $format Date format, default is 'Y-m-d, H:i:s'
+     * @param \DateTime|mixed $value  Unix timestamp or string, e.g '+ 1 week'
+     * @param string          $format Date format, default is 'Y-m-d, H:i:s'
      *
      * @return string
      */
     public function date($value = null, $format = null)
     {
         if ($value === null) {
-            $value = time();
+            $value = new \DateTime();
         }
 
         if ($format === null) {
             $format = 'Y-m-d, H:i:s';
-        }
-        else {
+        } else {
             $format = (string) $format;
         }
 
-        if (!is_int($value)) {
-            $value = strtotime($value);
+        if (!$value instanceof \DateTime) {
+            $value = new \DateTime($value);
         }
 
-        return date($format, $value);
+        $date = $value->format($format);
+
+        return $date;
     }
 }
