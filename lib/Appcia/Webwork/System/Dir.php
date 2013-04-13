@@ -383,4 +383,23 @@ class Dir
     {
         return is_writable($this->path);
     }
+
+    /**
+     * Check whether is empty
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public function isEmpty()
+    {
+        $contents = @scandir($this->path);
+        if ($contents === false) {
+            throw new Exception(sprintf("Cannot check that directory is empty: '%s'", $this->path));
+        }
+
+        $contents = array_diff($contents, array('.', '..'));
+        $empty = empty($contents);
+
+        return $empty;
+    }
 }

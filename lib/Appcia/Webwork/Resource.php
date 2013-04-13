@@ -8,21 +8,29 @@ use Appcia\Webwork\Resource\Type;
 class Resource extends Type
 {
     /**
+     * Manager
+     *
      * @var Manager
      */
     private $manager;
 
     /**
+     * Name
+     *
      * @var string
      */
     private $name;
 
     /**
+     * Loaded types
+     *
      * @var array
      */
     private $types;
 
     /**
+     * Instantiated processor objects
+     *
      * @var array
      */
     private $processors;
@@ -43,7 +51,7 @@ class Resource extends Type
 
         $config = $manager->getConfig($name);
 
-        parent::__construct($config['path'], $params);
+        parent::__construct($this, $config['path'], $params);
     }
 
     /**
@@ -79,7 +87,7 @@ class Resource extends Type
     /**
      * Get type by name
      *
-     * @param $type
+     * @param $type Type name
      *
      * @return Type
      * @throws Exception
@@ -131,10 +139,10 @@ class Resource extends Type
             foreach ($files as $fileKey => $file) {
                 $params['key'] = $fileKey;
 
-                $type = new Type($config['path'], $params);
+                $type = new Type($this, $config['path'], $params);
                 $types[$name] = $type;
 
-                $file->move($type->getFile(true));
+                $file->move($type->getFile());
             }
         }
 
@@ -144,7 +152,7 @@ class Resource extends Type
     }
 
     /**
-     * Locate produced subtypes
+     * Get processed types
      *
      * @return array
      */
@@ -162,7 +170,7 @@ class Resource extends Type
             $params = $this->getParams();
             $params['type'] = $name;
 
-            $type = new Type($config['path'], $params);
+            $type = new Type($this, $config['path'], $params);
             $types[$name] = $type;
         }
 
@@ -172,8 +180,8 @@ class Resource extends Type
     /**
      * Get processor for creating derivative types basing on original resource
      *
-     * @param string $type
-     * @param array  $config
+     * @param string $type   Type name
+     * @param array  $config Configuration for type
      *
      * @return Manager
      * @throws Exception

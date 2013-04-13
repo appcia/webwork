@@ -101,7 +101,7 @@ class Manager
 
         // Copy / download resource (only when it is required)
         $resource = new Resource($this, $name, $params);
-        $targetFile = $resource->getFile(true);
+        $targetFile = $resource->getFile();
 
         if (!$sourceFile->equals($targetFile)) {
             $sourceFile->copy($targetFile);
@@ -139,10 +139,35 @@ class Manager
     public function remove($name, array $params)
     {
         $resource = $this->load($name, $params);
-        $file = $resource->getFile();
 
-        if ($file !== null) {
+        $this->removeFile($resource->getFile());
+        foreach ($resource->getTypes() as $type) {
+            $this->removeFile($type->getFile());
+        }
+
+        return $this;
+    }
+
+    /**
+     * Remove existing file and also directory if empty
+     *
+     * @param File|null $file File
+     *
+     * @return $this
+     */
+    private function removeFile($file)
+    {
+        if ($file === null) {
+            return $this;
+        }
+
+        if ($file->exists()) {
             $file->remove();
+        }
+
+        $dir = $file->getDir();
+        if ($dir->isEmpty()) {
+            $dir->remove();
         }
 
         return $this;
@@ -164,7 +189,7 @@ class Manager
             throw new Exception('Invalid resource provided');
         } else {
             if ($resource instanceof Type) {
-                $file = $resource->getFile(true);
+                $file = $resource->getFile();
             } elseif ($resource instanceof File) {
                 $file = $resource;
             } elseif (is_string($resource)) {

@@ -61,10 +61,10 @@ class Bootstrap
      */
     public function __construct($env, $rootPath, $configFile, $autoloader)
     {
-        if (!in_array($env, $this->environments)) {
+        if (empty($env)) {
             throw new Exception('Environment not specified.' . PHP_EOL
                 . "Set environmental variable named 'APPLICATION_ENV' in vhost configuration." . PHP_EOL
-                . "If you are running CLI, to set this variable, you could use 'export' command.", $env);
+                . "If you are running CLI, to set this variable, you could use 'export' command.");
         }
 
         if (!in_array($env, $this->environments)) {

@@ -3,36 +3,67 @@
 namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\Exception;
+use Appcia\Webwork\Resource;
 use Appcia\Webwork\System\File;
 
 class Type
 {
     /**
+     * Base resource
+     *
+     * @var Resource
+     */
+    private $resource;
+
+    /**
+     * Path pattern
+     *
      * @var string
      */
     private $path;
 
     /**
+     * Parameters for path generation
+     *
      * @var array
      */
     private $params;
 
     /**
+     * Lazy located file
+     *
      * @var File
      */
     private $file;
 
     /**
-     * @param string $path
-     * @param array  $params
+     * Constructor
+     *
+     * @param Resource $resource Base resource
+     * @param string   $path     Path pattern
+     * @param array    $params   Parameters for path
      */
-    public function __construct($path, array $params = array())
+    public function __construct(Resource $resource, $path, array $params = array())
     {
+        $this->resource = $resource;
         $this->path = $path;
         $this->params = $params;
         $this->file = null;
     }
+
     /**
+     * Get base resource
+     *
+     * @return Resource
+     */
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
+    /**
+     * Get path pattern
+     *
      * @return string
      */
     public function getPath()
@@ -41,6 +72,8 @@ class Type
     }
 
     /**
+     * Get parameters for path generation
+     *
      * @return array
      */
     public function getParams()
@@ -49,12 +82,14 @@ class Type
     }
 
     /**
-     * @param bool $force Throw exception when cannot be done
+     * Get lazy loaded file
+     *
+     * @param bool $force Throw exception if it cannot be determined
      *
      * @return File|null
      * @throws Exception
      */
-    public function getFile($force = false)
+    public function getFile($force = true)
     {
         if ($this->file === null) {
             $file = $this->determineFile($this->path, $this->params);
@@ -63,7 +98,7 @@ class Type
                 $this->params['ext'] = $file->getExtension();
                 $this->file = $file;
             } else if ($force) {
-                throw new Exception(sprintf("Cannot determine target file for resource '%s'", $this->name));
+                throw new Exception(sprintf("Cannot determine target file for resource with path '%s'", $this->path));
             }
         }
 
@@ -71,8 +106,11 @@ class Type
     }
 
     /**
-     * @param string $path
-     * @param array  $params
+     * Locate file on filesystem using path and parameters
+     * If file extension equals wildcard '*' then it will be guessed using glob
+     *
+     * @param string $path   Path pattern
+     * @param array  $params Parameters for path
      *
      * @return File|null
      */
@@ -114,11 +152,13 @@ class Type
     }
 
     /**
+     * Returns file string representation
+     *
      * @return string
      */
     public function __toString()
     {
-        $file = $this->getFile();
+        $file = $this->getFile(false);
 
         if ($file === null) {
             return '';
