@@ -22,6 +22,11 @@ Also it would be great, if you like this project and wanna cooperate.
 
 #### News
 
+**0.7**
+* resource manager
+  * for mapping files (images, pdfs etc) with database rows by parameters like ID or others
+  * processing derivatives types based on origin resource (thumbnails in many different sizes, format conversions etc)
+
 **0.6**
 * dispatcher events, useful for listening (error handling, authorization)
 * unit tests (in progress)
