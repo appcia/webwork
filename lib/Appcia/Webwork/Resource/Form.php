@@ -71,6 +71,11 @@ class Form extends BasicForm
                 } else {
                     $resource = $this->manager->load('upload', $params);
                 }
+
+                // For sure, resource file could be removed in a meanwhile
+                if ($resource->getFile(false) === null) {
+                    $resource = null;
+                }
             }
 
             $this->set($name, $resource);
