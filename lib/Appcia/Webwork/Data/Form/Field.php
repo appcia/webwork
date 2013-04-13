@@ -6,68 +6,96 @@ use Appcia\Webwork\Data\Filter;
 use Appcia\Webwork\Data\Validator;
 use Appcia\Webwork\Exception;
 
-class Field {
-
+class Field
+{
     /**
+     * Name
+     *
      * @var string
      */
     private $name;
 
     /**
+     * Filtered value which is tested by validation
+     *
      * @var mixed
      */
     private $value;
 
     /**
+     * Unfiltered value
+     *
      * @var mixed
      */
     private $rawValue;
 
     /**
+     * Registered validators
+     *
      * @var array
      */
     private $validators;
 
     /**
+     * Registered filters
+     *
      * @var array
      */
     private $filters;
 
     /**
+     * Validation result
+     *
      * @var bool
      */
     private $valid;
 
     /**
+     * Field type used for extended form behaviours
+     *
      * @var bool
      */
-    private $uploadable;
+    private $type;
+
+    const TEXT = 'text';
+    const FILE = 'file';
+
+    private static $types = array(
+        self::TEXT,
+        self::FILE
+    );
 
     /**
      * Constructor
      *
-     * @param string $name
-     * @param mixed  $value
+     * @param string $name Name
+     * @param string $type Type
      */
-    public function __construct($name, $value = null) {
+    public function __construct($name, $type = null)
+    {
         $this->validators = array();
         $this->filters = array();
         $this->valid = true;
-        $this->uploadable = false;
+        $this->type = self::TEXT;
 
         $this->setName($name);
-
-        if ($value !== null) {
-            $this->setValue($value);
+        if ($type !== null) {
+            $this->setType($type);
         }
     }
 
     /**
-     * @param string $name
+     * Set name
+     *
+     * @param string $name Name
+     *
+     * @return Field
      */
     public function setName($name)
     {
         $this->name = $name;
+
+        return $this;
     }
 
     /**
@@ -79,12 +107,18 @@ class Field {
     }
 
     /**
-     * @param mixed $value
+     * Set value
+     *
+     * @param mixed $value Value
+     *
+     * @return Field
      */
     public function setValue($value)
     {
         $this->value = $value;
         $this->rawValue = $value;
+
+        return $this;
     }
 
     /**
@@ -96,11 +130,23 @@ class Field {
     }
 
     /**
+     * Check whether value is empty
+     *
      * @return bool
      */
     public function isEmpty()
     {
         return empty($this->value);
+    }
+
+    /**
+     * Check how value evaluates to true or false
+     *
+     * @return bool
+     */
+    public function isEnabled()
+    {
+        return (bool) $this->value;
     }
 
     /**
@@ -114,7 +160,8 @@ class Field {
     /**
      * @return bool
      */
-    public function isValid() {
+    public function isValid()
+    {
         return $this->valid;
     }
 
@@ -131,12 +178,15 @@ class Field {
     }
 
     /**
-     * Attach filter to field
+     * Register filter
      *
-     * @param Filter $filter
+     * @param Filter $filter Filter
+     *
+     * @return Field
      * @throws Exception
      */
-    public function addFilter(Filter $filter) {
+    public function addFilter(Filter $filter)
+    {
         $name = $filter->getName();
 
         if (isset($this->filters[$name])) {
@@ -144,20 +194,25 @@ class Field {
         }
 
         $this->filters[$name] = $filter;
+
+        return $this;
     }
 
     /**
-     * Check whether filter exists
+     * Check whether filter is registered
      *
      * @param string $name Filter name
      *
      * @return bool
      */
-    public function hasFilter($name) {
+    public function hasFilter($name)
+    {
         return isset($this->filters[$name]);
     }
 
     /**
+     * Get registered filters
+     *
      * @return array
      */
     public function getFilters()
@@ -166,7 +221,11 @@ class Field {
     }
 
     /**
+     * Set validators
+     *
      * @param array $validators
+     *
+     * @return Field
      */
     public function setValidators($validators)
     {
@@ -175,15 +234,20 @@ class Field {
         foreach ($validators as $validator) {
             $this->addValidator($validator);
         }
+
+        return $this;
     }
 
     /**
      * Attach validator to field
      *
-     * @param Validator $validator
+     * @param Validator $validator Validator
+     *
+     * @return Field
      * @throws Exception
      */
-    public function addValidator(Validator $validator) {
+    public function addValidator(Validator $validator)
+    {
         $name = $validator->getName();
 
         if (isset($this->validators[$name])) {
@@ -191,20 +255,25 @@ class Field {
         }
 
         $this->validators[$name] = $validator;
+
+        return $this;
     }
 
     /**
-     * Check whether validator exists
+     * Check whether validator is registered
      *
      * @param string $name Validator name
      *
      * @return bool
      */
-    public function hasValidator($name) {
+    public function hasValidator($name)
+    {
         return isset($this->validators[$name]);
     }
 
     /**
+     * Get registered validators
+     *
      * @return array
      */
     public function getValidators()
@@ -217,7 +286,8 @@ class Field {
      *
      * @return string
      */
-    public function filter() {
+    public function filter()
+    {
         foreach ($this->filters as $filter) {
             $this->value = $filter->filter($this->value);
         }
@@ -230,7 +300,8 @@ class Field {
      *
      * @return bool
      */
-    public function validate() {
+    public function validate()
+    {
         $this->valid = true;
 
         foreach ($this->validators as $validator) {
@@ -246,21 +317,40 @@ class Field {
     /**
      * Treat value as file that can be uploaded
      *
-     * @param boolean $flag
+     * @param string $type Type
+     *
+     * @return Field
+     * @throws Exception
      */
-    public function setUploadable($flag)
+    public function setType($type)
     {
-        $this->uploadable = $flag;
+        if (!in_array($type, self::$types)) {
+            throw new Exception(sprintf("Invalid field type '%s'", $type));
+        }
+
+        $this->type = $type;
+
+        return $this;
     }
 
     /**
-     * Check whether value is a file that can be uploaded
+     * Get type
      *
-     * @return boolean
+     * @return string
      */
-    public function isUploadable()
+    public function getType()
     {
-        return $this->uploadable;
+        return $this->type;
+    }
+
+    /**
+     * Get allowed types
+     *
+     * @return array
+     */
+    public static function getTypes()
+    {
+        return self::$types;
     }
 
     /**
@@ -268,7 +358,8 @@ class Field {
      *
      * @return string
      */
-    public function __toString() {
+    public function __toString()
+    {
         return (string) $this->value;
     }
 }

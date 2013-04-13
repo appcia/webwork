@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\Data\Form as BasicForm;
+use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Exception;
 use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
@@ -29,31 +30,47 @@ class Form extends BasicForm
     /**
      * Load resources using resource manager
      * Upload files or retrieve previously uploaded from temporaries
+     * Use skipped fields parameter if for some resources should be not loaded but removed
      *
-     * @param string $token Form token
+     * @param string       $token Form token
+     * @param string|array $skip  Skipped field names
      *
      * @return Form
      */
-    public function load($token)
+    public function load($token, $skip = null)
     {
+        $skipped = array();
+        if ($skip !== null) {
+            if (is_array($skip)) {
+                $skipped = $skip;
+            } else {
+                $skipped = array($skip);
+            }
+        }
+
         foreach ($this->getFields() as $name => $field) {
-            if (!$field->isUploadable()) {
+            if ($field->getType() !== Field::FILE) {
                 continue;
             }
 
-            // Retrieve file from temporaries
-            $resource = $this->manager->load(
-                'upload',
-                array(
-                    'token' => $token,
-                    'key' => $name
-                )
+            $resource = null;
+            $params = array(
+                'token' => $token,
+                'key' => $name
             );
 
-            // Service file upload
-            $data = $this->normalizeUpload($field->getValue());
-            if (!empty($data)) {
-                $resource = $this->upload($token, $name, $data);
+            // If field should be skipped remove associated resource
+            if (in_array($name, $skipped)) {
+                $this->manager->remove('upload', $params);
+            } else {
+                $data = $this->normalizeUpload($field->getValue());
+
+                // If not, upload it or load from temporaries
+                if (!empty($data)) {
+                    $resource = $this->upload($token, $name, $data);
+                } else {
+                    $resource = $this->manager->load('upload', $params);
+                }
             }
 
             $this->set($name, $resource);
@@ -73,7 +90,7 @@ class Form extends BasicForm
     public function unload($token)
     {
         foreach ($this->getFields() as $name => $field) {
-            if (!$field->isUploadable()) {
+            if ($field->getType() !== Field::FILE) {
                 continue;
             }
 

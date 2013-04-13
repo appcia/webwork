@@ -140,9 +140,9 @@ class Manager
     {
         $resource = $this->load($name, $params);
 
-        $this->removeFile($resource->getFile());
+        $this->removeFile($resource->getFile(false));
         foreach ($resource->getTypes() as $type) {
-            $this->removeFile($type->getFile());
+            $this->removeFile($type->getFile(false));
         }
 
         return $this;
