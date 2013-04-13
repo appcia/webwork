@@ -7,6 +7,8 @@ use Appcia\Webwork\Exception;
 
 class Auth
 {
+    const TOKEN_SALT = '32kj43@#132_14';
+
     /**
      * @var Session
      */
@@ -33,17 +35,39 @@ class Auth
     private $user;
 
     /**
+     * @var int|null
+     */
+    private $expirationTime;
+
+    /**
      * Constructor
      *
-     * @param Session $session
-     * @param string $namespace
+     * @param Session $session   Session object
+     * @param string  $namespace Session namespace
      */
     public function __construct(Session $session, $namespace = 'auth')
     {
         $this->session = $session;
         $this->namespace = $namespace;
+        $this->expirationTime = null;
 
         $this->load();
+    }
+
+    /**
+     * @param int|null $expirationTime
+     */
+    public function setExpirationTime($expirationTime)
+    {
+        $this->expirationTime = $expirationTime;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getExpirationTime()
+    {
+        return $this->expirationTime;
     }
 
     /**
@@ -58,6 +82,7 @@ class Auth
 
             $this->userData = isset($data['userData']) ? $data['userData'] : null;
             $this->token = isset($data['token']) ? $data['token'] : null;
+            $this->time = isset($data['time']) ? $data['time'] : null;
         }
 
         return $this;
@@ -72,7 +97,8 @@ class Auth
     {
         $data = array(
             'userData' => $this->userData,
-            'token' => $this->token
+            'token' => $this->token,
+            'time' => $this->time,
         );
 
         $this->session->set($this->namespace, $data);
@@ -85,16 +111,36 @@ class Auth
      */
     public function isAuthorized()
     {
-        return $this->userData !== null;
+        if (empty($this->userData)) {
+            return false;
+        }
+
+        $token = $this->generateToken();
+        if ($this->token != $token) {
+            return false;
+        }
+
+        if ($this->expirationTime !== null) {
+            $time = time();
+            $delayTime = $time - $this->time;
+
+            if ($delayTime > $this->expirationTime) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      * When inherited, could unserialize user after loading
      *
      * @param $user
+     *
      * @return mixed
      */
-    protected function wakeupUser($user) {
+    protected function wakeupUser($user)
+    {
         return $user;
     }
 
@@ -105,7 +151,8 @@ class Auth
      *
      * @return object
      */
-    protected function sleepUser($user) {
+    protected function sleepUser($user)
+    {
         return $user;
     }
 
@@ -113,7 +160,8 @@ class Auth
      * @return Object
      * @throws Exception
      */
-    public function getUser() {
+    public function getUser()
+    {
         if (!$this->isAuthorized()) {
             throw new Exception('Cannot get user when access is unauthorized');
         }
@@ -134,12 +182,19 @@ class Auth
     }
 
     /**
-     * @param string $value Value to be tokenized
-     *
      * @return string
      */
-    public function generateToken($value) {
-        return sha1(md5($value));
+    public function getKey()
+    {
+        return $this->key;
+    }
+
+    /**
+     * @return string
+     */
+    public function generateToken()
+    {
+        return sha1(md5(self::TOKEN_SALT . $this->userData));
     }
 
     /**
@@ -147,9 +202,11 @@ class Auth
      *
      * @return Auth
      */
-    public function authorize($user) {
+    public function authorize($user)
+    {
         $this->userData = $this->sleepUser($user);
-        $this->token = $this->generateToken('32kj43@#132_14'); // @todo improve token security
+        $this->token = $this->generateToken();
+        $this->time = time();
 
         $this->save();
 
@@ -159,7 +216,8 @@ class Auth
     /**
      * @return Auth
      */
-    public function unauthorize() {
+    public function unauthorize()
+    {
         $this->userData = null;
         $this->token = null;
 

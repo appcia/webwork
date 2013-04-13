@@ -338,7 +338,7 @@ class Form
     public function tokenize($key = null)
     {
         if ($key !== null && !is_string($key) && !is_numeric($key)) {
-            throw new Exception('Token key should be a number or string');
+            throw new Exception('Token key should be a number or a string');
         }
 
         $key = (string) $key . implode('', array_keys($this->fields));
