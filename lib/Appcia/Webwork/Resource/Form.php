@@ -37,7 +37,7 @@ class Form extends BasicForm
      *
      * @return Form
      */
-    public function load($token, $skip = null)
+    public function load($token, $skip = null, array $map = array())
     {
         $skipped = array();
         if ($skip !== null) {
@@ -65,11 +65,13 @@ class Form extends BasicForm
             } else {
                 $data = $this->normalizeUpload($field->getValue());
 
-                // If not, upload it or load from temporaries
+                // If not, upload it or load from temporaries or existing
                 if (!empty($data)) {
                     $resource = $this->upload($token, $name, $data);
-                } else {
+                } else if (!isset($map[$name])) {
                     $resource = $this->manager->load('upload', $params);
+                } else {
+                    $resource = $map[$name];
                 }
 
                 // For sure, resource file could be removed in a meanwhile
