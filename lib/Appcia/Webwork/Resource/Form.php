@@ -181,9 +181,15 @@ class Form extends BasicForm
      * @param array $data Data
      *
      * @return array|null
+     * @throws Exception
      */
-    public function normalizeUpload(array $data)
+    public function normalizeUpload($data)
     {
+        if (!is_array($data)) {
+            throw new Exception('Uploaded data is not an array.' . PHP_EOL
+                . 'Propably you just forget to add enctype multipart/form-data to form');
+        }
+
         // Trim empty values to null
         if (empty($data['tmp_name'])) {
             return null;

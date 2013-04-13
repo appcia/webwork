@@ -187,7 +187,7 @@ class Bootstrap
      * Load single module
      *
      * @param string $name   Keyword name
-     * @param array $config Native data
+     * @param array  $config Native data
      *
      * @return Bootstrap
      * @throws Exception

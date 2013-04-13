@@ -8,6 +8,9 @@ use Appcia\Webwork\Exception;
 
 class Field
 {
+    const TEXT = 'text';
+    const FILE = 'file';
+
     /**
      * Name
      *
@@ -56,9 +59,6 @@ class Field
      * @var bool
      */
     private $type;
-
-    const TEXT = 'text';
-    const FILE = 'file';
 
     private static $types = array(
         self::TEXT,
@@ -147,6 +147,23 @@ class Field
     public function isEnabled()
     {
         return (bool) $this->value;
+    }
+
+    /**
+     * Check if value belongs to set
+     * Suppose that value is an array
+     *
+     * @param mixed $value Value
+     *
+     * @return bool
+     */
+    public function contains($value)
+    {
+        if (!is_array($this->value)) {
+            return false;
+        }
+
+        return in_array($value, $this->value);
     }
 
     /**
