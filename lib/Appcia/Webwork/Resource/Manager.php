@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Resource;
 
+
 use Appcia\Webwork\Exception;
 use Appcia\Webwork\Resource;
 use Appcia\Webwork\System\Dir;
@@ -99,15 +100,17 @@ class Manager
             $params['ext'] = $sourceFile->getExtension();
         }
 
-        // Copy / download resource (only when it is required)
         $resource = new Resource($this, $name, $params);
         $targetFile = $resource->getFile();
 
-        if (!$sourceFile->equals($targetFile)) {
-            $sourceFile->copy($targetFile);
+        // Copy / download resource (only when it is required)
+        if ($sourceFile->equals($targetFile)) {
+            return $resource;
         }
 
-        // Create subtypes (run processing based on source file)
+        $sourceFile->copy($targetFile);
+
+        // Run processing based on origin resource)
         $resource->createTypes();
 
         return $resource;

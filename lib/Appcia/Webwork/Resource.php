@@ -219,5 +219,17 @@ class Resource extends Type
         return $processor;
     }
 
+    /**
+     * Shortcut for removing itself
+     *
+     * @return Resource
+     */
+    public function remove()
+    {
+        $this->manager->remove($this->name, $this->getParams());
+
+        return $this;
+    }
+
 }
 
