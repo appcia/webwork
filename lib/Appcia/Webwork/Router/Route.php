@@ -104,13 +104,13 @@ class Route
      */
     public function setPath($path)
     {
-        $this->path = (string) $path;
+        $this->path = rtrim($path, '/');
 
         // Retrieve param names from path
         $match = array();
-        if (preg_match_all('/\{('. self::PARAM_CLASS .')\}/', $path, $match)) {
-            $path = '/^' . preg_quote(preg_replace('/\{('. self::PARAM_CLASS .')\}/', self::PARAM_SUBSTITUTION, $path), '/') . '$/';
-            $path = str_replace(self::PARAM_SUBSTITUTION, '('. self::PARAM_CLASS .')', $path);
+        if (preg_match_all('/\{('. self::PARAM_CLASS .')\}/', $this->path, $match)) {
+            $pattern = '/^' . preg_quote(preg_replace('/\{('. self::PARAM_CLASS .')\}/', self::PARAM_SUBSTITUTION, $this->path), '/') . '\/?$/';
+            $pattern = str_replace(self::PARAM_SUBSTITUTION, '('. self::PARAM_CLASS .')', $pattern);
 
             // Add params to map, null value means any possible
             foreach ($match[1] as $param) {
@@ -119,7 +119,7 @@ class Route
                 }
             }
 
-            $this->pattern = $path;
+            $this->pattern = $pattern;
         }
 
         return $this;

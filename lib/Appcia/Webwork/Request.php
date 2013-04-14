@@ -268,19 +268,12 @@ class Request
      */
     private function parsePath()
     {
-        $path = $this->getUri();
-
+        $path = rtrim($this->getUri(), '/');
         if (strpos($path, $this->scriptFile) === 0) {
             $path = substr($path, strlen($this->scriptFile));
         }
 
-        $path = parse_url($path, PHP_URL_PATH);
-
-        if (empty($path)) {
-            $path = '/';
-        }
-
-        $this->path = $path;
+        $this->path = parse_url($path, PHP_URL_PATH);
 
         return $this;
     }
