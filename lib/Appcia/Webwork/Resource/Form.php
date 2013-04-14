@@ -18,11 +18,11 @@ class Form extends BasicForm
     private $manager;
 
     /**
-     * At least one resource skipped or reset
+     * At least one resource has changed its skip status
      *
      * @var bool
      */
-    private $skipped;
+    private $skipChanged;
 
     /**
      * Constructor
@@ -34,15 +34,15 @@ class Form extends BasicForm
         parent::__construct();
 
         $this->manager = $manager;
-        $this->skipped = false;
+        $this->skipChanged = false;
     }
 
     /**
      * Load resources using resource manager
-     * Upload files or retrieve previously uploaded from temporaries
+     * Upload files, retrieve previously uploaded from temporaries or pass resources directly
      *
      * @param string $token     Form token
-     * @param array  $resources Existing resources
+     * @param array  $resources Existing resources (useful in edit forms)
      *
      * @return Form
      */
@@ -65,14 +65,13 @@ class Form extends BasicForm
             if (!empty($data)) {
                 $resource = $this->upload($token, $name, $data);
                 $this->unskip($name);
-            } else {
-                if ($this->isSkippedField($name)) {
-                    $this->manager->remove('upload', $params);
-                    $resource = null;
-                } elseif (!isset($resources[$name])) {
-                    $resource = $this->manager->load('upload', $params);
-                } else {
-                    $resource = $resources[$name];
+            }
+
+            if (!$this->isSkipped($name)) {
+                $resource = $this->manager->load('upload', $params);
+
+                if (!$resource->exists()) {
+                    $resource = isset($resources[$name]) ? $resources[$name] : null;
                 }
             }
 
@@ -111,6 +110,14 @@ class Form extends BasicForm
         return $this;
     }
 
+    /**
+     * Mark field with resource to be skipped
+     *
+     * @param string $name Field name
+     *
+     * @return Form
+     * @throws Exception
+     */
     public function skip($name)
     {
         if (empty($name)) {
@@ -122,16 +129,24 @@ class Form extends BasicForm
             throw new Exception(sprintf("Invalid field name to be skipped in resource loading '%s'", $name));
         }
 
-        $skipped = $this->getSkippedFields();
+        $skipped = $this->getSkipped();
         if (!in_array($name, $skipped)) {
             $skipped[] = $name;
-            $this->skipped = true;
+            $this->skipChanged = true;
         }
-        $this->setSkippedFields($skipped);
+        $this->setSkipped($skipped);
 
         return $this;
     }
 
+    /**
+     * Unmark field with file to be not skipped
+     *
+     * @param string $name Field name
+     *
+     * @return Form
+     * @throws Exception
+     */
     public function unskip($name)
     {
         if (empty($name)) {
@@ -143,32 +158,53 @@ class Form extends BasicForm
             throw new Exception(sprintf("Invalid field name to be unskipped in resource loading '%s'", $name));
         }
 
-        $skipped = $this->getSkippedFields();
+        $skipped = $this->getSkipped();
         $key = array_search($name, $skipped);
         if ($key !== false) {
             unset($skipped[$key]);
-            $this->skipped = true;
+            $this->skipChanged = true;
         }
 
-        $this->setSkippedFields($skipped);
+        $this->setSkipped($skipped);
 
         return $this;
     }
 
-    public function skipped()
+    /**
+     * Check whether field with file has changed its skip status
+     *
+     * @return bool
+     */
+    public function skipChanged()
     {
-        return $this->skipped;
+        return $this->skipChanged;
     }
 
-    private function isSkippedField($name)
+    /**
+     * Check whether field with file is skipped
+     *
+     * @param string $name Field name
+     *
+     * @return bool
+     */
+    public function isSkipped($name)
     {
-        $names = $this->getSkippedFields();
+        if (!$this->hasField($name)) {
+            return false;
+        }
+
+        $names = $this->getSkipped();
         $skipped = in_array($name, $names);
 
         return $skipped;
     }
 
-    private function getSkippedFields()
+    /**
+     * Get fields with file which are marked as skipped
+     *
+     * @return array
+     */
+    public function getSkipped()
     {
         $metadata = $this->getMetadata();
         $skipped = array();
@@ -179,7 +215,7 @@ class Form extends BasicForm
         return $skipped;
     }
 
-    private function setSkippedFields(array $names)
+    private function setSkipped(array $names)
     {
         $metadata[self::METADATA_SKIPPED_RESOURCE] = $names;
         $this->setMetadata($metadata);

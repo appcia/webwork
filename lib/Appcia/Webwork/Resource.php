@@ -231,5 +231,18 @@ class Resource extends Type
         return $this;
     }
 
+    /**
+     * Check existing whenever associated file exists
+     *
+     * @return bool
+     */
+    public function exists()
+    {
+        $file = $this->getFile(false);
+        $exists = ($file !== null) && $file->exists();
+
+        return $exists;
+    }
+
 }
 
