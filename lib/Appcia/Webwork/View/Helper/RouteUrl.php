@@ -9,12 +9,12 @@ class RouteUrl extends Helper
     /**
      * Caller
      *
-     * @param string $name   Route name
-     * @param array  $params Route params
+     * @param string     $name   Route name
+     * @param null|array $params Route params
      *
      * @return string
      */
-    public function routeUrl($name = null, array $params = array())
+    public function routeUrl($name = null, $params = null)
     {
         $container = $this
             ->getView()
@@ -26,9 +26,17 @@ class RouteUrl extends Helper
         if ($name === null) {
             $name = $dispatcher->getRoute()
                 ->getName();
+        }
 
-            $params = $dispatcher->getRequest()
-                ->getParams();
+        if ($params === null) {
+            $params = array_merge(
+                $dispatcher->getRequest()
+                    ->getGet(),
+                $dispatcher->getRequest()
+                    ->getParams()
+            );
+        } else if (!is_array($params)) {
+            $params = array();
         }
 
         return $router->assemble($name, $params);

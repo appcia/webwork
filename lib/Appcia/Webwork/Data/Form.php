@@ -8,6 +8,7 @@ use Appcia\Webwork\Exception;
 class Form
 {
     const TOKEN_SALT = 'dskljakld32#%$@#343_';
+    const METADATA = 'metadata';
 
     /**
      * Validation result
@@ -31,6 +32,7 @@ class Form
         $this->fields = array();
         $this->valid = true;
 
+        $this->addField(new Field(self::METADATA));
         $this->build();
     }
 
@@ -110,6 +112,39 @@ class Form
     public function getFields()
     {
         return $this->fields;
+    }
+
+    /**
+     * Set metadata
+     *
+     * @param array $metadata Data
+     *
+     * @return $this
+     */
+    public function setMetadata(array $metadata)
+    {
+        $serializer = new Serializer();
+        $value = $serializer->serialize($metadata);
+
+        $this->set(self::METADATA, $value);
+
+        return $this;
+    }
+
+    /**
+     * Get metadata
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function getMetadata()
+    {
+        $value = $this->get(self::METADATA);
+
+        $serializer = new Serializer();
+        $metadata = $serializer->unserialize($value);
+
+        return $metadata;
     }
 
     /**

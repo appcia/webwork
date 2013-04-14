@@ -205,6 +205,10 @@ class Router
         $map = $route->getParams();
 
         foreach ($params as $name => $value) {
+            if (!is_scalar($value)) {
+                throw new Exception(sprintf("Cannot use non-scalar value as route parameter '%s'", $name));
+            }
+
             if (array_key_exists($name, $map)) {
                 // Use param map if exist (for translating param values)
                 if (!empty($map[$name][$value])) {

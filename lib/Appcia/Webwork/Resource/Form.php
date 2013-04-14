@@ -10,10 +10,19 @@ use Appcia\Webwork\System\File;
 
 class Form extends BasicForm
 {
+    const METADATA_SKIPPED_RESOURCE = 'skippedResource';
+
     /**
      * @var Manager
      */
     private $manager;
+
+    /**
+     * At least one resource skipped or reset
+     *
+     * @var bool
+     */
+    private $skipped;
 
     /**
      * Constructor
@@ -25,29 +34,20 @@ class Form extends BasicForm
         parent::__construct();
 
         $this->manager = $manager;
+        $this->skipped = false;
     }
 
     /**
      * Load resources using resource manager
      * Upload files or retrieve previously uploaded from temporaries
-     * Use skipped fields parameter if for some resources should be not loaded but removed
      *
-     * @param string       $token Form token
-     * @param string|array $skip  Skipped field names
+     * @param string $token     Form token
+     * @param array  $resources Existing resources
      *
      * @return Form
      */
-    public function load($token, $skip = null, array $map = array())
+    public function load($token, array $resources = array())
     {
-        $skipped = array();
-        if ($skip !== null) {
-            if (is_array($skip)) {
-                $skipped = $skip;
-            } else {
-                $skipped = array($skip);
-            }
-        }
-
         foreach ($this->getFields() as $name => $field) {
             if ($field->getType() !== Field::FILE) {
                 continue;
@@ -59,28 +59,24 @@ class Form extends BasicForm
                 'key' => $name
             );
 
-            // If field should be skipped remove associated resource
-            if (in_array($name, $skipped)) {
-                $this->manager->remove('upload', $params);
-            } else {
-                $data = $this->normalizeUpload($field->getValue());
+            $value = $field->getValue();
+            $data = $this->normalizeUpload($value);
 
-                // If not, upload it or load from temporaries or existing
-                if (!empty($data)) {
-                    $resource = $this->upload($token, $name, $data);
-                } else if (!isset($map[$name])) {
+            if (!empty($data)) {
+                $resource = $this->upload($token, $name, $data);
+                $this->unskip($name);
+            } else {
+                if ($this->isSkippedField($name)) {
+                    $this->manager->remove('upload', $params);
+                    $resource = null;
+                } elseif (!isset($resources[$name])) {
                     $resource = $this->manager->load('upload', $params);
                 } else {
-                    $resource = $map[$name];
-                }
-
-                // For sure, resource file could be removed in a meanwhile
-                if ($resource->getFile(false) === null) {
-                    $resource = null;
+                    $resource = $resources[$name];
                 }
             }
 
-            $this->set($name, $resource);
+            $field->setValue($resource);
         }
 
         return $this;
@@ -109,8 +105,84 @@ class Form extends BasicForm
                 )
             );
 
-            $this->set($name, null);
+            $field->setValue(null);
         }
+
+        return $this;
+    }
+
+    public function skip($name)
+    {
+        if (empty($name)) {
+            return $this;
+        }
+
+        $field = $this->getField($name);
+        if ($field->getType() !== Field::FILE) {
+            throw new Exception(sprintf("Invalid field name to be skipped in resource loading '%s'", $name));
+        }
+
+        $skipped = $this->getSkippedFields();
+        if (!in_array($name, $skipped)) {
+            $skipped[] = $name;
+            $this->skipped = true;
+        }
+        $this->setSkippedFields($skipped);
+
+        return $this;
+    }
+
+    public function unskip($name)
+    {
+        if (empty($name)) {
+            return $this;
+        }
+
+        $field = $this->getField($name);
+        if ($field->getType() !== Field::FILE) {
+            throw new Exception(sprintf("Invalid field name to be unskipped in resource loading '%s'", $name));
+        }
+
+        $skipped = $this->getSkippedFields();
+        $key = array_search($name, $skipped);
+        if ($key !== false) {
+            unset($skipped[$key]);
+            $this->skipped = true;
+        }
+
+        $this->setSkippedFields($skipped);
+
+        return $this;
+    }
+
+    public function skipped()
+    {
+        return $this->skipped;
+    }
+
+    private function isSkippedField($name)
+    {
+        $names = $this->getSkippedFields();
+        $skipped = in_array($name, $names);
+
+        return $skipped;
+    }
+
+    private function getSkippedFields()
+    {
+        $metadata = $this->getMetadata();
+        $skipped = array();
+        if (isset($metadata[self::METADATA_SKIPPED_RESOURCE])) {
+            $skipped = $metadata[self::METADATA_SKIPPED_RESOURCE];
+        }
+
+        return $skipped;
+    }
+
+    private function setSkippedFields(array $names)
+    {
+        $metadata[self::METADATA_SKIPPED_RESOURCE] = $names;
+        $this->setMetadata($metadata);
 
         return $this;
     }
