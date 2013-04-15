@@ -64,7 +64,7 @@ class Form extends BasicForm
 
             if (!empty($data)) {
                 $resource = $this->upload($token, $name, $data);
-                $this->unskip($name);
+                $this->unskip($name, true);
             }
 
             if (!$this->isSkipped($name)) {
@@ -113,12 +113,13 @@ class Form extends BasicForm
     /**
      * Mark field with resource to be skipped
      *
-     * @param string $name Field name
+     * @param string $name  Field name
+     * @param bool   $quiet Do not affect skip changed flag
      *
      * @return Form
      * @throws Exception
      */
-    public function skip($name)
+    public function skip($name, $quiet = false)
     {
         if (empty($name)) {
             return $this;
@@ -132,7 +133,10 @@ class Form extends BasicForm
         $skipped = $this->getSkipped();
         if (!in_array($name, $skipped)) {
             $skipped[] = $name;
-            $this->skipChanged = true;
+
+            if (!$quiet) {
+                $this->skipChanged = true;
+            }
         }
         $this->setSkipped($skipped);
 
@@ -142,12 +146,13 @@ class Form extends BasicForm
     /**
      * Unmark field with file to be not skipped
      *
-     * @param string $name Field name
+     * @param string $name  Field name
+     * @param bool   $quiet Do not affect skip changed flag
      *
      * @return Form
      * @throws Exception
      */
-    public function unskip($name)
+    public function unskip($name, $quiet = false)
     {
         if (empty($name)) {
             return $this;
@@ -162,7 +167,10 @@ class Form extends BasicForm
         $key = array_search($name, $skipped);
         if ($key !== false) {
             unset($skipped[$key]);
-            $this->skipChanged = true;
+
+            if (!$quiet) {
+                $this->skipChanged = true;
+            }
         }
 
         $this->setSkipped($skipped);
