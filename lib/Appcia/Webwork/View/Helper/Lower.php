@@ -15,10 +15,11 @@ class Lower extends Helper
      */
     public function lower($value)
     {
-        $charset = $this
-            ->getView()
-            ->getSetting('charset');
+        $charset = $this->getContext()
+            ->getCharset();
 
-        return mb_strtolower($value, $charset);
+        $value = mb_strtolower($value, $charset);
+
+        return $value;
     }
 }

@@ -23,6 +23,16 @@ class Controller
     }
 
     /**
+     * Get DI container
+     *
+     * @return Container
+     */
+    public function getContainer()
+    {
+        return $this->container;
+    }
+
+    /**
      * Get service from core container
      *
      * @param string $key Service key

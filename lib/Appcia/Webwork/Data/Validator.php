@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork\Data;
 
+use Appcia\Webwork\Component;
+
 abstract class Validator extends Component {
 
     /**

@@ -147,7 +147,8 @@ class Route
     }
 
     /**
-     * Set params map
+     * Set params
+     * Could be an array if parameter should be mapped to more readable strings
      *
      * @param array $params Map
      *

@@ -121,6 +121,15 @@ class Bootstrap
             return $config;
         });
 
+        $this->container->set('context', function ($container) {
+            $context = new Context();
+            $container->get('config')
+                ->get('context')
+                ->inject($context);
+
+            return $context;
+        });
+
         $this->container->single('session', function ($container) {
             $session = new Session();
             $container->get('config')

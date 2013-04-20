@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Resource;
 
+use Appcia\Webwork\Context;
 use Appcia\Webwork\Data\Form as BasicForm;
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Exception;
@@ -13,6 +14,8 @@ class Form extends BasicForm
     const METADATA_SKIPPED_RESOURCE = 'skippedResource';
 
     /**
+     * Resource manager
+     *
      * @var Manager
      */
     private $manager;
@@ -27,11 +30,12 @@ class Form extends BasicForm
     /**
      * Constructor
      *
+     * @param Context $context Use context
      * @param Manager $manager Resource manager
      */
-    public function __construct(Manager $manager)
+    public function __construct(Context $context, Manager $manager)
     {
-        parent::__construct();
+        parent::__construct($context);
 
         $this->manager = $manager;
         $this->skipChanged = false;

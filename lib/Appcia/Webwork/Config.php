@@ -115,14 +115,14 @@ class Config implements \Iterator, \ArrayAccess
     /**
      * Inject config by object setters automagically
      *
-     * @param Object $obj Target object
+     * @param Object $object Target object
      *
      * @return Config
      */
-    public function inject($obj)
+    public function inject($object)
     {
-        foreach ($this->data as $prop => $value) {
-            $callback = array($obj, 'set' . ucfirst($prop));
+        foreach ($this->data as $property => $value) {
+            $callback = array($object, 'set' . ucfirst($property));
 
             if (is_callable($callback)) {
                 call_user_func($callback, $value);

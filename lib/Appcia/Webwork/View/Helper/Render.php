@@ -15,8 +15,10 @@ class Render extends Helper
      */
     public function render($file)
     {
-        return $this
+        $result = $this
             ->getView()
             ->render($file);
+
+        return $result;
     }
 }

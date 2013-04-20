@@ -10,6 +10,7 @@ class Field
 {
     const TEXT = 'text';
     const FILE = 'file';
+    const PLAIN = 'plain';
 
     /**
      * Name
@@ -62,7 +63,8 @@ class Field
 
     private static $types = array(
         self::TEXT,
-        self::FILE
+        self::FILE,
+        self::PLAIN
     );
 
     /**
@@ -78,7 +80,7 @@ class Field
         $this->valid = true;
         $this->type = self::TEXT;
 
-        $this->setName($name);
+        $this->name = $name;
         if ($type !== null) {
             $this->setType($type);
         }
@@ -99,6 +101,8 @@ class Field
     }
 
     /**
+     * Get name
+     *
      * @return string
      */
     public function getName()
@@ -107,7 +111,7 @@ class Field
     }
 
     /**
-     * Set value
+     * Set filtered value
      *
      * @param mixed $value Value
      *
@@ -122,6 +126,8 @@ class Field
     }
 
     /**
+     * Get filtered value
+     *
      * @return mixed
      */
     public function getValue()
@@ -299,6 +305,21 @@ class Field
     }
 
     /**
+     * Get all components
+     *
+     * @return array
+     */
+    public function getComponents()
+    {
+        $components = array_merge(
+            array_values($this->filters),
+            array_values($this->validators)
+        );
+
+        return $components;
+    }
+
+    /**
      * Apply filters to value
      *
      * @return string
@@ -343,6 +364,10 @@ class Field
     {
         if (!in_array($type, self::$types)) {
             throw new Exception(sprintf("Invalid field type '%s'", $type));
+        }
+
+        if ($type === self::TEXT) {
+            $this->addFilter(new Filter\StripTags());
         }
 
         $this->type = $type;

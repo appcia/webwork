@@ -13,8 +13,9 @@ class BaseUrl extends Helper
      */
     public function baseUrl()
     {
-        return trim($this
-            ->getView()
-            ->getSetting('baseUrl'), '/');
+        $url = $this->getContext()
+            ->getBaseUrl();
+
+        return $url;
     }
 }

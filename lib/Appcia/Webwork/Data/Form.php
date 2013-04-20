@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Data;
 
+use Appcia\Webwork\Context;
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Exception;
 
@@ -9,6 +10,13 @@ class Form
 {
     const TOKEN_SALT = 'dskljakld32#%$@#343_';
     const METADATA = 'metadata';
+
+    /**
+     * Use context
+     *
+     * @var Context
+     */
+    private $context;
 
     /**
      * Validation result
@@ -27,13 +35,26 @@ class Form
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(Context $context)
     {
+        $this->context = $context;
         $this->fields = array();
         $this->valid = true;
 
         $this->addField(new Field(self::METADATA));
+
         $this->build();
+        $this->prepare();
+    }
+
+    /**
+     * Get use context
+     *
+     * @return Context
+     */
+    public function getContext()
+    {
+        return $this->context;
     }
 
     /**
@@ -226,18 +247,6 @@ class Form
     }
 
     /**
-     * Build a form fields
-     *
-     * Useful when inherited, invoked by constructor
-     *
-     * @return Form
-     */
-    public function build()
-    {
-        return $this;
-    }
-
-    /**
      * Populate form by data
      *
      * When unknowns flag is true, then fields are created automatically
@@ -392,6 +401,35 @@ class Form
     public function __get($name)
     {
         return $this->getField($name);
+    }
+
+    /**
+     * Build a form fields
+     *
+     * Useful when inherited, invoked by constructor
+     *
+     * @return Form
+     */
+    public function build()
+    {
+        return $this;
+    }
+
+    /**
+     * Prepare built field
+     * Set use context for components
+     *
+     * @return Form
+     */
+    public function prepare()
+    {
+        foreach ($this->fields as $field) {
+            foreach ($field->getComponents() as $component) {
+                $component->setContext($this->context);
+            }
+        }
+
+        return $this;
     }
 
 }

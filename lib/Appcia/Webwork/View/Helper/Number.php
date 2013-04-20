@@ -15,6 +15,8 @@ class Number extends Helper
      */
     public function number($number)
     {
-        return intval($number);
+        $number = intval($number);
+
+        return $number;
     }
 }

@@ -30,23 +30,21 @@ class Asset extends Helper
      */
     public function asset($file)
     {
-        $base = trim($this
-            ->getView()
-            ->getSetting('baseUrl'), '/');
-
-        $file = trim($file, '/');
-
         // Register
+        $file = trim($file, '/');
         if (!array_search($file, $this->assets)) {
             $this->assets[] = $file;
         }
 
         // Generate proper url
-        $url = 'public';
-        if (!empty($base)) {
-            $url .= '/' . $base;
+        $url = $this->getContext()
+            ->getBaseUrl();
+
+        if (!empty($url)) {
+            $url .= '/';
         }
-        $url .= '/' . $file;
+
+        $url .= 'public/' . $file;
 
         return $url;
     }

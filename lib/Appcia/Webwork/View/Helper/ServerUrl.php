@@ -23,6 +23,8 @@ class ServerUrl extends Helper
         $protocol = $request->getProtocolPrefix();
         $server = trim($request->getServer(), '/');
 
-        return $protocol . $server;
+        $url = $protocol . $server;
+
+        return $url;
     }
 }

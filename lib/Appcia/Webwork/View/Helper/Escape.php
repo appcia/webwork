@@ -15,9 +15,8 @@ class Escape extends Helper
      */
     public function escape($value)
     {
-        $charset = $this
-            ->getView()
-            ->getSetting('charset');
+        $charset = $this->getContext()
+            ->getCharset();
 
         return htmlentities($value, ENT_QUOTES, $charset);
     }

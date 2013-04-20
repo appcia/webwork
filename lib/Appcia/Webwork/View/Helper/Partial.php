@@ -25,6 +25,8 @@ class Partial extends Helper
         $view->setFile($file)
             ->setData($data);
 
-        return $view->render();
+        $result = $view->render();
+
+        return $result;
     }
 }

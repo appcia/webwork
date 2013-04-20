@@ -56,7 +56,9 @@ class App {
 
         $this->response->display();
 
-        return $this->response->getStatus();
+        $status = $this->response->getStatus();
+
+        return $status;
     }
 
     /**

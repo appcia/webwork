@@ -10,29 +10,32 @@ use Appcia\Webwork\View\Helper;
 class View
 {
     /**
-     * @var array
+     * DI container
+     *
+     * @var Container
      */
-    private $settings;
+    private $container;
 
     /**
-     * @var array
-     */
-    private $helpers;
-
-    /**
+     * Data to be used in template file
+     *
      * @var array
      */
     private $data;
 
-    /*
+    /**
+     * Template file
+     *
      * @var string
      */
     private $file;
 
     /**
-     * @var Container
+     * Registered helpers
+     *
+     * @var array
      */
-    private $container;
+    private $helpers;
 
     /**
      * Constructor
@@ -41,15 +44,10 @@ class View
      */
     public function __construct(Container $container = null)
     {
-        $this->settings = array(
-            'baseUrl' => '',
-            'charset' => 'utf-8'
-        );
+        $this->container = $container;
 
         $this->data = array();
         $this->helpers = array();
-
-        $this->container = $container;
     }
 
     /**
@@ -66,30 +64,6 @@ class View
         }
 
         return $this->container;
-    }
-
-    /**
-     * Set default values (e.g for helpers)
-     *
-     * @param array $defaults Data
-     *
-     * @return View
-     */
-    public function setSettings($defaults)
-    {
-        $this->settings = $defaults;
-
-        return $this;
-    }
-
-    /**
-     * Get default values (e.g for helpers)
-     *
-     * @return array
-     */
-    public function getSettings()
-    {
-        return $this->settings;
     }
 
     /**
@@ -121,7 +95,7 @@ class View
     }
 
     /**
-     * Get view data
+     * Get data
      *
      * @return array
      */
@@ -131,9 +105,9 @@ class View
     }
 
     /**
-     * Set view file
+     * Set template file
      *
-     * @param $file
+     * @param string $file Path
      *
      * @return View
      */
@@ -155,7 +129,7 @@ class View
     }
 
     /**
-     * Get view path in current module
+     * Get path for views in current module
      *
      * @return string
      */
@@ -168,7 +142,7 @@ class View
     }
 
     /**
-     * Get generated view content
+     * Get content generated using data and template file
      *
      * @param string $file File path
      *
@@ -199,7 +173,39 @@ class View
             throw new Exception(sprintf("View file cannot be included properly: '%s'", $file));
         }
 
-        return ob_get_clean();
+        $result = ob_get_clean();
+
+        return $result;
+    }
+
+    /**
+     * Create helper by name
+     * Search for valid class name in all modules
+     *
+     * @param string $name Name
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    private function createHelper($name)
+    {
+        $class = 'Appcia\\Webwork\\View\\Helper\\' . ucfirst($name);
+        if (class_exists($class)) {
+            return new $class();
+        }
+
+        $modules = $this->getContainer()
+            ->get('bootstrap')
+            ->getModules();
+
+        foreach ($modules as $module) {
+            $class = $module->getNamespace() . '\\View\\Helper\\' . ucfirst($name);
+            if (class_exists($class)) {
+                return new $class();
+            }
+        }
+
+        throw new Exception(sprintf("Helper '%s' cannot be created. There is no valid class in any module", $class));
     }
 
     /**
@@ -213,36 +219,17 @@ class View
     public function getHelper($name)
     {
         if (!isset($this->helpers[$name])) {
-            $className = 'Appcia\\Webwork\\View\\Helper\\' . ucfirst($name);
+            $context = $this->getContainer()
+                ->get('context');
 
-            if (!class_exists($className)) {
-                throw new Exception(sprintf("Helper '%s' does not exist", $className));
-            }
-
-            $helper = new $className();
-            $helper->setView($this);
+            $helper = $this->createHelper($name);
+            $helper->setView($this)
+                ->setContext($context);
 
             $this->helpers[$name] = $helper;
         }
 
         return $this->helpers[$name];
-    }
-
-    /**
-     * Get global default value, for charsets etc, shared within helpers
-     *
-     * @param string $name Key
-     *
-     * @return mixed
-     * @throws Exception
-     */
-    public function getSetting($name)
-    {
-        if (!isset($this->settings[$name])) {
-            throw new Exception(sprintf("View setting '%s' does not exist", $name));
-        }
-
-        return $this->settings[$name];
     }
 
     /**
@@ -256,7 +243,10 @@ class View
      */
     public function __call($name, $args)
     {
+        $context = $this->container->get('context');
+
         $helper = $this->getHelper($name);
+        $helper->setContext($context);
 
         $method = mb_strtolower($name);
         $callback = array($helper, $method);
@@ -265,6 +255,8 @@ class View
             throw new Exception(sprintf("View helper '%s' does not have accessible method: '%s", $name, $method));
         }
 
-        return call_user_func_array($callback, $args);
+        $result = call_user_func_array($callback, $args);
+
+        return $result;
     }
 }

@@ -15,10 +15,11 @@ class Upper extends Helper
      */
     public function upper($value)
     {
-        $charset = $this
-            ->getView()
-            ->getSetting('charset');
+        $charset = $this->getContext()
+            ->getCharset();
 
-        return mb_strtoupper($value, $charset);
+        $value = mb_strtoupper($value, $charset);
+
+        return $value;
     }
 }

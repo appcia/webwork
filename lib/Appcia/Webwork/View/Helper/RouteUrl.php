@@ -39,6 +39,8 @@ class RouteUrl extends Helper
             $params = array();
         }
 
-        return $router->assemble($name, $params);
+        $url = $router->assemble($name, $params);
+
+        return $url;
     }
 }

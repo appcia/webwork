@@ -14,11 +14,11 @@ class Router
     private $routes;
 
     /**
-     * Default settings
+     * Default values
      *
      * @var array
      */
-    private $settings;
+    private $defaults;
 
     /**
      * Constructor
@@ -26,7 +26,11 @@ class Router
     public function __construct()
     {
         $this->routes = array();
-        $this->settings = array();
+        $this->defaults = array(
+            'route' => array(
+                'template' => '*.html.php'
+            )
+        );
     }
 
     /**
@@ -36,9 +40,9 @@ class Router
      *
      * @return Router
      */
-    public function setSettings($data)
+    public function setDefaults($data)
     {
-        $this->settings = $data;
+        $this->defaults = $data;
 
         return $this;
     }
@@ -48,12 +52,10 @@ class Router
      *
      * @return array
      */
-    public function getSettings()
+    public function getDefaults()
     {
-        return $this->settings;
+        return $this->defaults;
     }
-
-
 
     /**
      * @param array $routes
@@ -81,8 +83,8 @@ class Router
     public function addRoute(array $route)
     {
         $defaults = array();
-        if (!empty($this->settings['route'])) {
-            $defaults = $this->settings['route'];
+        if (!empty($this->defaults['route'])) {
+            $defaults = $this->defaults['route'];
         }
 
         if (!is_array($route)) {
@@ -211,7 +213,7 @@ class Router
 
             if (array_key_exists($name, $map)) {
                 // Use param map if exist (for translating param values)
-                if (!empty($map[$name][$value])) {
+                if (is_array($map[$name]) && !empty($map[$name][$value])) {
                     $value = $map[$name][$value];
                 }
 
