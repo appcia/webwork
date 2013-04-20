@@ -36,9 +36,9 @@ class Bootstrap
      */
     private $environment;
 
-    const DEVELOPMENT = 'development';
+    const DEVELOPMENT = 'dev';
     const TEST = 'test';
-    const PRODUCTION = 'production';
+    const PRODUCTION = 'prod';
 
     /**
      * @var array
