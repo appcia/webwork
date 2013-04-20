@@ -1,6 +1,6 @@
 Appcia Webwork
 ================
-PHP Framework, codename 'Webwork', version 0.6
+PHP Framework, codename 'Webwork', version 0.7.1
 
 #### Main ideas
 
@@ -21,6 +21,9 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.7.1**
+* filter, validators and helpers now use application context (custom configuration changing on the fly)
+* minor convention fixes
 
 **0.7**
 * resource manager
