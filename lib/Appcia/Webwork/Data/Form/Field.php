@@ -190,6 +190,8 @@ class Field
 
     /**
      * @param array $filters
+     *
+     * @return Field
      */
     public function setFilters($filters)
     {
@@ -198,6 +200,8 @@ class Field
         foreach ($filters as $filter) {
             $this->addFilter($filter);
         }
+
+        return $this;
     }
 
     /**

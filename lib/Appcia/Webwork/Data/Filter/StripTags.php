@@ -16,9 +16,7 @@ class StripTags extends Filter {
      */
     public function __construct(array $allowed = array())
     {
-        if (!empty($allowed)) {
-            $this->allowedTags = $this->mergeTags($allowed);
-        }
+        $this->allowedTags = $this->mergeTags($allowed);
     }
 
     /**

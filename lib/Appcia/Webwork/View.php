@@ -243,10 +243,7 @@ class View
      */
     public function __call($name, $args)
     {
-        $context = $this->container->get('context');
-
         $helper = $this->getHelper($name);
-        $helper->setContext($context);
 
         $method = mb_strtolower($name);
         $callback = array($helper, $method);

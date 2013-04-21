@@ -4,7 +4,6 @@ namespace Appcia\Webwork;
 
 abstract class Component
 {
-
     /**
      * Name
      *
@@ -35,7 +34,17 @@ abstract class Component
     private function extractName()
     {
         $class = get_class($this);
-        $name = lcfirst(substr($class, strlen(__CLASS__ . '\\')));
+        $name = null;
+
+        $pos = strrpos($class, '\\');
+        if ($pos === false) {
+            $name = $class;
+        }
+        else {
+            $name = mb_substr($class, $pos + 1);
+        }
+
+        $name = lcfirst($name);
 
         return $name;
     }
