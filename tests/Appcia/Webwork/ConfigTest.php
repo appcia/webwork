@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork;
 
-use Appcia\Webwork\Route;
+use Appcia\Webwork\Router\Route;
 
 class ConfigTest extends \PHPUnit_Framework_TestCase
 {

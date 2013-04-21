@@ -2,12 +2,13 @@
 
 namespace Appcia\Webwork\Data;
 
+use Appcia\Webwork\Data\DerivedForm;
+use Appcia\Webwork\Data\Filter\StripTags as StripTagsFilter;
 use Appcia\Webwork\Data\Form;
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Data\Validator\NotEmpty as NotEmptyValidator;
-use Appcia\Webwork\Data\Filter\StripTags as StripTagsFilter;
 
-use Appcia\Webwork\Data\DerivedForm;
+require_once 'DerivedForm.php';
 
 class FormTest extends \PHPUnit_Framework_TestCase
 {
@@ -80,6 +81,7 @@ class FormTest extends \PHPUnit_Framework_TestCase
             )
         );
     }
+
     /**
      * @param array $inputData        Input data
      * @param array $processedData    Output data
