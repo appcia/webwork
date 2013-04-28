@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Numa" description="Project based on Appcia Webwork" default="project:update" basedir=".">
+<project name="Skeleton application" description="Project based on Appcia Webwork" default="project:update" basedir=".">
 
     <!-- Properties initialization -->
     <property environment="env"/>

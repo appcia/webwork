@@ -1,6 +1,6 @@
 {
-    "name": "appcia/numa",
-    "description": "Numa | Deliveries for industry",
+    "name": "appcia/webwork-skeleton",
+    "description": "Application skeleton based on Appcia Webwork",
     "authors": [
         {
             "name": "appcia",
