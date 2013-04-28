@@ -1,0 +1,8 @@
+#!/usr/bin/env php
+<?
+
+require_once __DIR__ . '/../bootstrap.php';
+global $bootstrap;
+
+$app = new \App\Cli\App($bootstrap);
+$app->run();

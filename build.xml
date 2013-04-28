@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Numa" description="Project based on Appcia Webwork" default="project:update" basedir=".">
+
+    <!-- Properties initialization -->
+    <property environment="env"/>
+    <resolvepath propertyName="project.root" file="."/>
+    <php function="basename" returnProperty="project.dirname">
+        <param value="${phing.dir}"/>
+    </php>
+    <property name="project.vhost" value="${project.dirname}"/>
+
+    <!-- Environment targets -->
+    <target name="environment:check">
+
+        <if>
+            <not>
+                <isset property="env.APPLICATION_ENV"/>
+            </not>
+            <then>
+                <fail message="Please set environmental variable APPLICATION_ENV before running build script."/>
+            </then>
+            <else>
+                <echo message="Current environment is ${env.APPLICATION_ENV}"/>
+            </else>
+        </if>
+
+    </target>
+
+    <!-- Project targets -->
+    <target name="project:build"
+            depends="environment:check,filesystem:create,module:init-all,database:create"
+            description="Install whole project"/>
+
+    <target name="project:clean" depends="environment:check,database:clean,filesystem:clean"
+            description="Clean whole project"/>
+
+    <target name="project:update" depends="environment:check,vendor:update,database:update"
+            description="Update whole project"/>
+
+    <!-- Module targets -->
+    <target name="module:init-all" description="Initialize project modules">
+        <foreach param="name" absparam="path" target="module:init">
+            <fileset dir="module">
+                <type type="dir"/>
+                <depth max="0" min="0"/>
+            </fileset>
+        </foreach>
+    </target>
+
+    <target name="module:init">
+        <echo message="Current module: ${name}"/>
+        <symlink target="${project.root}/${path}/public" link="${project.root}/public/${name}" overwrite="true"/>
+    </target>
+
+    <!-- Filesystem targets -->
+    <target name="filesystem:create" description="Create necessary directory structure">
+
+        <mkdir dir="cache"/>
+        <mkdir dir="log"/>
+        <mkdir dir="resource"/>
+        <mkdir dir="public"/>
+
+    </target>
+
+    <target name="filesystem:clean" description="Clean created files and directories">
+
+        <delete dir="cache"/>
+        <delete dir="log"/>
+        <delete dir="public"/>
+        <delete dir="resource"/>
+
+    </target>
+
+    <target name="filesystem:fix-permissions" description="Fix web server write permission problems">
+
+        <input propertyName="method" defaultValue="chmod" message="What do you want to change? "
+               validArgs="chmod,owner"/>
+
+        <if>
+            <equals arg1="${method}" arg2="chmod"/>
+            <then>
+                <input propertyName="value" defaultValue="0777"
+                       message="What chmod value do you want to set to writable directories?"/>
+
+                <exec command="chmod -R ${value} resource" passthru="true" checkreturn="true"/>
+                <exec command="chmod -R ${value} cache" passthru="true" checkreturn="true"/>
+            </then>
+            <elseif>
+                <equals arg1="${method}" arg2="owner"/>
+                <then>
+                    <input propertyName="user" defaultValue="www-data"
+                           message="Which user should be an owner of writable directories:"/>
+
+                    <exec command="chown -R ${user}:${user} resource" passthru="true" checkreturn="true"/>
+                    <exec command="chown -R ${user}:${user} cache" passthru="true" checkreturn="true"/>
+                </then>
+            </elseif>
+        </if>
+
+    </target>
+
+    <!-- Database targets -->
+    <target name="database:create" depends="environment:check,filesystem:create"
+            description="Create database schema, insert data from fixtures">
+
+        <mkdir dir="cache/proxy"/>
+        <exec command="bin/doctrine orm:schema-tool:create" passthru="true" checkreturn="true"/>
+        <exec command="bin/doctrine orm:generate-proxies" passthru="true" checkreturn="true"/>
+        <exec command="bin/app data-fixture:load" passthru="true" checkreturn="true"/>
+
+    </target>
+
+    <target name="database:clean" depends="environment:check" description="Clean database schema losing all data">
+
+        <exec command="bin/doctrine orm:schema-tool:drop --force" passthru="true" checkreturn="true"/>
+
+    </target>
+
+    <target name="database:update" depends="environment:check" description="Update database schema">
+
+        <exec command="bin/doctrine orm:schema-tool:update --force" passthru="true" checkreturn="true"/>
+        <exec command="bin/doctrine orm:generate-proxies" passthru="true" checkreturn="true"/>
+
+    </target>
+
+    <!-- Vendor targets -->
+    <target name="vendor:install" description="Install vendor libraries">
+
+        <exec command="php composer.phar install --dev" checkreturn="true" passthru="true"/>
+
+    </target>
+
+    <target name="vendor:update" description="Download and install latest vendor libraries">
+
+        <exec command="php composer.phar self-update" checkreturn="true" passthru="true"/>
+        <exec command="php composer.phar update --dev" checkreturn="true" passthru="true"/>
+
+    </target>
+
+    <target name="vendor:clean" description="Delete vendor libraries">
+
+        <delete dir="vendor"/>
+
+    </target>
+
+    <!-- Virtual host targets -->
+    <target name="vhost:create" depends="environment:check"
+            description="Create virtual host for current environment">
+
+        <input propertyName="serverName" defaultValue="${project.vhost}" message="Host name:"/>
+        <input propertyName="serverAdmin" defaultValue="admin@${serverName}" message="Admin e-mail:"/>
+
+        <input propertyName="serverType" defaultValue="apache" validArgs="apache" message="Server type: "/>
+
+        <if>
+            <equals arg1="${serverType}" arg2="apache"/>
+            <then>
+                <input propertyName="serverConfig" defaultValue="/etc/apache2/sites-available"
+                       message="Where to save virtual host configuration?"/>
+
+                <copy file="config/${env.APPLICATION_ENV}/vhost/apache.conf" tofile="${serverConfig}/${serverName}"
+                      overwrite="true"
+                      haltonerror="true">
+                    <filterchain>
+                        <replaceregexp>
+                            <regexp pattern="{serverName}" replace="${serverName}"/>
+                            <regexp pattern="{documentRoot}" replace="${project.root}"/>
+                            <regexp pattern="{applicationEnv}" replace="${env.APPLICATION_ENV}"/>
+                        </replaceregexp>
+                    </filterchain>
+                </copy>
+
+                <php expression="chr(10)" returnProperty="LF"/>
+                <append destFile="/etc/hosts" text="${LF}127.0.0.1 ${serverName}"/>
+
+                <exec command="a2ensite ${serverName}" passthru="true" checkreturn="true"/>
+                <exec command="a2enmod rewrite" passthru="true" checkreturn="true"/>
+                <exec command="service apache2 restart" passthru="true" checkreturn="true"/>
+            </then>
+        </if>
+
+        <echo message="Done! Check address in browser: ${serverName}"/>
+
+    </target>
+
+    <!-- Unit test targets -->
+    <target name="unit-test:run-all" depends="environment:check" description="Run all unit tests">
+
+        <exec command="bin/phpunit --bootstrap bootstrap.php --configuration test/phpunit.xml"
+              passthru="true" checkreturn="true"/>
+
+    </target>
+
+    <target name="unit-test:run-path" depends="environment:check" description="Run unit tests in specified path">
+
+        <input propertyName="path" defaultValue="test" message="Enter tests path:"/>
+
+        <exec command="bin/phpunit --bootstrap bootstrap.php --configuration test/phpunit.xml ${path}"
+              passthru="true" checkreturn="true"/>
+
+    </target>
+
+</project>

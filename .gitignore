@@ -1,0 +1,12 @@
+.idea
+.nbproject
+.project
+composer.lock
+/cache
+/log
+/vendor
+/public
+/resource
+/bin
+!/bin/install
+!/bin/app

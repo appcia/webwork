@@ -1,0 +1,3 @@
+$(document).ready(function () {
+    // Place for your scripts...
+});

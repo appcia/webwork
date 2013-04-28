@@ -1,0 +1,9 @@
+RewriteEngine on
+
+# All files with dott at start skipped
+RewriteCond %{REQUEST_URI} \..+$
+RewriteCond %{REQUEST_URI} !\.html$
+RewriteRule .* - [L]
+
+# Others are redirected to the front web controller
+RewriteRule ^(.*)$ index.php [QSA,L]

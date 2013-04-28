@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if ! command -v "php" &>/dev/null
+then
+    echo "Error! PHP is not installed. Please run above command:"
+    echo "sudo apt-get install php5-{cli,curl,ffmpeg,gd,geoip,imagick,imap,mcrypt,mysql,tidy}"
+   exit 1
+fi
+
+echo "Installation started"
+
+echo
+
+php composer.phar install
+
+echo
+
+echo "Installation completed"
+
+echo
+
+echo "Building instructions:"
+echo "- set APPLICATION_ENV environment variable"
+echo "- be sure that database and other services is ready to use"
+echo "- verify configuration in 'config/APPLICATION_ENV/settings.php'"
+echo "- run build target using command 'vendor/bin/phing build'"
+echo "- depending on your needs, use additional targets for creating virtual host, fixing permission problems etc"

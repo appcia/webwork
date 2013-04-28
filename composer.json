@@ -1,0 +1,25 @@
+{
+    "name": "appcia/numa",
+    "description": "Numa | Deliveries for industry",
+    "authors": [
+        {
+            "name": "appcia",
+            "email": "appcia.dev@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "config": {
+        "bin-dir": "bin"
+    },
+    "require": {
+        "phing/phing": "dev-master",
+        "appcia/webwork": "dev-master",
+        "phpunit/phpunit": "3.7.*",
+        "swiftmailer/swiftmailer": "4.3.*",
+        "spekkionu/wideimage": "dev-master",
+        "doctrine/common": "2.4.*@dev",
+        "doctrine/orm": "2.4.*@dev",
+        "doctrine/dbal": "2.4.*@dev",
+        "doctrine/data-fixtures": "1.0.*@dev"
+    }
+}
