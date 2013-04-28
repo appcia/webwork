@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork;
 
+use App\Exception;
+
 class Config implements \Iterator, \ArrayAccess
 {
     /**
@@ -68,35 +70,59 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Get value from config
+     * Check whether key exists
      *
-     * @param string $key Key with sections, dot as separator
-     *
-     * @return mixed
+     * @param string $key Key in dot notation
+     * @return bool
      */
-    public function get($key)
+    public function has($key)
     {
+        if (empty($key)) {
+            return false;
+        }
+
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
-            if (!isset($data[$section])) {
-                $data = null;
-                break;
+            if (!array_key_exists($section, $key)) {
+                return false;
             }
 
             $data = & $data[$section];
         }
 
-        if (is_array($data)) {
-            return new static($data);
-        } else {
-            return $data;
-        }
+        return true;
     }
 
     /**
-     * Set value in config
+     * Get value
      *
-     * @param string $key   Key with sections, dot as separator
+     * @param string $key Key in dot notation
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function get($key)
+    {
+        if (empty($key)) {
+            throw new Exception('Config key cannot be empty');
+        }
+
+        $data = & $this->data;
+        foreach (explode('.', $key) as $section) {
+            if (!array_key_exists($section, $data)) {
+                return null;
+            }
+
+            $data = & $data[$section];
+        }
+
+        return $data;
+    }
+
+    /**
+     * Set value
+     *
+     * @param string $key   Key in dot notation
      * @param mixed  $value Value
      *
      * @return Config
@@ -104,6 +130,10 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function set($key, $value)
     {
+        if (empty($key)) {
+            throw new Exception('Config key cannot be empty');
+        }
+
         $data = & $this->data;
 
         $sections = explode('.', $key);
@@ -117,7 +147,7 @@ class Config implements \Iterator, \ArrayAccess
                 $data[$section] = array();
             } else if ($s < $count && !is_array($data[$section])) {
                 throw new Exception(sprintf(
-                    "Config section '%s' in key '%s' cannot indicate a value",
+                    "Config section '%s' in key '%s' indicates value",
                     $section,
                     $key
                 ));
@@ -129,6 +159,29 @@ class Config implements \Iterator, \ArrayAccess
         $data = $value;
 
         return $this;
+    }
+
+    /**
+     * Get section data even it does not exist
+     * Useful for injecting when values are not specified in config file
+     *
+     * @param string $key Key in dot notation
+     * @return Config
+     * @throws Exception
+     */
+    public function grab($key)
+    {
+        $data = $this->get($key);
+
+        if ($data === null) {
+            $data = array();
+        } else if (!is_array($data)) {
+            throw new Exception(sprintf("Config key '%s' indicates a value but not section as expected", $key));
+        }
+
+        $section = new self($data);
+
+        return $section;
     }
 
     /**

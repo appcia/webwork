@@ -124,7 +124,7 @@ class Bootstrap
         $this->container->set('context', function ($container) {
             $context = new Context();
             $container->get('config')
-                ->get('context')
+                ->grab('context')
                 ->inject($context);
 
             return $context;
@@ -133,7 +133,7 @@ class Bootstrap
         $this->container->single('session', function ($container) {
             $session = new Session();
             $container->get('config')
-                ->get('session')
+                ->grab('session')
                 ->inject($session);
 
             $session->loadGlobals();
@@ -144,7 +144,7 @@ class Bootstrap
         $this->container->single('router', function ($container) {
             $router = new Router();
             $container->get('config')
-                ->get('router')
+                ->grab('router')
                 ->inject($router);
 
             return $router;
@@ -153,7 +153,7 @@ class Bootstrap
         $this->container->single('dispatcher', function ($container) {
             $dispatcher = new Dispatcher($container);
             $container->get('config')
-                ->get('dispatcher')
+                ->grab('dispatcher')
                 ->inject($dispatcher);
 
             return $dispatcher;

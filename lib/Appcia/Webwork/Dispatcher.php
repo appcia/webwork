@@ -363,14 +363,14 @@ class Dispatcher
             ->setData($this->data);
 
         $this->container->get('config')
-            ->get('view')
+            ->grab('view')
             ->inject($view);
 
         // Response
         $this->response->setContent($view->render());
 
         $this->container->get('config')
-            ->get('response')
+            ->grab('response')
             ->inject($this->response);
 
         return $this;
