@@ -24,11 +24,11 @@ class Config implements \Iterator, \ArrayAccess
     /**
      * Set data
      *
-     * @param array $data
+     * @param array $data Data
      *
      * @return Config
      */
-    public function setData($data)
+    public function setData(array $data)
     {
         $this->data = $data;
 
@@ -70,34 +70,63 @@ class Config implements \Iterator, \ArrayAccess
     /**
      * Get value from config
      *
-     * @param $key
+     * @param string $key Key with sections, dot as separator
      *
      * @return mixed
      */
     public function get($key)
     {
-        if (!isset($this->data[$key])) {
-            return new static();
+        $data = & $this->data;
+        foreach (explode('.', $key) as $section) {
+            if (!isset($data[$section])) {
+                $data = null;
+                break;
+            }
+
+            $data = & $data[$section];
         }
 
-        if (is_array($this->data[$key])) {
-            return new static($this->data[$key]);
+        if (is_array($data)) {
+            return new static($data);
         } else {
-            return $this->data[$key];
+            return $data;
         }
     }
 
     /**
      * Set value in config
      *
-     * @param $key
-     * @param $value
+     * @param string $key   Key with sections, dot as separator
+     * @param mixed  $value Value
      *
      * @return Config
+     * @throws Exception
      */
     public function set($key, $value)
     {
-        $this->data[$key] = $value;
+        $data = & $this->data;
+
+        $sections = explode('.', $key);
+        $count = count($sections);
+
+        $s = 0;
+        foreach ($sections as $section) {
+            $s++;
+
+            if (!isset($data[$section])) {
+                $data[$section] = array();
+            } else if ($s < $count && !is_array($data[$section])) {
+                throw new Exception(sprintf(
+                    "Config section '%s' in key '%s' cannot indicate a value",
+                    $section,
+                    $key
+                ));
+            }
+
+            $data = & $data[$section];
+        }
+
+        $data = $value;
 
         return $this;
     }
@@ -238,7 +267,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function offsetExists($offset)
     {
-        return array_key_exists($offset, $this->getData());
+        return array_key_exists($offset, $this->data);
     }
 
     /**
