@@ -35,12 +35,8 @@ class Form
     /**
      * Constructor
      */
-    public function __construct(Context $context = null)
+    public function __construct(Context $context)
     {
-        if ($context === null) {
-            $context = new Context();
-        }
-
         $this->context = $context;
         $this->fields = array();
         $this->valid = true;

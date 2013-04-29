@@ -61,12 +61,16 @@ abstract class Component
 
     /**
      * Get use context
-     * Be careful! Can be unspecified
      *
-     * @return Context|null
+     * @return Context
+     * @throws Exception
      */
     public function getContext()
     {
+        if ($this->context === null) {
+            throw new Exception(sprintf("Cannot use component '%s' without any context", $this->name));
+        }
+
         return $this->context;
     }
 
