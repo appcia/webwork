@@ -137,7 +137,11 @@ class Response
      */
     public function redirect($url)
     {
-        header("Location: {$url}");
+        if (empty($url)) {
+            $url = '/';
+        }
+
+        header(sprintf("Location: %s", $url));
         exit(0);
     }
 }
