@@ -28,6 +28,21 @@ class Dispatcher
     private $handlers;
 
     /**
+     * Catched exceptions
+     *
+     * @var array
+     */
+    private $exceptions;
+
+    /**
+     * Maximum exception count
+     * Prevents nesting
+     *
+     * @var int
+     */
+    private $exceptionLimit;
+
+    /**
      * Handler for all exceptions
      *
      * @var \Closure
@@ -93,6 +108,7 @@ class Dispatcher
         $this->handlers = array();
         $this->listeners = array();
         $this->exceptions = array();
+        $this->exceptionLimit = 3;
     }
 
     /**
@@ -408,7 +424,7 @@ class Dispatcher
         } catch (\Exception $e) {
             $this->exceptions[] = $e;
 
-            if (!$this->handle($e)) {
+            if (count($this->exceptions) > $this->exceptionLimit || !$this->handle($e)) {
                 throw $e;
             }
         }
