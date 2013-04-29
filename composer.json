@@ -1,6 +1,7 @@
 {
     "name": "appcia/webwork",
     "description": "Appcia PHP Framework, simple, light-weight and fast",
+    "license": "MIT",
     "authors": [
         {
             "name": "appcia",
@@ -9,8 +10,5 @@
     ],
     "autoload": {
         "psr-0": { "Appcia\\Webwork": "lib/" }
-    },
-    "require": {
-
     }
 }
