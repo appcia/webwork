@@ -9,8 +9,8 @@ class FloatNumber extends Filter {
     /**
      * {@inheritdoc}
      */
-    public function filter($data) {
-        return floatval($data);
+    public function filter($value) {
+        return floatval($value);
     }
 
 }

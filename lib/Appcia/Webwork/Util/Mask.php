@@ -108,8 +108,12 @@ class Mask
      *
      * @return Mask
      */
-    public function toggle($option, $flag)
+    public function toggle($option, $flag = null)
     {
+        if ($flag === null) {
+            $flag = !$this->is($option);
+        }
+
         if ($flag) {
             $this->mark($option);
         } else {

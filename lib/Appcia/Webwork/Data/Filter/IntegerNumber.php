@@ -9,8 +9,8 @@ class IntegerNumber extends Filter {
     /**
      * {@inheritdoc}
      */
-    public function filter($data) {
-        return intval($data);
+    public function filter($value) {
+        return intval($value);
     }
 
 }

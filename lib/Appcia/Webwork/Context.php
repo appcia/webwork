@@ -12,6 +12,11 @@ class Context {
     /**
      * @var string
      */
+    private $locale;
+
+    /**
+     * @var string
+     */
     private $charset;
 
     const HTML_5 = 'HTML 5';
@@ -36,8 +41,11 @@ class Context {
     public function __construct()
     {
         $this->baseUrl = '';
+        $this->locale = 'en_US';
         $this->charset = 'UTF-8';
         $this->htmlVersion = self::HTML_5;
+
+        $this->updateLocale();
     }
 
     /**
@@ -57,11 +65,37 @@ class Context {
     }
 
     /**
+     * @param string $locale
+     *
+     * @return Context
+     */
+    public function setLocale($locale)
+    {
+        $this->locale = $locale;
+        $this->updateLocale();
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocale()
+    {
+        return $this->locale;
+    }
+
+    /**
      * @param string $charset
+     *
+     * @return Context
      */
     public function setCharset($charset)
     {
         $this->charset = $charset;
+        $this->updateLocale();
+
+        return $this;
     }
 
     /**
@@ -70,6 +104,17 @@ class Context {
     public function getCharset()
     {
         return $this->charset;
+    }
+
+    /**
+     * @return Context
+     */
+    private function updateLocale()
+    {
+        $locale =  $this->locale . '.' . strtoupper($this->charset);
+        setlocale(LC_ALL, $locale);
+
+        return $this;
     }
 
     /**

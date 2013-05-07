@@ -10,7 +10,7 @@ class HtmlEntities extends Filter
     /**
      * {@inheritdoc}
      */
-    public function filter($data)
+    public function filter($value)
     {
         $html = null;
         switch ($this->getContext()->getHtmlVersion()) {
@@ -26,7 +26,7 @@ class HtmlEntities extends Filter
         $charset = $this->getContext()
             ->getCharset();
 
-        $result = htmlentities($data, ENT_COMPAT | $html, $charset);
+        $result = htmlentities($value, ENT_COMPAT | $html, $charset);
 
         return $result;
     }

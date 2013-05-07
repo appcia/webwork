@@ -38,8 +38,8 @@ class StripTags extends Filter {
     /**
      * {@inheritdoc}
      */
-    public function filter($data) {
-        return strip_tags($data, $this->allowedTags);
+    public function filter($value) {
+        return strip_tags($value, $this->allowedTags);
     }
 
 }

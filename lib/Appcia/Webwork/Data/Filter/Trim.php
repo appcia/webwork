@@ -9,9 +9,9 @@ class Trim extends Filter
     /**
      * {@inheritdoc}
      */
-    public function filter($data)
+    public function filter($value)
     {
-        $result = trim($data);
+        $result = trim($value);
 
         return $result;
     }
