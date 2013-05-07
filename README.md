@@ -21,6 +21,10 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.7.2**
+* locale in context
+* slug filter
+
 **0.7.1**
 * filter, validators and helpers now use application context (custom configuration changing on the fly)
 * minor convention fixes
