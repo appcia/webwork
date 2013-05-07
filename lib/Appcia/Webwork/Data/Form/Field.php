@@ -73,17 +73,15 @@ class Field
      * @param string $name Name
      * @param string $type Type
      */
-    public function __construct($name, $type = null)
+    public function __construct($name, $type = self::TEXT)
     {
         $this->validators = array();
         $this->filters = array();
         $this->valid = true;
         $this->type = self::TEXT;
 
-        $this->name = $name;
-        if ($type !== null) {
-            $this->setType($type);
-        }
+        $this->setName($name);
+        $this->setType($type);
     }
 
     /**
@@ -92,10 +90,15 @@ class Field
      * @param string $name Name
      *
      * @return Field
+     * @throws Exception
      */
-    public function setName($name)
+    private function setName($name)
     {
-        $this->name = $name;
+        if (empty($name)) {
+            throw new Exception('Field name cannot be empty');
+        }
+
+        $this->name = (string) $name;
 
         return $this;
     }
@@ -364,14 +367,14 @@ class Field
      * @return Field
      * @throws Exception
      */
-    public function setType($type)
+    private function setType($type)
     {
         if (!in_array($type, self::$types)) {
             throw new Exception(sprintf("Invalid field type '%s'", $type));
         }
 
         if ($type === self::TEXT) {
-            $this->addFilter(new Filter\StripTags());
+            $this->addFilter(new Filter\HtmlEntities());
         }
 
         $this->type = $type;
