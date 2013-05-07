@@ -112,6 +112,8 @@ class Context {
     private function updateLocale()
     {
         $locale =  $this->locale . '.' . strtoupper($this->charset);
+
+        putenv('LC_ALL=' . $locale);
         setlocale(LC_ALL, $locale);
 
         return $this;
