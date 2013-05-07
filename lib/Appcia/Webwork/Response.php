@@ -92,7 +92,7 @@ class Response
     /**
      * Get protocol
      *
-     * @return protocol
+     * @return string
      */
     public function getProtocol()
     {
@@ -102,7 +102,7 @@ class Response
     /**
      * Send headers
      *
-     * @return void
+     * @return Response
      */
     public function sendHeaders()
     {
@@ -117,10 +117,24 @@ class Response
                 header($this->getProtocol() . ' 500 Internal Server Error', true, 500);
                 break;
         }
+
+        return $this;
     }
 
     /**
-     * Display output in browser
+     * Clean current output
+     *
+     * @return Response
+     */
+    public function clean()
+    {
+        ob_clean();
+
+        return $this;
+    }
+
+    /**
+     * Write to output
      *
      * @return void
      */

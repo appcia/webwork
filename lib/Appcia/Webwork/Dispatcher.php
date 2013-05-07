@@ -28,19 +28,18 @@ class Dispatcher
     private $handlers;
 
     /**
-     * Catched exceptions
+     * Catched exception
      *
      * @var array
      */
-    private $exceptions;
+    private $exception;
 
     /**
-     * Maximum exception count
-     * Prevents nesting
+     * Exceptions instead of PHP errors
      *
-     * @var int
+     * @var bool
      */
-    private $exceptionLimit;
+    private $exceptionOnError;
 
     /**
      * Handler for all exceptions
@@ -92,6 +91,7 @@ class Dispatcher
         self::FIND_ROUTE,
         self::INVOKE_ACTION,
         self::PROCESS_RESPONSE,
+        self::HANDLE_EXCEPTION,
         self::FINISH
     );
 
@@ -107,8 +107,10 @@ class Dispatcher
 
         $this->handlers = array();
         $this->listeners = array();
-        $this->exceptions = array();
-        $this->exceptionLimit = 3;
+        $this->exception = null;
+        $this->exceptionOnError = false;
+
+        $this->setExceptionOnError(true);
     }
 
     /**
@@ -218,13 +220,13 @@ class Dispatcher
     }
 
     /**
-     * Get captured exceptions
+     * Get captured exception
      *
-     * @return array
+     * @return \Exception|null
      */
-    public function getExceptions()
+    public function getException()
     {
-        return $this->exceptions;
+        return $this->exception;
     }
 
     /**
@@ -399,21 +401,29 @@ class Dispatcher
      *
      * @return Dispatcher
      * @throws NotFound
-     * @throws \Exception
+     * @throws Exception
      */
     public function dispatch($route)
     {
+        if ($this->response === null) {
+            throw new Exception('Response must be specified before dispatching');
+        }
+
+        // Get route by name
         if (is_string($route)) {
             $router = $this->container->get('router');
             $route = $router->getRoute($route);
         }
 
+        // Dispatch route
         $this->notify(self::INIT);
 
         try {
             if ($route === null) {
                 throw new NotFound('Cannot dispatch. Route not found');
             }
+
+            $this->response->clean();
 
             $this->setRoute($route)
                 ->notify(self::FIND_ROUTE)
@@ -422,11 +432,10 @@ class Dispatcher
                 ->processResponse()
                 ->notify(self::PROCESS_RESPONSE);
         } catch (\Exception $e) {
-            $this->exceptions[] = $e;
+            $this->response->clean();
 
-            if (count($this->exceptions) > $this->exceptionLimit || !$this->handle($e)) {
-                throw $e;
-            }
+            $this->handle($e)
+                ->notify(self::HANDLE_EXCEPTION);
         }
 
         $this->notify(self::FINISH);
@@ -435,13 +444,21 @@ class Dispatcher
     }
 
     /**
-     * Do handler action if exception occurred
+     * Call handler on exception
      *
      * @param \Exception $e Exception
-     * @return bool
+     *
+     * @return Dispatcher
+     * @throws \Exception
      */
-    public function handle($e)
+    private function handle($e)
     {
+        // Prevent nested exceptions
+        if ($this->exception !== null) {
+            throw $e;
+        }
+
+        // Find best
         $exception = get_class($e);
         $specificHandler = null;
         $allHandler = null;
@@ -461,12 +478,15 @@ class Dispatcher
             $handler = $specificHandler;
         }
 
-        if ($handler !== null) {
-            call_user_func_array($handler['callback'], array($this->container));
-            return true;
+        if ($handler === null) {
+            throw $e;
         }
 
-        return false;
+        // Call handler
+        $this->exception = $e;
+        call_user_func_array($handler['callback'], array($this->container));
+
+        return $this;
     }
 
     /**
@@ -549,7 +569,7 @@ class Dispatcher
      *
      * @return Dispatcher
      */
-    public function notify($event)
+    private function notify($event)
     {
         foreach ($this->listeners as $listener) {
             if ($listener['event'] === $event) {
@@ -583,8 +603,8 @@ class Dispatcher
     /**
      * Convert camel cased text to dashed
      *
-     * @param string $str      String to be parsed
-     * @param bool $firstUpper Uppercase first letter?
+     * @param string $str        String to be parsed
+     * @param bool   $firstUpper Uppercase first letter?
      *
      * @return string
      */
@@ -594,5 +614,52 @@ class Dispatcher
         $str = $firstUpper ? ucfirst($str) : lcfirst($str);
 
         return $str;
+    }
+
+    /**
+     * Callback for throwing exception on error
+     *
+     * @param int    $no      Error number
+     * @param string $message Error Message
+     * @param string $path    File path
+     * @param int    $line    Line number
+     *
+     * @throws \ErrorException
+     */
+    public function throwExceptionOnError($no, $message, $path, $line)
+    {
+        throw new \ErrorException($message, $no, 0, $path, $line);
+    }
+
+    /**
+     * Turn on / off exceptions on error
+     *
+     * @param bool $flag Flag
+     *
+     * @return Dispatcher
+     */
+    public function setExceptionOnError($flag)
+    {
+        if ($this->exceptionOnError) {
+            restore_error_handler();
+        }
+
+        if ($flag) {
+            set_error_handler(array($this, 'throwExceptionOnError'));
+        }
+
+        $this->exceptionOnError = $flag;
+
+        return $this;
+    }
+
+    /**
+     * Check whether exception will be thrown on error
+     *
+     * @return bool
+     */
+    public function isExceptionOnError()
+    {
+        return $this->exceptionOnError;
     }
 }

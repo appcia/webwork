@@ -364,7 +364,7 @@ class Request
     public function setParams(array $params)
     {
         $this->params = $params;
-        $this->data = Config::merge($this->data, $params);
+        $this->data = array_merge($this->data, $params);
 
         return $this;
     }
@@ -389,7 +389,7 @@ class Request
     public function setPost(array $post)
     {
         $this->post = $post;
-        $this->data = Config::merge($this->data, $post);
+        $this->data = array_merge($this->data, $post);
 
         return $this;
     }
@@ -414,7 +414,7 @@ class Request
     public function setGet(array $get)
     {
         $this->get = $get;
-        $this->data = Config::merge($this->data, $get);
+        $this->data = array_merge($this->data, $get);
 
         return $this;
     }
@@ -439,7 +439,7 @@ class Request
     public function setFiles($files)
     {
         $this->files = $files;
-        $this->data = Config::merge($this->data, $files);
+        $this->data = array_merge($this->data, $files);
 
         return $this;
     }
@@ -481,7 +481,7 @@ class Request
     }
 
     /**
-     * Check whether request has specified parameter
+     * Check whether has specified parameter
      *
      * @param string $key Parameter name
      *
@@ -490,5 +490,18 @@ class Request
     public function has($key)
     {
         return isset($this->data[$key]);
+    }
+
+    /**
+     * Check whether used method is ajax (asynchronous)
+     *
+     * @return bool
+     */
+    public function isAjax()
+    {
+        $header = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : null;
+        $ajax = ($header == 'xmlhttprequest');
+
+        return $ajax;
     }
 }
