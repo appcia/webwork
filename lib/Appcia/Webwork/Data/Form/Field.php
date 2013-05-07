@@ -9,6 +9,7 @@ use Appcia\Webwork\Exception;
 class Field
 {
     const TEXT = 'text';
+    const SET = 'set';
     const FILE = 'file';
     const PLAIN = 'plain';
 
@@ -63,6 +64,7 @@ class Field
 
     private static $types = array(
         self::TEXT,
+        self::SET,
         self::FILE,
         self::PLAIN
     );
@@ -334,7 +336,13 @@ class Field
     public function filter()
     {
         foreach ($this->filters as $filter) {
-            $this->value = $filter->filter($this->value);
+            if ($this->type == self::SET && is_array($this->value)) {
+                foreach ($this->value as $key => $value) {
+                    $this->value[$key] = $filter->filter($value);
+                }
+            } else {
+                $this->value = $filter->filter($this->value);
+            }
         }
 
         return $this->value;
@@ -350,9 +358,25 @@ class Field
         $this->valid = true;
 
         foreach ($this->validators as $validator) {
-            if (!$validator->validate($this->value)) {
-                $this->valid = false;
-                break;
+            if ($this->type == self::SET && is_array($this->value)) {
+                $valid = true;
+
+                foreach ($this->value as $value) {
+                    if (!$validator->validate($value)) {
+                        $valid = false;
+                        break;
+                    }
+                }
+
+                if (!$valid) {
+                    $this->valid = false;
+                    break;
+                }
+            } else {
+                if (!$validator->validate($this->value)) {
+                    $this->valid = false;
+                    break;
+                }
             }
         }
 
@@ -374,7 +398,7 @@ class Field
         }
 
         if ($type === self::TEXT) {
-            $this->addFilter(new Filter\HtmlEntities());
+            $this->addFilter(new Filter\StripTags());
         }
 
         $this->type = $type;
