@@ -1,6 +1,6 @@
 Appcia Webwork
 ================
-PHP Framework, codename 'Webwork', version 0.7.1
+PHP Framework, codename 'Webwork', version 0.7.2, last update 07-05-12
 
 #### Main ideas
 
@@ -22,6 +22,7 @@ Also it would be great, if you like this project and wanna cooperate.
 
 #### News
 **0.7.2**
+* CSRF protection
 * locale in context
 * slug filter
 
