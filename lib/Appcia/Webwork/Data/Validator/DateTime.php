@@ -28,8 +28,13 @@ class DateTime extends Validator
      */
     public function validate($value)
     {
-        $date = new \DateTime($value);
+        if (!is_string($value)) {
+            return false;
+        }
 
-        return $date->format($this->format) == $value;
+        $date = new \DateTime($value);
+        $valid = ($date->format($this->format) == $value);
+
+        return $valid;
     }
 }

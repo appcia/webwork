@@ -34,7 +34,9 @@ class Same extends Validator
      */
     public function validate($value)
     {
-         return $this->base->getValue() == $this->dependent->getValue();
+        $same = ($this->base->getValue() == $this->dependent->getValue());
+
+        return $same;
     }
 
 }

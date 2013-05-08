@@ -10,7 +10,13 @@ class Email extends Validator {
      * {@inheritdoc}
      */
     public function validate($value) {
-        return filter_var($value, FILTER_VALIDATE_EMAIL);
+        if (!is_string($value)) {
+            return false;
+        }
+
+        $result = filter_var($value, FILTER_VALIDATE_EMAIL);
+
+        return $result;
     }
 
 }
