@@ -20,7 +20,7 @@ class Slug extends Filter
 
         $value = iconv($charset, 'ASCII//TRANSLIT', $value);
         $value = preg_replace("/[^a-zA-Z0-9\/_| -]/", '', $value);
-        $value = strtolower(trim($value, '-'));
+        $value = mb_strtolower(trim($value, '-'));
         $value = preg_replace("/[\/_| -]+/", '-', $value);
 
         return $value;

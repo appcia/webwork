@@ -49,7 +49,7 @@ class Length extends Validator
             return false;
         }
 
-        $length = strlen($value);
+        $length = mb_strlen($value);
 
         return ($length >= $this->min && $length <= $this->max);
     }

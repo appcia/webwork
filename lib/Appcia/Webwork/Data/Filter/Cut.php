@@ -34,7 +34,7 @@ class Cut extends Filter
             return $value;
         }
 
-        $value = substr($value, $this->start, $this->length);
+        $value = mb_substr($value, $this->start, $this->length);
 
         return $value;
     }
