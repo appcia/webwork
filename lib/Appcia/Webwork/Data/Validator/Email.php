@@ -4,12 +4,14 @@ namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
 
-class Email extends Validator {
+class Email extends Validator
+{
 
     /**
      * {@inheritdoc}
      */
-    public function validate($value) {
+    public function validate($value)
+    {
         if (!is_string($value)) {
             return false;
         }

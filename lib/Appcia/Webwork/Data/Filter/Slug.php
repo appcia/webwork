@@ -11,6 +11,10 @@ class Slug extends Filter
      */
     public function filter($value)
     {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
         $charset = $this->getContext()
             ->getCharset();
 

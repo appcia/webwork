@@ -3,20 +3,18 @@
 namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Exception;
 
-class NotEmpty extends Validator
+class Integer extends Validator
 {
-
     /**
      * {@inheritdoc}
      */
     public function validate($value)
     {
-        if (is_numeric($value) && floatval($value) === 0.0) {
-            return false;
-        }
+        $valid = (filter_var($value, FILTER_VALIDATE_INT) !== false);
 
-        return !empty($value);
+        return $valid;
     }
 
 }

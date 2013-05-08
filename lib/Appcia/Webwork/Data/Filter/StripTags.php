@@ -4,8 +4,8 @@ namespace Appcia\Webwork\Data\Filter;
 
 use Appcia\Webwork\Data\Filter;
 
-class StripTags extends Filter {
-
+class StripTags extends Filter
+{
     /**
      * @var string
      */
@@ -26,7 +26,8 @@ class StripTags extends Filter {
      *
      * @return string
      */
-    private function mergeTags(array $tags) {
+    private function mergeTags(array $tags)
+    {
         $value = '';
         foreach ($tags as $tag) {
             $value .= '<' . $tag . '>';
@@ -38,8 +39,15 @@ class StripTags extends Filter {
     /**
      * {@inheritdoc}
      */
-    public function filter($value) {
-        return strip_tags($value, $this->allowedTags);
+    public function filter($value)
+    {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
+        $value = strip_tags($value, $this->allowedTags);
+
+        return $value;
     }
 
 }

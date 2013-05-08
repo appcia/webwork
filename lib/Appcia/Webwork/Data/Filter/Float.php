@@ -4,7 +4,7 @@ namespace Appcia\Webwork\Data\Filter;
 
 use Appcia\Webwork\Data\Filter;
 
-class Trim extends Filter
+class Float extends Filter
 {
     /**
      * {@inheritdoc}
@@ -15,8 +15,9 @@ class Trim extends Filter
             return $value;
         }
 
-        $value = trim($value);
+        $number = floatval($value);
 
-        return $value;
+        return $number;
     }
+
 }

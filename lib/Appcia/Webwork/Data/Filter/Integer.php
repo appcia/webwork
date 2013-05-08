@@ -3,8 +3,9 @@
 namespace Appcia\Webwork\Data\Filter;
 
 use Appcia\Webwork\Data\Filter;
+use Appcia\Webwork\Exception;
 
-class Trim extends Filter
+class Integer extends Filter
 {
     /**
      * {@inheritdoc}
@@ -15,8 +16,9 @@ class Trim extends Filter
             return $value;
         }
 
-        $value = trim($value);
+        $number = intval($value);
 
-        return $value;
+        return $number;
     }
+
 }

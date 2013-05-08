@@ -2,8 +2,8 @@
 
 namespace Appcia\Webwork\Data\Validator;
 
-use Appcia\Webwork\Data\Validator;
 use Appcia\Webwork\Data\Form\Field;
+use Appcia\Webwork\Data\Validator;
 
 class Same extends Validator
 {

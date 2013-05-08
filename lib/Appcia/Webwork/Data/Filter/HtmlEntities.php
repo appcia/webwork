@@ -12,6 +12,10 @@ class HtmlEntities extends Filter
      */
     public function filter($value)
     {
+        if (!is_scalar($value)) {
+            return $value;
+        }
+
         $html = null;
         switch ($this->getContext()->getHtmlVersion()) {
             case Context::HTML_401:

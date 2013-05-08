@@ -5,7 +5,8 @@ namespace Appcia\Webwork\Data\Validator;
 use Appcia\Webwork\Data\Validator;
 use Appcia\Webwork\Exception;
 
-class StringLength extends Validator {
+class Length extends Validator
+{
 
     /**
      * Minimum
@@ -24,8 +25,9 @@ class StringLength extends Validator {
     /**
      * Constructor
      *
-     * @param int $max Maxiumum
+     * @param int $max Maximum
      * @param int $min Minimum
+     *
      * @throws Exception
      */
     public function __construct($min = 0, $max = INF)
@@ -41,7 +43,8 @@ class StringLength extends Validator {
     /**
      * {@inheritdoc}
      */
-    public function validate($value) {
+    public function validate($value)
+    {
         if (!is_scalar($value)) {
             return false;
         }
