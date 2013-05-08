@@ -220,7 +220,6 @@ class Auth
     {
         $this->userData = null;
         $this->token = null;
-
         $this->user = null;
 
         $this->save();

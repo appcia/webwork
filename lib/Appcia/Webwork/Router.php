@@ -125,7 +125,7 @@ class Router
      */
     public function getRoute($name) {
         if (!isset($this->routes[$name])) {
-            throw new Exception(sprintf("Route '%s' does not exist"));
+            throw new Exception(sprintf("Route '%s' does not exist", $name));
         }
 
         return $this->routes[$name];
