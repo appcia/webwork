@@ -12,6 +12,7 @@ class Serializer {
      * @param array $data Data
      *
      * @return string
+     * @throws Exception
      */
     public function serialize(array $data)
     {

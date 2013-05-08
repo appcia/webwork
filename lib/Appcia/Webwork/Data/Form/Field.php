@@ -222,7 +222,7 @@ class Field
         $name = $filter->getName();
 
         if (isset($this->filters[$name])) {
-            throw new Exception(sprintf("Filter '%s' already exist"));
+            throw new Exception(sprintf("Filter '%s' already exist", $name));
         }
 
         $this->filters[$name] = $filter;
@@ -283,7 +283,7 @@ class Field
         $name = $validator->getName();
 
         if (isset($this->validators[$name])) {
-            throw new Exception(sprintf("Validator '%s' already exist"));
+            throw new Exception(sprintf("Validator '%s' already exist", $name));
         }
 
         $this->validators[$name] = $validator;
