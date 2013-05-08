@@ -45,6 +45,10 @@ class Length extends Validator
      */
     public function validate($value)
     {
+        if ($value === '' || $value === null) {
+            return true;
+        }
+
         if (!is_scalar($value)) {
             return false;
         }

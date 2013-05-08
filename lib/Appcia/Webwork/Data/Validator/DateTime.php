@@ -28,6 +28,10 @@ class DateTime extends Validator
      */
     public function validate($value)
     {
+        if ($value === '' || $value === null) {
+            return true;
+        }
+
         if (!is_string($value)) {
             return false;
         }
