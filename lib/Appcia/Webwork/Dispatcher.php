@@ -138,12 +138,22 @@ class Dispatcher
     /**
      * Force route
      *
-     * @param Route $route Route
+     * @param Route|string $route Route object or name
      *
      * @return Dispatcher
+     * @throws NotFound
      */
-    public function setRoute(Route $route)
+    public function setRoute($route)
     {
+        if (is_string($route)) {
+            $router = $this->container->get('router');
+            $route = $router->getRoute($route);
+        }
+
+        if ($route === null) {
+            throw new NotFound('Cannot dispatch. Route not found');
+        }
+
         $this->route = $route;
 
         return $this;
@@ -406,23 +416,13 @@ class Dispatcher
     public function dispatch($route)
     {
         if ($this->response === null) {
-            throw new Exception('Response must be specified before dispatching');
-        }
-
-        // Get route by name
-        if (is_string($route)) {
-            $router = $this->container->get('router');
-            $route = $router->getRoute($route);
+            throw new Exception('Response must be set before dispatching');
         }
 
         // Dispatch route
         $this->notify(self::INIT);
 
         try {
-            if ($route === null) {
-                throw new NotFound('Cannot dispatch. Route not found');
-            }
-
             $this->response->clean();
 
             $this->setRoute($route)

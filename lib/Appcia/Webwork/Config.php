@@ -110,7 +110,7 @@ class Config implements \Iterator, \ArrayAccess
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
             if (!array_key_exists($section, $data)) {
-                return null;
+                throw new Exception(sprintf("Config key '%s' does not exist", $key));
             }
 
             $data = & $data[$section];
@@ -171,12 +171,21 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function grab($key)
     {
-        $data = $this->get($key);
+        if (empty($key)) {
+            throw new Exception('Config key cannot be empty');
+        }
 
-        if ($data === null) {
-            $data = array();
-        } else if (!is_array($data)) {
-            throw new Exception(sprintf("Config key '%s' indicates a value but not section as expected", $key));
+        $data = & $this->data;
+        foreach (explode('.', $key) as $section) {
+            if (!array_key_exists($section, $data)) {
+                return new self();
+            }
+
+            $data = & $data[$section];
+        }
+
+        if (!is_array($data)) {
+            throw new Exception(sprintf("Config key '%s' indicates a value but not a section as expected", $key));
         }
 
         $section = new self($data);
