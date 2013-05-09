@@ -155,12 +155,7 @@ class Dir
      */
     public function create($permission = 0777, $recursive = true)
     {
-        if (!@mkdir($this->path, $permission, $recursive)) {
-            throw new Exception(sprintf(
-                'Cannot create a directory: %s ' . PHP_EOL
-                    . 'Verify access permissions', $this->path
-            ));
-        }
+        mkdir($this->path, $permission, $recursive);
 
         return $this;
     }
@@ -200,20 +195,8 @@ class Dir
     {
         if ($recursive) {
             $this->removeRecursive($this->path);
-
-            if (is_dir($this->path)) {
-                throw new Exception(sprintf(
-                    'Cannot remove a directory: %s ' . PHP_EOL
-                        . 'Verify access permissions', $this->path
-                ));
-            }
         } else {
-            if (!@rmdir($this->path)) {
-                throw new Exception(sprintf(
-                    'Cannot remove a directory: %s ' . PHP_EOL
-                        . 'Make sure that it is empty or specify recursive parameter', $this->path
-                ));
-            }
+            rmdir($this->path);
         }
 
         return $this;
@@ -232,14 +215,14 @@ class Dir
             return;
         }
 
-        $nodes = @scandir($path);
+        $nodes = scandir($path);
         if ($nodes === false) {
             return;
         }
 
         $nodes = array_diff($nodes, array('.', '..'));
         foreach ($nodes as $node) {
-            $type = @filetype($path . '/' . $node);
+            $type = filetype($path . '/' . $node);
             if ($type === false) {
                 continue;
             }
@@ -247,7 +230,7 @@ class Dir
             if ($type == 'dir') {
                 $this->removeRecursive($path . '/' . $node);
             } else {
-                @unlink($path . '/' . $node);
+                unlink($path . '/' . $node);
             }
         }
 
@@ -274,8 +257,8 @@ class Dir
             $dir = new self($dir);
         }
 
-        if ($dir->isLink() && !@unlink($dir->getPath())) {
-            throw new Exception(sprintf("Cannot remove an existing link: '%s'", $dir));
+        if ($dir->isLink()) {
+            unlink($dir->getPath());
         }
 
         $parent = $dir->getParent();
@@ -290,9 +273,7 @@ class Dir
             }
         }
 
-        if (!@symlink($this->getAbsolutePath(), $parent->getAbsolutePath() . '/' . $dir->getName())) {
-            throw new Exception(sprintf("Cannot create a link to directory: %s -> %s", $this->getPath(), $dir->getPath()));
-        }
+        symlink($this->getAbsolutePath(), $parent->getAbsolutePath() . '/' . $dir->getName());
 
         return $this;
     }
@@ -340,11 +321,7 @@ class Dir
     public function glob($pattern)
     {
         $pattern = $this->path . '/' . $pattern;
-
-        $files = @glob($pattern);
-        if ($files === false) {
-            throw new Exception(sprintf("Cannot glob path '%s' with pattern: '%s'", $this->path, $pattern));
-        }
+        $files = glob($pattern);
 
         // For sure, when result is null (on some systems)
         if (empty($files)) {
@@ -392,11 +369,7 @@ class Dir
      */
     public function isEmpty()
     {
-        $contents = @scandir($this->path);
-        if ($contents === false) {
-            throw new Exception(sprintf("Cannot check that directory is empty: '%s'", $this->path));
-        }
-
+        $contents = scandir($this->path);
         $contents = array_diff($contents, array('.', '..'));
         $empty = empty($contents);
 

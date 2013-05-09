@@ -99,11 +99,7 @@ class File
             throw new Exception('Cannot stat a non-existing file');
         }
 
-        $stat = @stat($this->path);
-
-        if ($stat === false) {
-            throw new Exception(sprintf("Cannot stat a file: '%s'", $this->path));
-        }
+        $stat = stat($this->path);
 
         return $stat;
     }
@@ -146,12 +142,7 @@ class File
      */
     public function remove()
     {
-        if (!@unlink($this->path)) {
-            throw new Exception(sprintf(
-                "Cannot remove a file: '%s'" . PHP_EOL
-                    . 'Verify access permissions', $this->path
-            ));
-        }
+        unlink($this->path);
 
         return $this;
     }
@@ -164,12 +155,7 @@ class File
      */
     public function create()
     {
-        if (!@touch($this->path)) {
-            throw new Exception(sprintf(
-                "Cannot create a file: '%s'" . PHP_EOL
-                    . 'Verify access permissions', $this->path
-            ));
-        }
+        touch($this->path);
 
         return $this;
     }
@@ -197,10 +183,7 @@ class File
             }
         }
 
-        if (!@rename($this->path, $file->path)) {
-            throw new Exception(sprintf("Cannot move a file to location: %s -> %s" . PHP_EOL
-                . 'Verify access permissions', $this->path, $file->path));
-        }
+        rename($this->path, $file->path);
 
         return $this;
     }
@@ -229,15 +212,9 @@ class File
         }
 
         if (is_uploaded_file($this->path)) {
-            if (!@move_uploaded_file($this->path, $file->path)) {
-                throw new Exception(sprintf("Cannot move uploaded file to location: %s -> %s" . PHP_EOL
-                    . 'Verify access permissions', $this->path, $file->path));
-            }
+            move_uploaded_file($this->path, $file->path);
         } else {
-            if (!@copy($this->path, $file->path)) {
-                throw new Exception(sprintf("Cannot copy a file to location: %s -> %s" . PHP_EOL
-                    . 'Verify access permissions', $this->path, $file->path));
-            }
+            copy($this->path, $file->path);
         }
 
         return $this;
@@ -263,13 +240,11 @@ class File
 
         $link = new self($file);
 
-        if ($link->isLink() && !@unlink($file)) {
-            throw new Exception(sprintf("Cannot remove an existing link: '%s'", $file));
+        if ($link->isLink()) {
+            unlink($file);
         }
 
-        if (!@symlink($this->getAbsolutePath(), $link->getAbsolutePath())) {
-            throw new Exception(sprintf('Cannot create a link to file: %s -> %s', $this->getPath(), $link->getPath()));
-        }
+        symlink($this->getAbsolutePath(), $link->getAbsolutePath());
 
         return $this;
     }
@@ -286,11 +261,7 @@ class File
             throw new Exception(sprintf("Cannot read from non-existing file: '%s'", $this->path));
         }
 
-        $data = @file_get_contents($this->path);
-
-        if ($data === false) {
-            throw new Exception(sprintf("Cannot read from file: '%s'", $this->path));
-        }
+        $data = file_get_contents($this->path);
 
         return $data;
     }
@@ -310,10 +281,7 @@ class File
             throw new Exception(sprintf("Cannot overwrite file. File already exists: '%s'", $this->path));
         }
 
-        if (!@file_put_contents($this->path, $data)) {
-            throw new Exception(sprintf("Cannot write data to file: '%s'" . PHP_EOL
-                . 'Verify access permissions', $this->path));
-        }
+        file_put_contents($this->path, $data);
 
         return $this;
     }
@@ -332,14 +300,63 @@ class File
             throw new Exception(sprintf("Cannot append data to non-existing file: '%s'", $this->path));
         }
 
-        $bytes = @file_put_contents($this->path, $data, FILE_APPEND);
-
-        if ($bytes === false) {
-            throw new Exception(sprintf("Cannot append data to file: '%s'" . PHP_EOL
-                . 'Verify access permissions', $this->path));
-        }
+        file_put_contents($this->path, $data, FILE_APPEND);
 
         return $this;
+    }
+
+    /**
+     * Get last lines
+     * Optimized for huge files
+     *
+     * @param int    $lines     Line count numbered from end
+     * @param string $separator New Line separator
+     *
+     * @return array
+     * @throws Exception
+     */
+    function tail($lines, $separator = PHP_EOL)
+    {
+        if (!$this->exists()) {
+            throw new Exception(sprintf("File does not exist: '%s'", $this->path));
+        }
+
+        $handle = fopen($this->path, 'r');
+
+        $count = $lines;
+        $pos = -2;
+        $beginning = false;
+        $text = array();
+
+        while ($count > 0) {
+            $t = ' ';
+            while ($t != $separator) {
+                if (fseek($handle, $pos, SEEK_END) == -1) {
+                    $beginning = true;
+                    break;
+                }
+                $t = fgetc($handle);
+                $pos--;
+            }
+
+            $count--;
+
+            if ($beginning) {
+                rewind($handle);
+            }
+
+            $text[$lines - $count - 1] = trim(fgets($handle), $separator);
+
+            if ($beginning) {
+                break;
+            }
+        }
+
+        fclose($handle);
+
+        $text = array_reverse($text);
+
+        return $text;
     }
 
     public function equals(File $file)

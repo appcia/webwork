@@ -105,6 +105,24 @@ class Logger
     }
 
     /**
+     * Get last logs
+     *
+     * @param int $lines Line count numbered from end
+     *
+     * @return null|string
+     */
+    public function tail($lines)
+    {
+        if (!$this->file->exists()) {
+            return null;
+        }
+
+        $data = implode($this->file->tail($lines), PHP_EOL);
+
+        return $data;
+    }
+
+    /**
      * Write debug message
      *
      * @param $message

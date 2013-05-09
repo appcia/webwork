@@ -15,9 +15,9 @@ class Join extends Helper
      *
      * @return mixed
      */
-    public function join($data, $property = null, $separator = ', ')
+    public function join($data, $separator = ', ', $property = null)
     {
-        if (!$data instanceof \Traversable) {
+        if (!is_array($data) && !$data instanceof \Traversable) {
             return null;
         }
 
