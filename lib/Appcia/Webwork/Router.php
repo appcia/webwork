@@ -65,43 +65,42 @@ class Router
      */
     public function setRoutes(array $routes)
     {
-        foreach ($routes as $route) {
-            $this->addRoute($route);
+        foreach ($routes as $name => $route) {
+            $this->addRoute($name, $route);
         }
 
         return $this;
     }
 
     /**
-     * Add route by an array
-     * Could be overwritten
+     * Add route
      *
-     * @param array $route Route data
+     * @param string $name Unique name
+     * @param array  $data Route data
      *
      * @throws Exception
      */
-    public function addRoute(array $route)
+    public function addRoute($name, $data)
     {
         $defaults = array();
         if (!empty($this->defaults['route'])) {
             $defaults = $this->defaults['route'];
         }
 
-        if (!is_array($route)) {
+        if (!is_array($data)) {
             throw new Exception('Route data is not an array');
         }
 
-        if (!isset($route['name'])) {
-            throw new Exception('Route name is not specified');
+        if (empty($name)) {
+            throw new Exception('Route name is cannot be empty');
         }
 
         $config = new Config($defaults);
-        $config->extend(new Config($route));
+        $config->extend(new Config($data));
 
-        $route = new Route();
+        $route = new Route($name);
         $config->inject($route);
 
-        $name = $route->getName();
         $this->routes[$name] = $route;
     }
 

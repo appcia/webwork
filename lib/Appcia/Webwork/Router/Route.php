@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork\Router;
 
+use Appcia\Webwork\Exception;
+
 class Route
 {
     const PARAM_CLASS = '[A-Za-z0-9-]+';
@@ -66,9 +68,11 @@ class Route
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct($name)
     {
         $this->params = array();
+
+        $this->setName($name);
     }
 
     /**
@@ -77,9 +81,14 @@ class Route
      * @param string $name
      *
      * @return Route
+     * @throws Exception
      */
     public function setName($name)
     {
+        if (empty($name)) {
+            throw new Exception('Route name cannot be empty');
+        }
+
         $this->name = (string) $name;
 
         return $this;
@@ -108,9 +117,9 @@ class Route
 
         // Retrieve param names from path
         $match = array();
-        if (preg_match_all('/\{('. self::PARAM_CLASS .')\}/', $this->path, $match)) {
-            $pattern = '/^' . preg_quote(preg_replace('/\{('. self::PARAM_CLASS .')\}/', self::PARAM_SUBSTITUTION, $this->path), '/') . '\/?$/';
-            $pattern = str_replace(self::PARAM_SUBSTITUTION, '('. self::PARAM_CLASS .')', $pattern);
+        if (preg_match_all('/\{(' . self::PARAM_CLASS . ')\}/', $this->path, $match)) {
+            $pattern = '/^' . preg_quote(preg_replace('/\{(' . self::PARAM_CLASS . ')\}/', self::PARAM_SUBSTITUTION, $this->path), '/') . '\/?$/';
+            $pattern = str_replace(self::PARAM_SUBSTITUTION, '(' . self::PARAM_CLASS . ')', $pattern);
 
             // Add params to map, null value means any possible
             foreach ($match[1] as $param) {

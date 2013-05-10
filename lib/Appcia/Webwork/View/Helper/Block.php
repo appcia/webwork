@@ -73,7 +73,11 @@ class Block extends Helper
      */
     public function begin($name, $file = null)
     {
-        if ($file) {
+        if ($file !== null) {
+            if (isset($this->extends[$name])) {
+                throw new Exception(sprintf("Block name that will be extended is already used: '%s'", $name));
+            }
+
             // Associate block with extending
             $this->extends[$name] = $file;
         }
@@ -99,10 +103,11 @@ class Block extends Helper
     {
         // Retrieve block name from stack, check that match if specified
         $check = array_pop($this->stack);
-        if (!$name) {
+        if ($name === null) {
             $name = $check;
         } else if ($name !== $check) {
-            throw new Exception('Block begin / end structure is not consistent');
+            throw new Exception(sprintf("Block begin / end structure is not consistent." . PHP_EOL
+                . "Problem occurred with: '%s'", $name));
         }
 
         // Get captured block
@@ -123,6 +128,7 @@ class Block extends Helper
         if (isset($this->extends[$name])) {
             $file = $this->extends[$name];
 
+            unset($this->extends[$name]);
             echo $this->getView()
                 ->render($file);
         } else {
