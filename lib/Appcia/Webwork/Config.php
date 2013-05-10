@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork;
 
-use App\Exception;
+use Appcia\Webwork\Exception;
 
 class Config implements \Iterator, \ArrayAccess
 {
@@ -16,7 +16,7 @@ class Config implements \Iterator, \ArrayAccess
     /**
      * Constructor
      *
-     * @param array $data
+     * @param array $data Data
      */
     public function __construct(array $data = array())
     {
@@ -59,9 +59,11 @@ class Config implements \Iterator, \ArrayAccess
             throw new Exception(sprintf("Config file not exists: '%s'", $file));
         }
 
-        $data = @include($file);
-        if ($data === false) {
-            throw new Exception("Cannot load values from config");
+        // Possible syntax errors, do not handle them / expensive!
+        $data = include($file);
+
+        if (!is_array($data)) {
+            throw new Exception("Config file should return array: '%s'", $file);
         }
 
         $this->extend(new self($data));
@@ -73,6 +75,7 @@ class Config implements \Iterator, \ArrayAccess
      * Check whether key exists
      *
      * @param string $key Key in dot notation
+     *
      * @return bool
      */
     public function has($key)
@@ -166,6 +169,7 @@ class Config implements \Iterator, \ArrayAccess
      * Useful for injecting when values are not specified in config file
      *
      * @param string $key Key in dot notation
+     *
      * @return Config
      * @throws Exception
      */

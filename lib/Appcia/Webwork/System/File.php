@@ -359,8 +359,51 @@ class File
         return $text;
     }
 
-    public function equals(File $file)
+    /**
+     * Run binary
+     * Returns status code and output text as result
+     *
+     * @param string $args Arguments
+     *
+     * @return array
+     * @throws Exception
+     */
+    public function execute($args)
     {
+        if (!$this->exists()) {
+            throw new Exception(sprintf("Cannot execute program. File does not exist: '%s'", $this->path));
+        }
+
+        $command = $this->path;
+        if (!empty($args)) {
+            $command .= ' ' . $args;
+        }
+
+        $code = null;
+        $result = null;
+        exec($command, $result, $code);
+
+        $data = array(
+            'code' => (int) $code,
+            'result' => $result
+        );
+
+        return $data;
+    }
+
+    /**
+     * Check whether equals to another file
+     *
+     * @param File|string $file File object or path
+     *
+     * @return bool
+     */
+    public function equals($file)
+    {
+        if (!$file instanceof File) {
+            $file = new self($file);
+        }
+
         $samePaths = $this->getAbsolutePath() === $file->getAbsolutePath();
 
         return $samePaths;

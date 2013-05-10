@@ -169,7 +169,7 @@ class View
 
         ob_start();
 
-        if ((@include $file) !== 1) {
+        if ((@include $file) === false) {
             throw new Exception(sprintf("View file cannot be included properly: '%s'", $file));
         }
 
