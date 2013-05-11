@@ -33,6 +33,13 @@ class Form
     private $fields;
 
     /**
+     * Metadata encoder / decoder
+     *
+     * @var Encoder
+     */
+    private $coder;
+
+    /**
      * Constructor
      */
     public function __construct(Context $context)
@@ -40,6 +47,7 @@ class Form
         $this->context = $context;
         $this->fields = array();
         $this->valid = true;
+        $this->coder = new Encoder(Encoder::BASE64);
 
         $this->addField(new Field(self::METADATA));
 
@@ -126,13 +134,16 @@ class Form
     }
 
     /**
-     * Get all fields
+     * Get all standard fields
      *
      * @return array
      */
     public function getFields()
     {
-        return $this->fields;
+        $fields = $this->fields;
+        unset($fields[self::METADATA]);
+
+        return $fields;
     }
 
     /**
@@ -144,9 +155,7 @@ class Form
      */
     public function setMetadata(array $metadata)
     {
-        $serializer = new Serializer();
-        $value = $serializer->serialize($metadata);
-
+        $value = $this->coder->code($metadata);
         $this->set(self::METADATA, $value);
 
         return $this;
@@ -161,11 +170,33 @@ class Form
     public function getMetadata()
     {
         $value = $this->get(self::METADATA);
-
-        $serializer = new Serializer();
-        $metadata = $serializer->unserialize($value);
+        $metadata = $this->coder->decode($value);
 
         return $metadata;
+    }
+
+    /**
+     * Set metadata encoder / decoder
+     *
+     * @param Encoder $coder
+     *
+     * @return Form
+     */
+    public function setCoder($coder)
+    {
+        $this->coder = $coder;
+
+        return $this;
+    }
+
+    /**
+     * Get metadata encoder / decoder
+     *
+     * @return Encoder
+     */
+    public function getCoder()
+    {
+        return $this->coder;
     }
 
     /**
@@ -202,7 +233,7 @@ class Form
     }
 
     /**
-     * Get all field values
+     * Get all standard field values
      *
      * @return array
      */
@@ -210,7 +241,11 @@ class Form
     {
         $values = array();
 
-        foreach ($this->fields as $field) {
+        foreach ($this->fields as $name => $field) {
+            if ($name == self::METADATA) {
+                continue;
+            }
+
             $values[$field->getName()] = $field->getValue();
         }
 
@@ -249,21 +284,37 @@ class Form
     /**
      * Populate form by data
      *
-     * When unknowns flag is true, then fields are created automatically
-     * Safer when false, prevent for XSRF attacks
-     *
-     * @param array $data     Input data
-     * @param bool  $unknowns Accept unknown values
+     * @param array $data Data
      *
      * @return Form
+     * @throws Exception
      */
-    public function populate(array $data, $unknowns = true)
+    public function populate(array $data)
     {
         foreach ($data as $name => $value) {
             if (isset($this->fields[$name])) {
                 $field = $this->fields[$name];
                 $field->setValue($value);
-            } else if ($unknowns) {
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Create fields using initial data
+     *
+     * @param array $data Data
+     *
+     * @return Form
+     * @throws Exception
+     */
+    public function init(array $data)
+    {
+        foreach ($data as $name => $value) {
+            if (isset($this->fields[$name])) {
+                throw new Exception(sprintf("Field '%s' already exists and cannot be initialized", $name));
+            } else {
                 $field = new Field($name);
                 $field->setValue($value);
 

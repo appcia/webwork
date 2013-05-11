@@ -151,6 +151,18 @@ class Router
                 $values = $match;
                 $params = array_combine(array_keys($route->getParams()), $values);
 
+                // Reverse map translated params
+                foreach ($params as $key => $value) {
+                    $map = $route->getParams();
+                    if (array_key_exists($key, $map) && is_array($map[$key])) {
+                        $param = array_search($value, $map[$key]);
+
+                        if ($param !== false) {
+                            $params[$key] = $param;
+                        }
+                    }
+                }
+
                 $request->setParams($params);
 
                 return true;

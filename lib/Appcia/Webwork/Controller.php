@@ -67,29 +67,29 @@ class Controller
     }
 
     /**
-     * Shortcut for getting not found page
-     *
-     * @param string $message Message
-     *
-     * @throws NotFound
-     * @return void
-     */
-    public function goNotFound($message = null)
-    {
-        throw new NotFound($message);
-    }
-
-    /**
      * Shortcut for triggering error
      *
      * @param string $message Message
      *
-     * @throws Error
      * @return void
+     * @throws Error
      */
     public function goError($message = null)
     {
         throw new Error($message);
+    }
+
+    /**
+     * Shortcut for getting not found page
+     *
+     * @param string $message Message
+     *
+     * @return void
+     * @throws NotFound
+     */
+    public function goNotFound($message = null)
+    {
+        throw new NotFound($message);
     }
 
     /**
@@ -98,7 +98,7 @@ class Controller
      * @param string $route  Route name
      * @param array  $params Route params
      *
-     * @return mixed
+     * @return void
      */
     public function goRoute($route, array $params = array())
     {
@@ -109,7 +109,9 @@ class Controller
     /**
      * Shortcut for redirecting to absolute url (externally)
      *
-     * @param $url
+     * @param string $url URL address
+     *
+     * @return void
      */
     public function goRedirect($url)
     {
@@ -118,10 +120,33 @@ class Controller
     }
 
     /**
+     * Refresh current action
+     *
+     * @return void
+     */
+    public function goRefresh()
+    {
+        $dispatcher = $this->get('dispatcher');
+        $name = $dispatcher->getRoute()
+            ->getName();
+
+        $params = array_merge(
+            $dispatcher->getRequest()
+                ->getGet(),
+            $dispatcher->getRequest()
+                ->getParams()
+        );
+
+        $this->goRoute($name, $params);
+    }
+
+    /**
      * Shortcut for generating url's
      *
      * @param string $route  Route name
      * @param array  $params Route params
+     *
+     * @return string
      */
     public function generateUrl($route, array $params = array())
     {
@@ -133,11 +158,15 @@ class Controller
      * Shortcut for changing template
      *
      * @param $file
+     *
+     * @return Controller
      */
     public function setTemplate($file)
     {
         $this->get('dispatcher')
             ->getRoute()
             ->setTemplate($file);
+
+        return $this;
     }
 }

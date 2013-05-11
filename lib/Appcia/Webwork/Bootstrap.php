@@ -43,7 +43,7 @@ class Bootstrap
     /**
      * @var array
      */
-    private $environments = array(
+    private static $environments = array(
         self::DEVELOPMENT,
         self::TEST,
         self::PRODUCTION
@@ -67,7 +67,7 @@ class Bootstrap
                 . "If you are running CLI, to set this variable, you could use 'export' command.");
         }
 
-        if (!in_array($env, $this->environments)) {
+        if (!in_array($env, self::$environments)) {
             throw new Exception(sprintf("Invalid environment: '%s'", $env));
         }
 
@@ -78,6 +78,46 @@ class Bootstrap
 
         $this->container = new Container();
         $this->modules = array();
+    }
+
+    /**
+     * Get server API
+     *
+     * @return string
+     */
+    public function getSapi()
+    {
+        if (defined('PHP_SAPI') && PHP_SAPI !== '') {
+            return PHP_SAPI;
+        } else {
+            return php_sapi_name();
+        }
+    }
+
+    /**
+     * Check whether is running via CGI interface
+     *
+     * @return bool
+     */
+    public function isCgi()
+    {
+        $sapi = $this->getSapi();
+        $flag = (substr($sapi, 0, 3) == 'cgi');
+
+        return $flag;
+    }
+
+    /**
+     * Check whether is running in CLI mode (console)
+     *
+     * @return bool
+     */
+    public function isCli()
+    {
+        $sapi = $this->getSapi();
+        $flag = (substr($sapi, 0, 3) == 'cli');
+
+        return $flag;
     }
 
     /**
@@ -302,9 +342,9 @@ class Bootstrap
      *
      * @return array
      */
-    public function getEnvironments()
+    public static function getEnvironments()
     {
-        return $this->environments;
+        return self::$environments;
     }
 
     /**
