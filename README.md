@@ -21,6 +21,9 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.7.3**
+* routes group (for more simple config)
+
 **0.7.2**
 * CSRF protection
 * locale in context
