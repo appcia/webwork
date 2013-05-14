@@ -68,11 +68,9 @@ class Route
     /**
      * Constructor
      */
-    public function __construct($name)
+    public function __construct()
     {
         $this->params = array();
-
-        $this->setName($name);
     }
 
     /**

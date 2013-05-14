@@ -5,6 +5,7 @@ namespace Appcia\Webwork;
 use Appcia\Webwork\Module;
 use Appcia\Webwork\Router\Route;
 use Appcia\Webwork\Exception\NotFound;
+use Appcia\Webwork\Data\TextCase;
 
 class Dispatcher
 {
@@ -96,6 +97,13 @@ class Dispatcher
     );
 
     /**
+     * Text case converter
+     *
+     * @var TextCase
+     */
+    private $textCase;
+
+    /**
      * Constructor
      *
      * @param Container $container
@@ -109,8 +117,8 @@ class Dispatcher
         $this->listeners = array();
         $this->exception = null;
         $this->exceptionOnError = false;
-
         $this->setExceptionOnError(true);
+        $this->textCase = new TextCase();
     }
 
     /**
@@ -227,6 +235,28 @@ class Dispatcher
     public function getResponse()
     {
         return $this->response;
+    }
+
+    /**
+     * Set text case converter
+     *
+     * @param TextCase $converter
+     *
+     * @return Dispatcher
+     */
+    public function setTextCase($converter)
+    {
+        $this->textCase = $converter;
+
+        return $this;
+    }
+
+    /**
+     * @return TextCase
+     */
+    public function getTextCase()
+    {
+        return $this->textCase;
     }
 
     /**
@@ -592,28 +622,12 @@ class Dispatcher
         $parts = explode('\\', rtrim($class, '\\'));
 
         foreach ($parts as $key => $part) {
-            $parts[$key] = $this->camelCaseToDashed($part);
+            $parts[$key] = $this->textCase->camelToDashed($part);
         }
 
         $path = implode('/', $parts);
 
         return $path;
-    }
-
-    /**
-     * Convert camel cased text to dashed
-     *
-     * @param string $str        String to be parsed
-     * @param bool   $firstUpper Uppercase first letter?
-     *
-     * @return string
-     */
-    private function camelCaseToDashed($str, $firstUpper = false)
-    {
-        $str = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $str));
-        $str = $firstUpper ? ucfirst($str) : lcfirst($str);
-
-        return $str;
     }
 
     /**

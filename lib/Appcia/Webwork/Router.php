@@ -2,7 +2,9 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Router\Group;
 use Appcia\Webwork\Router\Route;
+use Appcia\Webwork\Data\TextCase;
 
 class Router
 {
@@ -21,6 +23,13 @@ class Router
     private $defaults;
 
     /**
+     * Text case converter
+     *
+     * @var TextCase
+     */
+    private $textCase;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -31,6 +40,7 @@ class Router
                 'template' => '*.html.php'
             )
         );
+        $this->textCase = new TextCase();
     }
 
     /**
@@ -58,7 +68,29 @@ class Router
     }
 
     /**
-     * @param array $routes
+     * Set text case converter
+     *
+     * @param TextCase $textCase
+     */
+    public function setTextCase($textCase)
+    {
+        $this->textCase = $textCase;
+    }
+
+    /**
+     * Get text case converter
+     *
+     * @return TextCase
+     */
+    public function getTextCase()
+    {
+        return $this->textCase;
+    }
+
+    /**
+     * Add routes
+     *
+     * @param array $routes Routes
      *
      * @return Router
      * @throws Exception
@@ -66,42 +98,26 @@ class Router
     public function setRoutes(array $routes)
     {
         foreach ($routes as $name => $route) {
-            $this->addRoute($name, $route);
+            if (!isset($route['name']) && is_string($name)) {
+                $route['name'] = $name;
+            }
+
+            $this->addRoute($route);
         }
 
         return $this;
     }
 
     /**
-     * Add route
+     * Clear current routes
      *
-     * @param string $name Unique name
-     * @param array  $data Route data
-     *
-     * @throws Exception
+     * @return Router
      */
-    public function addRoute($name, $data)
+    public function clearRoutes()
     {
-        $defaults = array();
-        if (!empty($this->defaults['route'])) {
-            $defaults = $this->defaults['route'];
-        }
+        $this->routes = array();
 
-        if (!is_array($data)) {
-            throw new Exception('Route data is not an array');
-        }
-
-        if (empty($name)) {
-            throw new Exception('Route name is cannot be empty');
-        }
-
-        $config = new Config($defaults);
-        $config->extend(new Config($data));
-
-        $route = new Route($name);
-        $config->inject($route);
-
-        $this->routes[$name] = $route;
+        return $this;
     }
 
     /**
@@ -115,6 +131,80 @@ class Router
     }
 
     /**
+     * Add route
+     *
+     * @param array $data Route data
+     *
+     * @return Router
+     * @throws Exception
+     */
+    public function addRoute($data)
+    {
+        if (!is_array($data)) {
+            throw new Exception('Route data should be an array');
+        }
+
+        if (!isset($data['path'])) {
+            throw new Exception('Route path is not specified');
+        }
+
+        if (!isset($data['module'])) {
+            throw new Exception('Route module is not specified');
+        }
+
+        if (!isset($data['controller'])) {
+            throw new Exception('Route controller is not specified');
+        }
+
+        if (!isset($data['action'])) {
+            throw new Exception('Route action is not specified');
+        }
+
+        if (!isset($data['name'])) {
+            $data['name'] = $this->generateRouteName($data);
+        }
+
+        if (!empty($this->defaults['route'])) {
+            $data = array_merge($this->defaults['route'], $data);
+        }
+
+        $route = new Route();
+
+        $config = new Config($data);
+        $config->inject($route);
+
+        $name = $route->getName();
+        $this->routes[$name] = $route;
+
+        return $this;
+    }
+
+    /**
+     * Generate route name basing on its other data
+     *
+     * @param array $data Route data
+     *
+     * @return string
+     */
+    public function generateRouteName(array $data)
+    {
+        $parts = array_merge(
+            explode('/', $data['module']),
+            explode('/', $data['controller']),
+            array($data['action'])
+        );
+
+        foreach ($parts as $key => $value) {
+            $parts[$key] = $this->textCase->camelToDashed($value);
+        }
+
+        $name = implode('-', $parts);
+
+        return $name;
+    }
+
+
+    /**
      * Get route by name
      *
      * @param string $name Name
@@ -122,12 +212,58 @@ class Router
      * @return Route
      * @throws Exception
      */
-    public function getRoute($name) {
+    public function getRoute($name)
+    {
         if (!isset($this->routes[$name])) {
             throw new Exception(sprintf("Route '%s' does not exist", $name));
         }
 
         return $this->routes[$name];
+    }
+
+    /**
+     * Set routes using groups
+     *
+     * @param array $groups Data
+     *
+     * @return Router
+     */
+    public function setGroups(array $groups)
+    {
+        foreach ($groups as $name => $group) {
+            if (!isset($group['name']) && is_string($name)) {
+                $group['name'] = $name;
+            }
+
+            $this->addGroup($group);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add route group
+     *
+     * @param array $data Data
+     *
+     * @return Router
+     * @throws Exception
+     */
+    public function addGroup(array $data)
+    {
+        if (!isset($data['routes'])) {
+            throw new Exception('Route group has no routes specified');
+        }
+
+        $group = new Group();
+
+        $config = new Config($data);
+        $config->inject($group);
+
+        $routes = $group->getRoutes();
+        $this->setRoutes($routes);
+
+        return $this;
     }
 
     /**
