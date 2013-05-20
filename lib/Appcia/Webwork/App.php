@@ -6,8 +6,8 @@ use Appcia\Webwork\Bootstrap;
 use Appcia\Webwork\Request;
 use Appcia\Webwork\Response;
 
-class App {
-
+class App
+{
     /**
      * @var Bootstrap
      */
@@ -28,7 +28,8 @@ class App {
      *
      * @param Bootstrap $bootstrap
      */
-    public function __construct(Bootstrap $bootstrap) {
+    public function __construct(Bootstrap $bootstrap)
+    {
         $this->bootstrap = $bootstrap;
     }
 
@@ -39,24 +40,24 @@ class App {
      */
     public function run()
     {
-        $this->request = new Request();
-        $this->request->loadGlobals();
-
-        $this->response = new Response();
+        $request = new Request();
+        $request->loadGlobals();
 
         $container = $this->bootstrap->getContainer();
 
         $router = $container->get('router');
-        $route = $router->match($this->request);
+        $route = $router->match($request);
 
-        $dispatcher = $container->get('dispatcher')
-            ->setRequest($this->request)
-            ->setResponse($this->response)
-            ->dispatch($route);
+        $response = $container->get('dispatcher')
+            ->setRequest($request)
+            ->dispatch($route)
+            ->getResponse();
 
-        $this->response->display();
+        $response->display();
+        $status = $response->getStatus();
 
-        $status = $this->response->getStatus();
+        $this->request = $request;
+        $this->response = $response;
 
         return $status;
     }

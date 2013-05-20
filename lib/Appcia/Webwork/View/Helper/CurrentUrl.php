@@ -23,12 +23,8 @@ class CurrentUrl extends Helper
         $name = $dispatcher->getRoute()
             ->getName();
 
-        $params = array_merge(
-            $dispatcher->getRequest()
-                ->getGet(),
-            $dispatcher->getRequest()
-                ->getParams()
-        );
+        $params = $dispatcher->getRequest()
+                ->getUriParams();
 
         $url = $router->assemble($name, $params);
 

@@ -330,7 +330,7 @@ class Request
      */
     private function parsePath()
     {
-        $path = $this->getUri();
+        $path = $this->uri;
 
         if (strpos($path, $this->scriptFile) === 0) {
             $path = substr($path, strlen($this->scriptFile));
@@ -363,6 +363,18 @@ class Request
     public function getUri()
     {
         return $this->uri;
+    }
+
+    /**
+     * Get parameters that occurs in URI
+     *
+     * @return array
+     */
+    public function getUriParams()
+    {
+        $params = array_merge($this->get, $this->params);
+
+        return $params;
     }
 
     /**
@@ -430,7 +442,7 @@ class Request
      */
     public function isPost()
     {
-        return $this->getMethod() == 'post';
+        return $this->getMethod() == self::POST;
     }
 
     /**
@@ -540,7 +552,7 @@ class Request
      */
     public function isGet()
     {
-        return $this->getMethod() == 'get';
+        return $this->getMethod() == self::GET;
     }
 
     /**

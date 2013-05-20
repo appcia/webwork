@@ -9,16 +9,16 @@ class Render extends Helper
     /**
      * Caller
      *
-     * @param string $file File to be rendered
+     * @param string $template Template to be rendered
      *
      * @return string
      */
-    public function render($file)
+    public function render($template)
     {
-        $result = $this
-            ->getView()
-            ->render($file);
+        $content = $this->getView()
+            ->getRenderer()
+            ->render($template);
 
-        return $result;
+        return $content;
     }
 }

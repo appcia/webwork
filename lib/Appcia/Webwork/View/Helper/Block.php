@@ -129,7 +129,7 @@ class Block extends Helper
             $file = $this->extends[$name];
 
             unset($this->extends[$name]);
-            echo $this->getView()
+            echo $this->getHelper('render')
                 ->render($file);
         } else {
             $this->block($name);

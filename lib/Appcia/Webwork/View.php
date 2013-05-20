@@ -3,10 +3,11 @@
 namespace Appcia\Webwork;
 
 use Appcia\Webwork\View\Helper;
+use Appcia\Webwork\View\Renderer;
+use Appcia\Webwork\View\Renderer\Json;
+use Appcia\Webwork\View\Renderer\Php;
+use Appcia\Webwork\View\Renderer\Xml;
 
-/**
- * Views with shared variables, helper mechanism
- */
 class View
 {
     /**
@@ -17,7 +18,7 @@ class View
     private $container;
 
     /**
-     * Data to be used in template file
+     * Data
      *
      * @var array
      */
@@ -28,14 +29,29 @@ class View
      *
      * @var string
      */
-    private $file;
+    private $template;
+
+    const PHP = 'php';
+    const JSON = 'json';
+    const XML = 'xml';
 
     /**
-     * Registered helpers
+     * Available content renderers
      *
      * @var array
      */
-    private $helpers;
+    private static $renderers = array(
+        self::PHP,
+        self::JSON,
+        self::XML
+    );
+
+    /**
+     * Content renderer
+     *
+     * @var Renderer
+     */
+    private $renderer;
 
     /**
      * Constructor
@@ -47,7 +63,7 @@ class View
         $this->container = $container;
 
         $this->data = array();
-        $this->helpers = array();
+        $this->setRenderer(new Php());
     }
 
     /**
@@ -105,27 +121,27 @@ class View
     }
 
     /**
-     * Set template file
+     * Set template
      *
-     * @param string $file Path
+     * @param string $template Path
      *
      * @return View
      */
-    public function setFile($file)
+    public function setTemplate($template)
     {
-        $this->file = (string) $file;
+        $this->template = (string) $template;
 
         return $this;
     }
 
     /**
-     * Get template file
+     * Get template
      *
      * @return string
      */
-    public function getFile()
+    public function getTemplate()
     {
-        return $this->file;
+        return $this->template;
     }
 
     /**
@@ -142,118 +158,145 @@ class View
     }
 
     /**
-     * Get content generated using data and template file
+     * Get available content renderers
      *
-     * @param string $file File path
+     * @return array
+     */
+    public static function getRenderers()
+    {
+        return self::$renderers;
+    }
+
+    /**
+     * Set content renderer
+     *
+     * @param Renderer $renderer Renderer
+     *
+     * @return View
+     * @throws Exception
+     */
+    public function setRenderer($renderer)
+    {
+        if (!$renderer instanceof Renderer) {
+            $renderer = $this->createRenderer($renderer);
+        } else {
+            $renderer->setView($this);
+        }
+
+        $this->renderer = $renderer;
+
+        return $this;
+    }
+
+    /**
+     * Create renderer from config
+     *
+     * @param string|array $data Data
+     *
+     * @return Renderer
+     * @throws Exception
+     */
+    public function createRenderer($data)
+    {
+        $type = null;
+        $config = null;
+
+        // Parse data
+        if (is_string($data)) {
+            $type = $data;
+        } elseif (is_array($data)) {
+            if (!isset($data['type'])) {
+                throw new Exception("Missing key 'type' in view renderer config");
+            }
+            $type = $data['type'];
+
+            if (!empty($data['config'])) {
+                $config = new Config($data['config']);
+            }
+        } else {
+            throw new Exception('Invalid view renderer data');
+        }
+
+        // Create valid object
+        $renderer = null;
+        switch ($type) {
+            case self::PHP:
+                $renderer = new Php();
+                break;
+            case self::JSON:
+                $renderer = new Json();
+                break;
+            case self::XML:
+                $renderer = new Xml();
+                break;
+            default:
+                throw new Exception(sprintf("Invalid or unsupported view renderer: '%s'", $renderer));
+                break;
+        }
+        $renderer->setView($this);
+
+        // Inject configuration
+        if ($config !== null) {
+            $config->inject($renderer);
+        }
+
+        return $renderer;
+    }
+
+    /**
+     * Get content renderer
+     *
+     * @return Renderer
+     */
+    public function getRenderer()
+    {
+        return $this->renderer;
+    }
+
+
+    /**
+     * Get template file path
+     *
+     * @param string $template Template
      *
      * @return string
      * @throws Exception
      */
-    public function render($file = null)
+    public function getTemplatePath($template = null)
     {
-        if ($file === null) {
-            $file = $this->file;
+        if ($template === null) {
+            $template = $this->template;
         }
 
-        if (!file_exists($file)) {
-            $moduleFile = $this->getModulePath() . '/' . $file;
+        if (!file_exists($template)) {
+            $moduleFile = $this->getModulePath() . '/' . $template;
 
             if (!file_exists($moduleFile)) {
-                throw new Exception(sprintf("View file not found: '%s'", $file));
+                throw new Exception(sprintf("Template file not found: '%s'", $template));
             }
 
-            $file = $moduleFile;
+            $template = $moduleFile;
+
+            return $template;
         }
 
-        extract($this->data);
-
-        ob_start();
-
-        if ((@include $file) === false) {
-            throw new Exception(sprintf("View file cannot be included properly: '%s'", $file));
-        }
-
-        $result = ob_get_clean();
-
-        return $result;
+        return $template;
     }
 
     /**
-     * Create helper by name
-     * Search for valid class name in all modules
+     * Get rendered content
      *
-     * @param string $name Name
-     *
-     * @return mixed
+     * @return string
      * @throws Exception
      */
-    private function createHelper($name)
+    public function render()
     {
-        $class = 'Appcia\\Webwork\\View\\Helper\\' . ucfirst($name);
-        if (class_exists($class)) {
-            return new $class();
+        if ($this->renderer === null) {
+            throw new Exception('View renderer not specified');
         }
 
-        $modules = $this->getContainer()
-            ->get('bootstrap')
-            ->getModules();
+        $content = $this->renderer->render();
 
-        foreach ($modules as $module) {
-            $class = $module->getNamespace() . '\\View\\Helper\\' . ucfirst($name);
-            if (class_exists($class)) {
-                return new $class();
-            }
-        }
-
-        throw new Exception(sprintf("Helper '%s' cannot be created. There is no valid class in any module", $class));
-    }
-
-    /**
-     * Get helper by name
-     *
-     * @param string $name Name
-     *
-     * @return Helper
-     * @throws Exception
-     */
-    public function getHelper($name)
-    {
-        if (!isset($this->helpers[$name])) {
-            $context = $this->getContainer()
-                ->get('context');
-
-            $helper = $this->createHelper($name);
-            $helper->setView($this)
-                ->setContext($context);
-
-            $this->helpers[$name] = $helper;
-        }
-
-        return $this->helpers[$name];
-    }
-
-    /**
-     * Call view helper using $this->{helperName}({args...}) in templates
-     *
-     * @param $name Helper name
-     * @param $args Helper arguments
-     *
-     * @return mixed
-     * @throws Exception
-     */
-    public function __call($name, $args)
-    {
-        $helper = $this->getHelper($name);
-
-        $method = mb_strtolower($name);
-        $callback = array($helper, $method);
-
-        if (!is_callable($callback)) {
-            throw new Exception(sprintf("View helper '%s' does not have accessible method: '%s", $name, $method));
-        }
-
-        $result = call_user_func_array($callback, $args);
-
-        return $result;
+        return $content;
     }
 }

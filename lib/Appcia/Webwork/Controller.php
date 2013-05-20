@@ -33,9 +33,9 @@ class Controller
     }
 
     /**
-     * Get service from core container
+     * Get service or parameter from DI container
      *
-     * @param string $key Service key
+     * @param string $key Service or parameter key
      *
      * @return mixed
      */
@@ -45,7 +45,7 @@ class Controller
     }
 
     /**
-     * Shortcut to current request
+     * Get a request
      *
      * @return Request
      */
@@ -56,7 +56,7 @@ class Controller
     }
 
     /**
-     * Shortcut to current response
+     * Get a response
      *
      * @return Response
      */
@@ -67,7 +67,18 @@ class Controller
     }
 
     /**
-     * Shortcut for triggering error
+     * Get a view
+     *
+     * @return View
+     */
+    public function getView()
+    {
+        return $this->get('dispatcher')
+            ->getView();
+    }
+
+    /**
+     * Trigger an error
      *
      * @param string $message Message
      *
@@ -80,7 +91,7 @@ class Controller
     }
 
     /**
-     * Shortcut for getting not found page
+     * Redirect to not found page
      *
      * @param string $message Message
      *
@@ -93,7 +104,7 @@ class Controller
     }
 
     /**
-     * Shortcut for redirecting to specified route (internally)
+     * Redirect to specified route (internally)
      *
      * @param string $route  Route name
      * @param array  $params Route params
@@ -107,7 +118,7 @@ class Controller
     }
 
     /**
-     * Shortcut for redirecting to absolute url (externally)
+     * Redirect to absolute url (externally)
      *
      * @param string $url URL address
      *
@@ -130,12 +141,8 @@ class Controller
         $name = $dispatcher->getRoute()
             ->getName();
 
-        $params = array_merge(
-            $dispatcher->getRequest()
-                ->getGet(),
-            $dispatcher->getRequest()
-                ->getParams()
-        );
+        $params = $dispatcher->getRequest()
+                ->getUriParams();
 
         $this->goRoute($name, $params);
     }

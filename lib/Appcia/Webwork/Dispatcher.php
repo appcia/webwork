@@ -2,10 +2,10 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Module;
 use Appcia\Webwork\Router\Route;
-use Appcia\Webwork\Exception\NotFound;
-use Appcia\Webwork\Data\TextCase;
 
 class Dispatcher
 {
@@ -64,6 +64,11 @@ class Dispatcher
     private $route;
 
     /**
+     * @var View
+     */
+    private $view;
+
+    /**
      * @var array
      */
     private $data;
@@ -75,12 +80,14 @@ class Dispatcher
      */
     private $response;
 
-    const INIT = 'init';
-    const FIND_ROUTE = 'route';
-    const INVOKE_ACTION = 'invoke';
-    const PROCESS_RESPONSE = 'process';
-    const HANDLE_EXCEPTION = 'exception';
-    const FINISH = 'finish';
+    const START = 'dispatchStart';
+    const CREATE_RESPONSE = 'createResponse';
+    const FIND_ROUTE = 'findRoute';
+    const CREATE_VIEW = 'createView';
+    const INVOKE_ACTION = 'invokeAction';
+    const PROCESS_RESPONSE = 'processResponse';
+    const HANDLE_EXCEPTION = 'handleException';
+    const END = 'dispatchEnd';
 
     /**
      * Event collection
@@ -88,12 +95,14 @@ class Dispatcher
      * @var array
      */
     private $events = array(
-        self::INIT,
+        self::START,
+        self::CREATE_RESPONSE,
         self::FIND_ROUTE,
+        self::CREATE_VIEW,
         self::INVOKE_ACTION,
         self::PROCESS_RESPONSE,
         self::HANDLE_EXCEPTION,
-        self::FINISH
+        self::END
     );
 
     /**
@@ -201,7 +210,7 @@ class Dispatcher
      */
     private function addData(array $data)
     {
-        $this->data = Config::merge($this->data, $data);
+        $this->data = array_merge($this->data, $data);
 
         return $this;
     }
@@ -214,28 +223,6 @@ class Dispatcher
     public function getData()
     {
         return $this->data;
-    }
-
-    /**
-     * @param Response $response
-     *
-     * @return Dispatcher
-     */
-    public function setResponse($response)
-    {
-        $this->response = $response;
-
-        return $this;
-    }
-
-    /**
-     * Get output response
-     *
-     * @return Response
-     */
-    public function getResponse()
-    {
-        return $this->response;
     }
 
     /**
@@ -279,6 +266,84 @@ class Dispatcher
     public function getEvents()
     {
         return $this->events;
+    }
+
+    /**
+     * Create a response
+     *
+     * @return Dispatcher
+     */
+    private function createResponse()
+    {
+        if ($this->response !== null) {
+            $this->response->clean();
+        }
+
+        $response = new Response();
+
+        $this->container->get('config')
+            ->grab('response')
+            ->inject($response);
+
+        $this->response = $response;
+
+        return $this;
+    }
+
+    /**
+     * Get output response
+     *
+     * @return Response
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
+     * Set view
+     *
+     * @param View $view View
+     *
+     * @return Dispatcher
+     */
+    public function setView(View $view)
+    {
+        $this->view = $view;
+
+        return $this;
+    }
+
+    /**
+     * Get view
+     *
+     * @return View
+     */
+    public function getView()
+    {
+        return $this->view;
+    }
+
+    /**
+     * Create a view
+     *
+     * @return Dispatcher
+     */
+    private function createView()
+    {
+        // Create view
+        $view = new View($this->container);
+
+        $template = $this->getModulePath() . '/view/' . $this->getControllerPath() . '/' . $this->getTemplateFilename();
+        $view->setTemplate($template);
+
+        $this->container->get('config')
+            ->grab('view')
+            ->inject($view);
+
+        $this->view = $view;
+
+        return $this;
     }
 
     /**
@@ -414,24 +479,8 @@ class Dispatcher
      */
     private function processResponse()
     {
-        // View
-        $view = new View($this->container);
-
-        $file = $this->getModulePath() . '/view/' . $this->getControllerPath() . '/' . $this->getTemplateFilename();
-
-        $view->setFile($file)
-            ->setData($this->data);
-
-        $this->container->get('config')
-            ->grab('view')
-            ->inject($view);
-
-        // Response
-        $this->response->setContent($view->render());
-
-        $this->container->get('config')
-            ->grab('response')
-            ->inject($this->response);
+        $this->view->setData($this->data);
+        $this->response->setContent($this->view->render());
 
         return $this;
     }
@@ -447,18 +496,19 @@ class Dispatcher
      */
     public function dispatch($route)
     {
-        if ($this->response === null) {
-            throw new Exception('Response must be set before dispatching');
-        }
+        $this->response = null;
+        $this->view = null;
 
         // Dispatch route
-        $this->notify(self::INIT);
+        $this->notify(self::START);
 
         try {
-            $this->response->clean();
-
-            $this->setRoute($route)
+            $this->createResponse()
+                ->notify(self::CREATE_RESPONSE)
+                ->setRoute($route)
                 ->notify(self::FIND_ROUTE)
+                ->createView()
+                ->notify(self::CREATE_VIEW)
                 ->invokeAction()
                 ->notify(self::INVOKE_ACTION)
                 ->processResponse()
@@ -470,7 +520,7 @@ class Dispatcher
                 ->notify(self::HANDLE_EXCEPTION);
         }
 
-        $this->notify(self::FINISH);
+        $this->notify(self::END);
 
         return $this;
     }

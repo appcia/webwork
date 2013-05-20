@@ -396,9 +396,10 @@ class Form
                 continue;
             }
 
-            $callback = array($object, 'set' . ucfirst($property));
+            $method = 'set' . ucfirst($property);
+            $callback = array($object, $method);
 
-            if (is_callable($callback)) {
+            if (method_exists($object, $method) && is_callable($callback)) {
                 call_user_func($callback, $value);
             }
         }
@@ -419,9 +420,10 @@ class Form
     {
         foreach ($this->fields as $property => $field) {
             foreach (array('get', 'is') as $prefix) {
-                $callback = array($object, $prefix . ucfirst($property));
+                $method = $prefix . ucfirst($property);
+                $callback = array($object, $method);
 
-                if (is_callable($callback)) {
+                if (method_exists($object, $method) && is_callable($callback)) {
                     $value = call_user_func($callback);
 
                     if ($value !== null || !$defined) {

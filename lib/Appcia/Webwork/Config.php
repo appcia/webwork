@@ -86,7 +86,7 @@ class Config implements \Iterator, \ArrayAccess
 
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
-            if (!array_key_exists($section, $data)) {
+            if (!is_array($data) || !array_key_exists($section, $data)) {
                 return false;
             }
 
@@ -112,7 +112,7 @@ class Config implements \Iterator, \ArrayAccess
 
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
-            if (!array_key_exists($section, $data)) {
+            if (!is_array($data) || !array_key_exists($section, $data)) {
                 throw new Exception(sprintf("Config key '%s' does not exist", $key));
             }
 
@@ -181,7 +181,7 @@ class Config implements \Iterator, \ArrayAccess
 
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
-            if (!array_key_exists($section, $data)) {
+            if (!is_array($data) || !array_key_exists($section, $data)) {
                 return new self();
             }
 
@@ -200,7 +200,7 @@ class Config implements \Iterator, \ArrayAccess
     /**
      * Inject data by object setters
      *
-     * @param Object $object Target object
+     * @param object $object Target object
      *
      * @return Config
      */
@@ -208,9 +208,10 @@ class Config implements \Iterator, \ArrayAccess
     {
         foreach ($this->data as $property => $value) {
             foreach (array('add', 'set') as $prefix) {
-                $callback = array($object, $prefix . ucfirst($property));
+                $method = $prefix . ucfirst($property);
+                $callback = array($object, $method);
 
-                if (is_callable($callback)) {
+                if (method_exists($object, $method) && is_callable($callback)) {
                     call_user_func($callback, $value);
                     break;
                 }
@@ -239,9 +240,10 @@ class Config implements \Iterator, \ArrayAccess
 
         foreach ($properties as $property) {
             foreach (array('get', 'is') as $prefix) {
-                $callback = array($object, $prefix . ucfirst($property));
+                $method = $prefix . ucfirst($property);
+                $callback = array($object, $method);
 
-                if (is_callable($callback)) {
+                if (method_exists($object, $method) && is_callable($callback)) {
                     $value = call_user_func($callback);
 
                     if ($value !== null) {

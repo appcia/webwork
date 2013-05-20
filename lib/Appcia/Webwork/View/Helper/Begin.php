@@ -16,8 +16,7 @@ class Begin extends Helper
      */
     public function begin($name, $file = null)
     {
-        $this->getView()
-            ->getHelper('block')
+        $this->getHelper('block')
             ->begin($name, $file);
     }
 }
