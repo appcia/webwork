@@ -10,50 +10,52 @@ namespace Appcia\Webwork;
 class Container
 {
     /**
-     * @var array
+     * Services and parameters
+     *
+     * @var Config
      */
     private $values;
 
     /**
-     * Instantiate the container.
+     * Constructor
      *
-     * Objects and parameters can be passed as argument to the constructor.
-     *
-     * @param array $values The parameters or objects.
+     * @param Config $config Data container
      */
-    public function __construct (array $values = array())
+    public function __construct(Config $config = null)
     {
-        $this->values = $values;
+        if ($config === null) {
+            $config = new Config();
+        }
+
+        $this->values = $config;
     }
 
     /**
-     * Sets a parameter or an object.
+     * Set a parameter or a service
      *
-     * Objects must be defined as Closures.
+     * @param string $id    Unique identifier
+     * @param mixed  $value Parameter value or object as closure
      *
-     * Allowing any PHP callable leads to difficult to debug problems
-     * as function names (strings) are callable (creating a function with
-     * the same a name as an existing parameter would break your container).
-     *
-     * @param string $id    The unique identifier for the parameter or object
-     * @param mixed  $value The value of the parameter or a closure to defined an object
+     * @return Container
      */
     public function set($id, $value)
     {
         $this->values[$id] = $value;
+
+        return $this;
     }
 
     /**
-     * Gets a parameter or an object.
+     * Get a parameter or a service
      *
-     * @param string $id The unique identifier for the parameter or object
+     * @param string $id Unique identifier
      *
-     * @return mixed The value of the parameter or an object
-     * @throws Exception if the identifier is not defined
+     * @return mixed
+     * @throws Exception
      */
     public function get($id)
     {
-        if (!array_key_exists($id, $this->values)) {
+        if (!$this->values->has($id)) {
             throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
         }
 
@@ -63,52 +65,55 @@ class Container
     }
 
     /**
-     * Returns all defined value names.
+     * Get all keys
      *
-     * @return array An array of value names
+     * @return array
      */
     public function keys()
     {
-        return array_keys($this->values);
+        return $this->values->keys();
     }
 
     /**
-     * Checks if a parameter or an object is set.
+     * Check whether parameter or service is set
      *
-     * @param string $id The unique identifier for the parameter or object
+     * @param string $id Unique identifier
      *
-     * @return Boolean
+     * @return bool
      */
     public function has($id)
     {
-        return array_key_exists($id, $this->values);
+        return $this->values->has($id);
     }
 
     /**
-     * Unsets a parameter or an object.
+     * Remove a parameter or a service
      *
-     * @param string $id The unique identifier for the parameter or object
+     * @param string $id Unique identifier
+     *
+     * @return Container
      */
     public function remove($id)
     {
         unset($this->values[$id]);
+
+        return $this;
     }
 
     /**
-     * Returns a closure that stores the result of the given closure for
-     * uniqueness in the scope of this instance of Pimple.
+     * Get a closure that stores the result of the given closure for uniqueness
      *
-     * @param \Closure $callable A closure to wrap for uniqueness
+     * @param \Closure $callable Closure for wrapping for uniqueness
      *
-     * @return \Closure The wrapped closure
+     * @return \Closure
      */
     public function share(\Closure $callable)
     {
-        return function ($c) use ($callable) {
+        return function ($container) use ($callable) {
             static $object;
 
             if (null === $object) {
-                $object = $callable($c);
+                $object = $callable($container);
             }
 
             return $object;
@@ -116,33 +121,31 @@ class Container
     }
 
     /**
-     * Protects a callable from being interpreted as a service.
+     * Protect callable from being interpreted as a service
+     * Useful when storing a callable as a parameter
      *
-     * This is useful when you want to store a callable as a parameter.
+     * @param \Closure $callable Closure to be protected from evaluation
      *
-     * @param \Closure $callable A closure to protect from being evaluated
-     *
-     * @return \Closure The protected closure
+     * @return \Closure
      */
     public function protect(\Closure $callable)
     {
-        return function ($c) use ($callable) {
+        return function ($container) use ($callable) {
             return $callable;
         };
     }
 
     /**
-     * Gets a parameter or the closure defining an object.
+     * Get a parameter or a service
      *
-     * @param string $id The unique identifier for the parameter or object
+     * @param string $id Unique identifier
      *
-     * @return mixed The value of the parameter or the closure defining an object
-     *
-     * @throws Exception if the identifier is not defined
+     * @return mixed
+     * @throws Exception
      */
     public function raw($id)
     {
-        if (!array_key_exists($id, $this->values)) {
+        if (!$this->values->has($id)) {
             throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
         }
 
@@ -150,21 +153,18 @@ class Container
     }
 
     /**
-     * Extends an object definition.
+     * Extend a service definition
+     * Useful when extending an existing object closure without necessarily loading that object
      *
-     * Useful when you want to extend an existing object definition,
-     * without necessarily loading that object.
+     * @param string   $id       Unique identifier
+     * @param \Closure $callable Original closure replacement
      *
-     * @param string  $id       The unique identifier for the object
-     * @param \Closure $callable A closure to extend the original
-     *
-     * @return \Closure The wrapped closure
-     *
-     * @throws Exception if the identifier is not defined
+     * @return \Closure
+     * @throws Exception
      */
     public function extend($id, \Closure $callable)
     {
-        if (!array_key_exists($id, $this->values)) {
+        if (!$this->values->has($id)) {
             throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
         }
 
@@ -174,18 +174,23 @@ class Container
             throw new Exception(sprintf('Identifier "%s" does not contain an object definition.', $id));
         }
 
-        return $this->values[$id] = function ($c) use ($callable, $factory) {
-            return $callable($factory($c), $c);
+        return $this->values[$id] = function ($container) use ($callable, $factory) {
+            return $callable($factory($container), $container);
         };
     }
 
     /**
      * Store callable as unique
      *
-     * @param string   $key      Key
+     * @param string   $id       Unique identifier
      * @param callable $callable Closure
+     *
+     * @return Container
      */
-    public function single($key, \Closure $callable) {
-        $this->set($key, $this->share($callable));
+    public function single($id, \Closure $callable)
+    {
+        $this->set($id, $this->share($callable));
+
+        return $this;
     }
 }

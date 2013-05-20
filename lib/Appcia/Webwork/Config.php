@@ -86,7 +86,7 @@ class Config implements \Iterator, \ArrayAccess
 
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
-            if (!array_key_exists($section, $key)) {
+            if (!array_key_exists($section, $data)) {
                 return false;
             }
 
@@ -150,7 +150,7 @@ class Config implements \Iterator, \ArrayAccess
                 $data[$section] = array();
             } else if ($s < $count && !is_array($data[$section])) {
                 throw new Exception(sprintf(
-                    "Config section '%s' in key '%s' indicates value",
+                    "Config section '%s' in key '%s' indicates a value",
                     $section,
                     $key
                 ));
@@ -195,16 +195,6 @@ class Config implements \Iterator, \ArrayAccess
         $section = new self($data);
 
         return $section;
-    }
-
-    /**
-     * Get data as native array
-     *
-     * @return array
-     */
-    public function toArray()
-    {
-        return $this->data;
     }
 
     /**
@@ -275,7 +265,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function extend(Config $config)
     {
-        $this->data = $this->merge($this->data, $config->toArray());
+        $this->data = $this->merge($this->data, $config->getData());
 
         return $this;
     }
@@ -367,6 +357,14 @@ class Config implements \Iterator, \ArrayAccess
     public function key()
     {
         return key($this->data);
+    }
+
+    /**
+     * @return array
+     */
+    public function keys()
+    {
+        return array_keys($this->data);
     }
 
     /**
