@@ -5,16 +5,22 @@ namespace Appcia\Webwork;
 class Response
 {
     /**
+     * Content
+     *
      * @var string
      */
     private $content;
 
     /**
+     * Status code
+     *
      * @var int
      */
     private $status;
 
     /**
+     * Protocol
+     *
      * @var string
      */
     private $protocol;
@@ -29,14 +35,20 @@ class Response
 
     /**
      * Set response content
+     * Do not use when generating content using view (default behaviour)
      *
-     * @param $content
+     * @param mixed $content Content
      *
      * @return Response
+     * @throws Exception
      */
     public function setContent($content)
     {
-        $this->content = (string)$content;
+        if ($content !== null && !is_scalar($content)) {
+            throw new Exception('Response content should be a text or even scalar value');
+        }
+
+        $this->content = $content;
 
         return $this;
     }
@@ -52,6 +64,16 @@ class Response
     }
 
     /**
+     * Check whether content is set
+     *
+     * @return bool
+     */
+    public function hasContent()
+    {
+        return $this->content !== null;
+    }
+
+    /**
      * Set response status
      *
      * @param int $status Status code
@@ -60,7 +82,7 @@ class Response
      */
     public function setStatus($status)
     {
-        $this->status = (int)$status;
+        $this->status = (int) $status;
 
         return $this;
     }
@@ -84,7 +106,7 @@ class Response
      */
     public function setProtocol($protocol)
     {
-        $this->protocol = (string)$protocol;
+        $this->protocol = (string) $protocol;
 
         return $this;
     }

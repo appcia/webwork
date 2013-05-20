@@ -160,20 +160,4 @@ class Controller
         return $this->get('router')
             ->assemble($route, $params);
     }
-
-    /**
-     * Shortcut for changing template
-     *
-     * @param $file
-     *
-     * @return Controller
-     */
-    public function setTemplate($file)
-    {
-        $this->get('dispatcher')
-            ->getRoute()
-            ->setTemplate($file);
-
-        return $this;
-    }
 }

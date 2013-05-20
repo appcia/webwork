@@ -196,7 +196,7 @@ class View
      * @return Renderer
      * @throws Exception
      */
-    public function createRenderer($data)
+    private function createRenderer($data)
     {
         $type = null;
         $config = null;

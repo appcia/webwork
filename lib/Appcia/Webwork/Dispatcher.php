@@ -479,8 +479,12 @@ class Dispatcher
      */
     private function processResponse()
     {
-        $this->view->setData($this->data);
-        $this->response->setContent($this->view->render());
+        $this->view->addData($this->data);
+
+        if (!$this->response->hasContent()) {
+            $content = $this->view->render();
+            $this->response->setContent($content);
+        }
 
         return $this;
     }
