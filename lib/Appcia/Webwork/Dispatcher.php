@@ -98,6 +98,7 @@ class Dispatcher
 
     /**
      * Text case converter
+     * Used for file names determining
      *
      * @var TextCase
      */
@@ -239,6 +240,7 @@ class Dispatcher
 
     /**
      * Set text case converter
+     * Used for file names determining
      *
      * @param TextCase $converter
      *
