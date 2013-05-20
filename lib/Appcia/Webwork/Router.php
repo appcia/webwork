@@ -24,6 +24,7 @@ class Router
 
     /**
      * Text case converter
+     * Used for automatic route name generation
      *
      * @var TextCase
      */
@@ -69,6 +70,7 @@ class Router
 
     /**
      * Set text case converter
+     * Used for automatic route name generation
      *
      * @param TextCase $textCase
      */
@@ -88,7 +90,7 @@ class Router
     }
 
     /**
-     * Add routes
+     * Set routes
      *
      * @param array $routes Routes
      *
@@ -96,6 +98,22 @@ class Router
      * @throws Exception
      */
     public function setRoutes(array $routes)
+    {
+        $this->clearRoutes()
+            ->addRoutes($routes);
+
+        return $this;
+    }
+
+    /**
+     * Add routes
+     *
+     * @param array $routes Routes
+     *
+     * @return Router
+     * @throws Exception
+     */
+    public function addRoutes(array $routes)
     {
         foreach ($routes as $name => $route) {
             if (!isset($route['name']) && is_string($name)) {
@@ -180,7 +198,7 @@ class Router
     }
 
     /**
-     * Generate route name basing on its other data
+     * Generate route name basing on its specific data
      *
      * @param array $data Route data
      *
@@ -218,7 +236,9 @@ class Router
             throw new Exception(sprintf("Route '%s' does not exist", $name));
         }
 
-        return $this->routes[$name];
+        $route = $this->routes[$name];
+
+        return $route;
     }
 
     /**
@@ -255,6 +275,10 @@ class Router
             throw new Exception('Route group has no routes specified');
         }
 
+        if (!empty($this->defaults['group'])) {
+            $data = array_merge($this->defaults['group'], $data);
+        }
+
         $group = new Group();
 
         $config = new Config($data);
@@ -287,7 +311,7 @@ class Router
                 $values = $match;
                 $params = array_combine(array_keys($route->getParams()), $values);
 
-                // Reverse map translated params
+                // Map translated params (reverse)
                 foreach ($params as $key => $value) {
                     $map = $route->getParams();
                     if (array_key_exists($key, $map) && is_array($map[$key])) {
@@ -331,7 +355,7 @@ class Router
 
     /**
      * Assemble route by name with given parameters
-     * If parameters are not in route path there are interpreted as url GET params
+     * If parameters are not in route path there are interpreted as GET params
      *
      * @param string  $route  Route name
      * @param array   $params Route or / and GET params
@@ -375,7 +399,8 @@ class Router
 
         // Check that all params from map are used
         if (!empty($map)) {
-            throw new Exception(sprintf("Route parameter '%s' is not mapped (or it is redundant)", key($map)));
+            $key =  key($map);
+            throw new Exception(sprintf("Route parameter '%s' is not mapped (or it is redundant)", $key));
         }
 
         // Inject params to path

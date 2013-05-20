@@ -5,69 +5,123 @@ namespace Appcia\Webwork;
 class Request
 {
     /**
+     * Source URI
+     *
      * @var string
      */
     private $uri;
 
     /**
+     * Path parsed from URI
+     *
      * @var string
      */
     private $path;
 
     /**
+     * Protocol name
+     *
      * @var string
      */
     private $protocol;
 
     /**
+     * Script file name
+     *
      * @var string
      */
     private $scriptFile;
 
     /**
+     * Server name
+     *
      * @var string
      */
     private $server;
 
     /**
+     * Port number
+     *
      * @var string
      */
     private $port;
 
+    const POST = 'post';
+    const GET = 'get';
+
     /**
+     * Valid method list
+     *
+     * @var array
+     */
+    private static $methods = array(
+        self::POST,
+        self::GET
+    );
+
+    /**
+     * Method
+     *
      * @var string
      */
     private $method;
 
     /**
+     * Cumulative data from all methods
+     *
      * @var array
      */
     private $data;
 
     /**
+     * Data passed by route parameters
+     *
      * @var [type]
      */
     private $params;
 
     /**
+     * Data passed by POST method
+     *
      * @var array
      */
     private $post;
 
     /**
+     * Uploaded files data
+     *
      * @var array
      */
     private $files;
 
     /**
+     * Data passed by GET method
+     *
      * @var array
      */
     private $get;
 
     /**
+     * Client IP address
+     *
      * @var string
      */
     private $ip;
+
+    const HTTP_10 = 'HTTP/1.0';
+    const HTTP_11 = 'HTTP/1.1';
+    const HTTPS = 'HTTPS';
+
+    /**
+     * Protocol names with prefixes
+     *
+     * @var array
+     */
+    private static $protocols = array(
+        self::HTTP_10 => 'http://',
+        self::HTTP_11 => 'http://',
+        self::HTTPS => 'https://'
+    );
 
     /**
      * Constructor
@@ -109,7 +163,7 @@ class Request
     }
 
     /**
-     * Set port
+     * Set port number
      *
      * @param string $port
      *
@@ -123,7 +177,7 @@ class Request
     }
 
     /**
-     * Get port
+     * Get port number
      *
      * @return int
      */
@@ -210,9 +264,14 @@ class Request
      * @param $protocol
      *
      * @return Request
+     * @throws Exception
      */
     public function setProtocol($protocol)
     {
+        if (!isset(self::$protocols[$protocol])) {
+            throw new Exception(sprintf("Unrecognized request protocol: '%s'", $protocol));
+        }
+
         $this->protocol = (string) $protocol;
 
         return $this;
@@ -229,21 +288,24 @@ class Request
     }
 
     /**
+     * Get known protocol list
+     *
+     * @return array
+     */
+    public static function getProtocols()
+    {
+        return self::$protocols;
+    }
+
+    /**
      * Get protocol url prefix
      *
-     * @return mixed
+     * @return string
+     * @throws Exception
      */
     public function getProtocolPrefix()
     {
-        return str_replace(array(
-            'HTTP/1.0',
-            'HTTP/1.1',
-            'HTTPS',
-        ), array(
-            'http://',
-            'http://',
-            'https://'
-        ), $this->protocol);
+        return  self::$protocols[$this->protocol];
     }
 
     /**
@@ -268,12 +330,19 @@ class Request
      */
     private function parsePath()
     {
-        $path = rtrim($this->getUri(), '/');
+        $path = $this->getUri();
+
         if (strpos($path, $this->scriptFile) === 0) {
             $path = substr($path, strlen($this->scriptFile));
         }
 
-        $this->path = parse_url($path, PHP_URL_PATH);
+        if ($path !== '/') {
+            $path = rtrim($path, '/');
+        }
+
+        $path = parse_url($path, PHP_URL_PATH);
+
+        $this->path = $path;
 
         return $this;
     }
@@ -318,6 +387,16 @@ class Request
     public function getMethod()
     {
         return $this->method;
+    }
+
+    /**
+     * Get valid method values
+     *
+     * @return array
+     */
+    public static function getMethods()
+    {
+        return self::$methods;
     }
 
     /**
