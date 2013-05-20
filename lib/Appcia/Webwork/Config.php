@@ -208,7 +208,7 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Inject config by object setters automagically
+     * Inject data by object setters
      *
      * @param Object $object Target object
      *
@@ -217,10 +217,49 @@ class Config implements \Iterator, \ArrayAccess
     public function inject($object)
     {
         foreach ($this->data as $property => $value) {
-            $callback = array($object, 'set' . ucfirst($property));
+            foreach (array('add', 'set') as $prefix) {
+                $callback = array($object, $prefix . ucfirst($property));
 
-            if (is_callable($callback)) {
-                call_user_func($callback, $value);
+                if (is_callable($callback)) {
+                    call_user_func($callback, $value);
+                    break;
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Suck data from object using getters
+     *
+     * @param object     $object     Source object
+     * @param array|null $properties Properties to be retrieved
+     *
+     * @return Config
+     * @throws Exception
+     */
+    public function suck($object, $properties = null)
+    {
+        if ($properties === null) {
+            $properties = get_object_vars($object);
+        } elseif (!is_array($properties)) {
+            throw new Exception('Config property names should be passed as an array');
+        }
+
+        foreach ($properties as $property) {
+            foreach (array('get', 'is') as $prefix) {
+                $callback = array($object, $prefix . ucfirst($property));
+
+                if (is_callable($callback)) {
+                    $value = call_user_func($callback);
+
+                    if ($value !== null) {
+                        $this->data[$property] = $value;
+                    }
+
+                    break;
+                }
             }
         }
 
@@ -243,6 +282,8 @@ class Config implements \Iterator, \ArrayAccess
 
     /**
      * Merge two arrays recursive
+     *
+     *
      * Overwrite values with associative keys
      * Append values with integer keys
      *

@@ -19,11 +19,11 @@ class Form
     private $context;
 
     /**
-     * Validation result
+     * Data encoder / decoder
      *
-     * @var bool
+     * @var Encoder
      */
-    private $valid;
+    private $coder;
 
     /**
      * Fields
@@ -33,11 +33,18 @@ class Form
     private $fields;
 
     /**
-     * Metadata encoder / decoder
+     * Metadata field
      *
-     * @var Encoder
+     * @var Field
      */
-    private $coder;
+    private $metadata;
+
+    /**
+     * Validation result
+     *
+     * @var bool
+     */
+    private $valid;
 
     /**
      * Constructor
@@ -48,8 +55,7 @@ class Form
         $this->fields = array();
         $this->valid = true;
         $this->coder = new Encoder(Encoder::BASE64);
-
-        $this->addField(new Field(self::METADATA));
+        $this->metadata = new Field(self::METADATA);
 
         $this->build();
         $this->prepare();
@@ -75,7 +81,6 @@ class Form
     public function setFields($fields)
     {
         $this->fields = array();
-
         foreach ($fields as $field) {
             $this->addField($field);
         }
@@ -141,7 +146,6 @@ class Form
     public function getFields()
     {
         $fields = $this->fields;
-        unset($fields[self::METADATA]);
 
         return $fields;
     }
@@ -149,14 +153,14 @@ class Form
     /**
      * Set metadata
      *
-     * @param array $metadata Data
+     * @param mixed $metadata Data
      *
-     * @return $this
+     * @return Form
      */
     public function setMetadata(array $metadata)
     {
         $value = $this->coder->code($metadata);
-        $this->set(self::METADATA, $value);
+        $this->metadata->setValue($value);
 
         return $this;
     }
@@ -164,19 +168,19 @@ class Form
     /**
      * Get metadata
      *
-     * @return array
+     * @return mixed
      * @throws Exception
      */
     public function getMetadata()
     {
-        $value = $this->get(self::METADATA);
+        $value = $this->metadata->getValue();
         $metadata = $this->coder->decode($value);
 
         return $metadata;
     }
 
     /**
-     * Set metadata encoder / decoder
+     * Set data encoder / decoder
      *
      * @param Encoder $coder
      *
@@ -190,7 +194,7 @@ class Form
     }
 
     /**
-     * Get metadata encoder / decoder
+     * Get data encoder / decoder
      *
      * @return Encoder
      */
@@ -214,8 +218,9 @@ class Form
         }
 
         $field = $this->fields[$name];
+        $value = $field->getValue();
 
-        return $field->getValue();
+        return $value;
     }
 
     /**
@@ -233,19 +238,15 @@ class Form
     }
 
     /**
-     * Get all standard field values
+     * Get all field values
      *
      * @return array
      */
-    public function getAll()
+    public function getData()
     {
         $values = array();
 
-        foreach ($this->fields as $name => $field) {
-            if ($name == self::METADATA) {
-                continue;
-            }
-
+        foreach ($this->fields as $field) {
             $values[$field->getName()] = $field->getValue();
         }
 
@@ -296,6 +297,10 @@ class Form
                 $field = $this->fields[$name];
                 $field->setValue($value);
             }
+        }
+
+        if (isset($data[self::METADATA])) {
+            $this->metadata->setValue($data[self::METADATA]);
         }
 
         return $this;
@@ -377,18 +382,21 @@ class Form
     /**
      * Inject values by object setters
      *
-     * @param Object $obj Target object
+     * @param Object $object    Target object
+     * @param bool   $populated Only populated values (skip nulls)
      *
      * @return Form
      */
-    public function inject($obj)
+    public function inject($object, $populated = true)
     {
-        foreach ($this->getAll() as $prop => $value) {
-            if ($value === null) {
+        $data = $this->getData();
+
+        foreach ($data as $property => $value) {
+            if ($populated && $value === null) {
                 continue;
             }
 
-            $callback = array($obj, 'set' . ucfirst($prop));
+            $callback = array($object, 'set' . ucfirst($property));
 
             if (is_callable($callback)) {
                 call_user_func($callback, $value);
@@ -401,20 +409,26 @@ class Form
     /**
      * Suck values from object using getters
      *
-     * @param object $obj Source object
+     * @param object $object  Source object
+     * @param bool   $defined Only defined values (skip nulls)
      *
      * @return Form
+     * @throws Exception
      */
-    public function suck($obj)
+    public function suck($object, $defined = true)
     {
-        foreach ($this->fields as $prop => $field) {
-            $callback = array($obj, 'get' . ucfirst($prop));
+        foreach ($this->fields as $property => $field) {
+            foreach (array('get', 'is') as $prefix) {
+                $callback = array($object, $prefix . ucfirst($property));
 
-            if (is_callable($callback)) {
-                $value = call_user_func($callback);
+                if (is_callable($callback)) {
+                    $value = call_user_func($callback);
 
-                if ($value !== null) {
-                    $field->setValue($value);
+                    if ($value !== null || !$defined) {
+                        $field->setValue($value);
+                    }
+
+                    break;
                 }
             }
         }
@@ -443,7 +457,8 @@ class Form
     }
 
     /**
-     * Magic getter for $form->{fieldName} in templates
+     * Magic getter for $form->{fieldName}
+     * Useful in view templates
      *
      * @param string $name Field name
      *
@@ -451,7 +466,14 @@ class Form
      */
     public function __get($name)
     {
-        return $this->getField($name);
+        $field = null;
+        if ($name === self::METADATA) {
+            $field = $this->metadata;
+        } else {
+            $field = $this->getField($name);
+        }
+
+        return $field;
     }
 
     /**
@@ -468,7 +490,7 @@ class Form
 
     /**
      * Prepare built field
-     * Set use context for components
+     * Propagate use context for components
      *
      * @return Form
      */
