@@ -36,32 +36,10 @@ class Php extends Renderer
      */
     public function render($template = null)
     {
-        $file = $this->getView()
-            ->getTemplatePath($template);
-        $data = $this->getView()
-            ->getData();
-
-        extract($data);
-        ob_start();
-
-        if ((@include $file) === false) {
-            throw new Exception(sprintf("Template file cannot be included properly: '%s'", $file));
-        }
-
-        $content = ob_get_clean();
+        $content = $this->capture($template);
 
         if ($this->sanitization) {
-            $search = array(
-                '/\>[^\S ]+/s',
-                '/[^\S ]+\</s',
-                '/(\s)+/s'
-            );
-            $replace = array(
-                '>',
-                '<',
-                '\\1'
-            );
-            $content = preg_replace($search, $replace, $content);
+            $content = $this->sanitize($content);
         }
 
         return $content;
@@ -182,5 +160,56 @@ class Php extends Renderer
     public function isSanitization()
     {
         return $this->sanitization;
+    }
+
+    /**
+     * Sanitize content (remove white characters)
+     *
+     * @param string $content
+     *
+     * @return mixed
+     */
+    public function sanitize($content)
+    {
+        $search = array(
+            '/\>[^\S ]+/s',
+            '/[^\S ]+\</s',
+            '/(\s)+/s'
+        );
+        $replace = array(
+            '>',
+            '<',
+            '\\1'
+        );
+        $content = preg_replace($search, $replace, $content);
+
+        return $content;
+    }
+
+    /**
+     * Capture included file
+     *
+     * @param string $template Template
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function capture($template)
+    {
+        $file = $this->getView()
+            ->getTemplatePath($template);
+        $data = $this->getView()
+            ->getData();
+
+        extract($data);
+        ob_start();
+
+        if ((@include $file) === false) {
+            throw new Exception(sprintf("Template file cannot be included properly: '%s'", $file));
+        }
+
+        $content = ob_get_clean();
+
+        return $content;
     }
 }
