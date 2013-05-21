@@ -1,6 +1,6 @@
 Appcia Webwork
 ================
-PHP Framework, codename 'Webwork', version 0.7.2
+PHP Framework, codename 'Webwork', version 0.7.4
 
 #### Main ideas
 
