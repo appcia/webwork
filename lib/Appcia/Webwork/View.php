@@ -4,6 +4,7 @@ namespace Appcia\Webwork;
 
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
+use Appcia\Webwork\View\Renderer\Ini;
 use Appcia\Webwork\View\Renderer\Json;
 use Appcia\Webwork\View\Renderer\Php;
 use Appcia\Webwork\View\Renderer\Xml;
@@ -34,6 +35,7 @@ class View
     const PHP = 'php';
     const JSON = 'json';
     const XML = 'xml';
+    const INI = 'ini';
 
     /**
      * Available content renderers
@@ -43,7 +45,8 @@ class View
     private static $renderers = array(
         self::PHP,
         self::JSON,
-        self::XML
+        self::XML,
+        self::INI
     );
 
     /**
@@ -228,6 +231,9 @@ class View
                 break;
             case self::XML:
                 $renderer = new Xml();
+                break;
+            case self::INI:
+                $renderer = new Ini();
                 break;
             default:
                 throw new Exception(sprintf("Invalid or unsupported view renderer: '%s'", $renderer));

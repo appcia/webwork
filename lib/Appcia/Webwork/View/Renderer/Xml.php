@@ -53,8 +53,8 @@ class Xml extends Renderer
         foreach ($data as $key => $value) {
             if (is_array($value)) {
                 if (!is_numeric($key)) {
-                    $subnode = $xml->addChild("$key");
-                    $this->generateXml($value, $subnode);
+                    $subNode = $xml->addChild("$key");
+                    $this->generateXml($value, $subNode);
                 } else {
                     $this->generateXml($value, $xml);
                 }
