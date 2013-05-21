@@ -21,6 +21,10 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.7.4**
+* view renderers (php, json, xml, ini)
+* controller improvements
+
 **0.7.3**
 * routes group (for more simple config)
 
