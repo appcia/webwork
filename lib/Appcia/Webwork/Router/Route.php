@@ -108,30 +108,51 @@ class Route
      * @param string $path
      *
      * @return Route
+     * @throws Exception
      */
     public function setPath($path)
     {
-        if ($path !== '/') {
-            $path = rtrim($path, '/');
+        $location = null;
+        $params = array();
+
+        if (is_string($path)) {
+            $location = $path;
+        } else if (is_array($path)) {
+            if (!isset($path['location'])) {
+                throw new Exception('Route location is not specified');
+            }
+            
+            $location = $path['location'];
+            
+            if (isset($path['params'])) {
+                if (!is_array($params)) {
+                    throw new Exception('Route parameters should be an array');
+                }
+                
+                $params = $path['params'];
+            }
         }
 
-        // Retrieve param names from path
+        if ($location !== '/') {
+            $location = rtrim($location, '/');
+        }
+
         $match = array();
-        if (preg_match_all('/\{(' . self::PARAM_CLASS . ')\}/', $path, $match)) {
-            $pattern = '/^' . preg_quote(preg_replace('/\{(' . self::PARAM_CLASS . ')\}/', self::PARAM_SUBSTITUTION, $path), '/') . '\/?$/';
+        if (preg_match_all('/\{(' . self::PARAM_CLASS . ')\}/', $location, $match)) {
+            $pattern = '/^' . preg_quote(preg_replace('/\{(' . self::PARAM_CLASS . ')\}/', self::PARAM_SUBSTITUTION, $location), '/') . '\/?$/';
             $pattern = str_replace(self::PARAM_SUBSTITUTION, '(' . self::PARAM_CLASS . ')', $pattern);
 
-            // Add params to map, null value means any possible
             foreach ($match[1] as $param) {
-                if (!isset($this->params[$param])) {
-                    $this->params[$param] = null;
+                if (!isset($params[$param])) {
+                    $params[$param] = array();
                 }
             }
 
             $this->pattern = $pattern;
         }
 
-        $this->path = $path;
+        $this->path = $location;
+        $this->params = $params;
 
         return $this;
     }
@@ -155,22 +176,6 @@ class Route
     public function getPattern()
     {
         return $this->pattern;
-    }
-
-    /**
-     * Set params
-     * Could be an array if parameter should be mapped to more readable strings
-     *
-     * @param array $params Map
-     *
-     * @return Route
-     */
-    public function setParams(array $params)
-    {
-        // Merge, because cannot forget about params defined earlier in path
-        $this->params = array_merge($this->params, $params);
-
-        return $this;
     }
 
     /**

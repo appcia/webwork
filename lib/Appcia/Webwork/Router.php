@@ -307,32 +307,66 @@ class Router
             if (preg_match($route->getPattern(), $request->getPath(), $match)) {
                 unset($match[0]);
 
-                // Retrieve parameters
-                $values = $match;
-                $params = array_combine(array_keys($route->getParams()), $values);
-
-                // Map translated params (reverse)
-                foreach ($params as $key => $value) {
-                    $map = $route->getParams();
-                    if (array_key_exists($key, $map) && is_array($map[$key])) {
-                        $param = array_search($value, $map[$key]);
-
-                        if ($param !== false) {
-                            $params[$key] = $param;
-                        }
-                    }
-                }
-
+                $params = $this->retrieveParams($route, $match);
                 $request->setParams($params);
 
                 return true;
             } else {
-                // Invalid parameters / empty values
                 return false;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Retrieve route parameter names
+     *
+     * @param Route $route  Route
+     * @param array $values Passed parameter values
+     *
+     * @return array
+     * @throws Exception
+     */
+    private function retrieveParams(Route $route, array $values)
+    {
+        $config = $route->getParams();
+        $names = array_keys($config);
+        $params = array_combine($names, $values);
+
+        foreach ($params as $name => $value) {
+            if (!isset($config[$name])) {
+                continue;
+            }
+
+            $data = $config[$name];
+
+            // Apply default values
+            if (isset($data['default'])) {
+                $param = $data['default'];
+
+                if (empty($value)) {
+                    $params[$name] = $param;
+                }
+            }
+
+            // Reverse map parameter names
+            if (isset($data['map'])) {
+                $map = $data['map'];
+
+                if (!is_array($map)) {
+                    throw new Exception('Route parameter map should be an array');
+                }
+
+                $param = array_search($value, $map);
+
+                if ($param !== false) {
+                    $params[$name] = $param;
+                }
+            }
+        }
+
+        return $params;
     }
 
     /**
@@ -357,58 +391,61 @@ class Router
      * Assemble route by name with given parameters
      * If parameters are not in route path there are interpreted as GET params
      *
-     * @param string  $route  Route name
-     * @param array   $params Route or / and GET params
+     * @param string $route Route name
+     * @param array  $data  Path and GET parameters
      *
      * @return string
      * @throws Exception
      */
-    public function assemble($route, array $params = array())
+    public function assemble($route, array $data = array())
     {
-        if (!isset($this->routes[$route])) {
-            throw new Exception(sprintf("Route '%s' does not exist", $route));
-        }
-
-        $route = $this->routes[$route];
-
-        // Share params to 2 types: path and GET
-        $pathParams = array();
-        $pathNames = array();
-        $queryParams = array();
-        $map = $route->getParams();
-
-        foreach ($params as $name => $value) {
-            if (!is_scalar($value)) {
-                throw new Exception(sprintf("Cannot use non-scalar value as route parameter '%s'", $name));
+        if (is_string($route)) {
+            if (!isset($this->routes[$route])) {
+                throw new Exception(sprintf("Route by name '%s' does not exist", $route));
             }
 
-            if (array_key_exists($name, $map)) {
-                // Use param map if exist (for translating param values)
-                if (is_array($map[$name]) && !empty($map[$name][$value])) {
-                    $value = $map[$name][$value];
+            $route = $this->routes[$route];
+        } elseif (!$route instanceof Route) {
+            throw new Exception('Route should be an existing route name or object');
+        }
+
+        // Prepare parameters, map and set defaults
+        $params = array();
+        foreach ($route->getParams() as $name => $config) {
+            $value = null;
+
+            if (isset($config['default'])) {
+                $value = $config['default'];
+            }
+
+            if (isset($data[$name])) {
+                $value = $data[$name];
+                unset($data[$name]);
+            }
+
+            if ($value === null) {
+                throw new Exception(sprintf("Route '%s' cannot be assembled when parameter '%s' is unmapped",
+                    $route->getName(),
+                    $name
+                ));
+            }
+
+            if (isset($config['map'])) {
+                $map = $config['map'];
+
+                if (isset($map[$value])) {
+                    $value = $map[$value];
                 }
-
-                $pathParams[$name] = $value;
-                $pathNames[] = '{' . $name . '}';
-
-                unset($map[$name]);
-            } else {
-                $queryParams[$name] = $value;
             }
+
+            $params['{' . $name . '}'] = $value;
         }
 
-        // Check that all params from map are used
-        if (!empty($map)) {
-            $key =  key($map);
-            throw new Exception(sprintf("Route parameter '%s' is not mapped (or it is redundant)", $key));
-        }
+        $path = $route->getPath();
+        $path = str_replace(array_keys($params), array_values($params), $path);
 
-        // Inject params to path
-        $path = str_replace($pathNames, $pathParams, $route->getPath());
-
-        // Append GET parameters
-        if (!empty($queryParams)) {
-            $path .= '?' . http_build_query($queryParams, null, '&amp;');
+        if (!empty($data)) {
+            $path .= '?' . http_build_query($data, null, '&amp;');
         }
 
         return $path;
