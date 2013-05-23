@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\View;
 
 use Appcia\Webwork\View\View;
-use Appcia\Webwork\Component;
+use Appcia\Webwork\Core\Component;
 
 abstract class Helper extends Component
 {

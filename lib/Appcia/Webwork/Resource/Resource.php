@@ -1,9 +1,6 @@
 <?
 
-namespace Appcia\Webwork;
-
-use Appcia\Webwork\Resource\Manager;
-use Appcia\Webwork\Resource\Type;
+namespace Appcia\Webwork\Resource;
 
 class Resource extends Type
 {
@@ -29,7 +26,7 @@ class Resource extends Type
     private $types;
 
     /**
-     * Instantiated processor objects
+     * Registered processors
      *
      * @var array
      */
@@ -90,7 +87,7 @@ class Resource extends Type
      * @param $type Type name
      *
      * @return Type
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
     public function getType($type)
     {
@@ -99,7 +96,7 @@ class Resource extends Type
         }
 
         if (!isset($type, $this->types)) {
-            throw new Exception(sprintf("Invalid type specified '%s'", $type));
+            throw new \OutOfBoundsException(sprintf("Resource type '%s' is invalid", $type));
         }
 
         return $this->types[$type];
@@ -109,7 +106,7 @@ class Resource extends Type
      * Create subtypes basing on original resource
      *
      * @return Resource
-     * @throws Exception
+     * @throws \ErrorException
      */
     public function createTypes()
     {
@@ -130,7 +127,7 @@ class Resource extends Type
 
             $files = $processor->process($this, $settings);
             if (!is_array($files)) {
-                throw new Exception(sprintf("Processor for resource type '%s' should return files as array"));
+                throw new \ErrorException(sprintf("Processor for resource type '%s' should return files as array"));
             }
 
             $params = $this->getParams();
@@ -189,16 +186,17 @@ class Resource extends Type
      * @param array  $config Configuration for type
      *
      * @return Manager
-     * @throws Exception
+     * @throws \InvalidArgumentException
+     * @throws \ErrorException
      */
     private function getProcessor($type, array $config)
     {
         if (empty($config['processor'])) {
-            throw new Exception(sprintf("Processor configuration for resource type '%s' not found", $type));
+            throw new \InvalidArgumentException(sprintf("Processor configuration for resource type '%s' not found", $type));
         }
 
         if (empty($config['processor']['class'])) {
-            throw new Exception(sprintf("Cannot find class name for resource type '%s'", $type));
+            throw new \InvalidArgumentException(sprintf("Cannot find class name for resource type '%s'", $type));
         }
 
         $class = $config['processor']['class'];
@@ -208,7 +206,7 @@ class Resource extends Type
         }
 
         if (!class_exists($class)) {
-            throw new Exception(sprintf("Processor class '%s' does not exist", $class));
+            throw new \ErrorException(sprintf("Processor class '%s' does not exist", $class));
         }
 
         $processor = new $class();

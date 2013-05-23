@@ -2,7 +2,6 @@
 
 namespace Appcia\Webwork\View\Renderer;
 
-use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
@@ -52,7 +51,7 @@ class Php extends Renderer
      * @param $args Helper arguments
      *
      * @return mixed
-     * @throws Exception
+     * @throws \ErrorException
      */
     public function __call($name, $args)
     {
@@ -62,7 +61,7 @@ class Php extends Renderer
         $callback = array($helper, $method);
 
         if (!is_callable($callback)) {
-            throw new Exception(sprintf("View helper '%s' does not have accessible method: '%s", $name, $method));
+            throw new \ErrorException(sprintf("View helper '%s' does not have accessible method: '%s", $name, $method));
         }
 
         $result = call_user_func_array($callback, $args);
@@ -77,7 +76,7 @@ class Php extends Renderer
      * @param string $name Name
      *
      * @return mixed
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     private function createHelper($name)
     {
@@ -100,7 +99,7 @@ class Php extends Renderer
             }
         }
 
-        throw new Exception(sprintf("View helper '%s' cannot be created. There is no valid class in any module", $class));
+        throw new \InvalidArgumentException(sprintf("View helper '%s' cannot be found. There is no valid class in any module", $class));
     }
 
     /**
@@ -109,7 +108,6 @@ class Php extends Renderer
      * @param string $name Name
      *
      * @return Helper
-     * @throws Exception
      */
     public function getHelper($name)
     {
@@ -192,7 +190,7 @@ class Php extends Renderer
      * @param string $template Template
      *
      * @return string
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     protected function capture($template)
     {
@@ -205,7 +203,9 @@ class Php extends Renderer
         ob_start();
 
         if ((@include $file) === false) {
-            throw new Exception(sprintf("Template file cannot be included properly: '%s'", $file));
+            throw new \InvalidArgumentException(sprintf("Template file cannot be included properly: '%s'" . PHP_EOL
+                . 'Check whether that file really exists.', $file
+            ));
         }
 
         $content = ob_get_clean();

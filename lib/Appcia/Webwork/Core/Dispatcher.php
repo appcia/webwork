@@ -1,13 +1,14 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Core;
 
+use Appcia\Webwork\Core\Module;
 use Appcia\Webwork\Data\TextCase;
-use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Exception\NotFound;
-use Appcia\Webwork\Module;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\View\View;
+use Appcia\Webwork\Web\Request;
+use Appcia\Webwork\Web\Response;
 
 class Dispatcher
 {
@@ -289,8 +290,6 @@ class Dispatcher
      * @param mixed $route Route object or name
      *
      * @return Dispatcher
-     * @throws NotFound
-     * @throws Exception
      */
     public function dispatch($route)
     {
@@ -362,7 +361,7 @@ class Dispatcher
      * Invoke action
      *
      * @return Dispatcher
-     * @throws Exception
+     * @throws \ErrorException
      */
     private function invokeAction()
     {
@@ -370,7 +369,7 @@ class Dispatcher
         $methodName = $this->getControllerMethod();
 
         if (!class_exists($className)) {
-            throw new Exception(sprintf(
+            throw new \ErrorException(sprintf(
                 "Controller '%s' could not be loaded. Check paths and autoloader configuration",
                 $className
             ));
@@ -378,19 +377,20 @@ class Dispatcher
 
         $module = $this->runModule();
         $controller = new $className($this->container, $module->getContainer());
-
         $action = array($controller, $methodName);
+
         if (!is_callable($action)) {
-            throw new Exception(sprintf(
+            throw new \ErrorException(sprintf(
                 "Could not dispatch '%s''. Check whether controller method really exist",
                 $className . '::' . $methodName
             ));
         }
 
         $data = call_user_func($action);
+
         if ($data !== null) {
             if (!is_array($data)) {
-                throw new Exception("Controller action must return values as array");
+                throw new \ErrorException("Controller action must return values as array");
             }
             $this->addData($data);
         }
@@ -654,17 +654,17 @@ class Dispatcher
      * @param callable $callback  Callback function
      *
      * @return Dispatcher
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function addHandler($exception, \Closure $callback)
     {
         if (!is_callable($callback)) {
-            throw new Exception('Handler callback is invalid');
+            throw new \InvalidArgumentException('Handler callback is invalid');
         }
 
         if (is_object($exception)) {
             if (!$exception instanceof \Exception) {
-                throw new Exception('Invalid exception to be handled');
+                throw new \InvalidArgumentException('Invalid exception to be handled');
             }
 
             $exception = get_class($exception);
@@ -699,16 +699,17 @@ class Dispatcher
      * @param \Closure $callback Callback
      *
      * @return Dispatcher
-     * @throws Exception
+     * @throws \OutOfBoundsException
+     * @throws \InvalidArgumentException
      */
     public function addListener($event, \Closure $callback)
     {
         if (!in_array($event, $this->events, true)) {
-            throw new Exception(sprintf("Invalid event to be listened: '%s'", $event));
+            throw new \OutOfBoundsException(sprintf("Invalid event to be listened: '%s'", $event));
         }
 
         if (!is_callable($callback)) {
-            throw new Exception('Listener callback is invalid');
+            throw new \InvalidArgumentException('Listener callback is invalid');
         }
 
         $this->listeners[] = array(

@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\System;
 
-use Appcia\Webwork\Exception\Exception;
-
 class File
 {
     /**
@@ -18,23 +16,29 @@ class File
      *
      * @param string $path Path
      *
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct($path)
     {
         if ($path === null || $path === '') {
-            throw new Exception(sprintf("Invalid file path"));
+            throw new \InvalidArgumentException("File is not specified");
         }
 
         $this->path = $path;
     }
 
     /**
+     * Get path
+     *
      * @param string $path
+     *
+     * @return File
      */
     public function setPath($path)
     {
         $this->path = $path;
+
+        return $this;
     }
 
     /**
@@ -91,12 +95,12 @@ class File
      * Get detailed information about file
      *
      * @return array
-     * @throws Exception
+     * @throws \LogicException
      */
     public function getStat()
     {
         if (!$this->exists()) {
-            throw new Exception('Cannot stat a non-existing file');
+            throw new \LogicException(sprintf("File '%s' does not exist.", $this->path));
         }
 
         $stat = stat($this->path);
@@ -138,7 +142,6 @@ class File
      * Removes a file
      *
      * @return File
-     * @throws Exception
      */
     public function remove()
     {
@@ -151,7 +154,6 @@ class File
      * Creates an empty file
      *
      * @return File
-     * @throws Exception
      */
     public function create()
     {
@@ -167,7 +169,6 @@ class File
      * @param bool   $createPath Create a path to target file if does not exist
      *
      * @return File
-     * @throws Exception
      */
     public function move($file, $createPath = true)
     {
@@ -195,7 +196,6 @@ class File
      * @param bool   $createPath Create a path to target file if does not exist
      *
      * @return File
-     * @throws Exception
      */
     public function copy($file, $createPath = true)
     {
@@ -226,7 +226,7 @@ class File
      * @param File|string $file File object or path
      *
      * @return File
-     * @throws Exception
+     * @throws \LogicException
      */
     public function symlink($file)
     {
@@ -235,7 +235,7 @@ class File
         }
 
         if (!$this->exists()) {
-            throw new Exception(sprintf("File does not exist: '%s'", $this->path));
+            throw new \LogicException(sprintf("File '%s' does not exist.", $this->path));
         }
 
         $link = new self($file);
@@ -253,12 +253,12 @@ class File
      * Read data from file
      *
      * @return string
-     * @throws Exception
+     * @throws \LogicException
      */
     public function read()
     {
         if (!$this->exists()) {
-            throw new Exception(sprintf("Cannot read from non-existing file: '%s'", $this->path));
+            throw new \LogicException(sprintf("File '%s' does not exist.", $this->path));
         }
 
         $data = file_get_contents($this->path);
@@ -273,12 +273,12 @@ class File
      * @param bool  $overwrite Overwrite file if it does not exist
      *
      * @return File
-     * @throws Exception
+     * @throws \LogicException
      */
     public function write($data, $overwrite = true)
     {
         if (!$overwrite && $this->exists()) {
-            throw new Exception(sprintf("Cannot overwrite file. File already exists: '%s'", $this->path));
+            throw new \LogicException(sprintf("File '%s' already exists so it cannot be overwritten.", $this->path));
         }
 
         file_put_contents($this->path, $data);
@@ -292,12 +292,12 @@ class File
      * @param mixed $data Data
      *
      * @return File
-     * @throws Exception
+     * @throws \LogicException
      */
     public function append($data)
     {
         if (!$this->exists()) {
-            throw new Exception(sprintf("Cannot append data to non-existing file: '%s'", $this->path));
+            throw new \LogicException(sprintf("File '%s' does not exist so data cannot be appended.", $this->path));
         }
 
         file_put_contents($this->path, $data, FILE_APPEND);
@@ -313,12 +313,12 @@ class File
      * @param string $separator New Line separator
      *
      * @return array
-     * @throws Exception
+     * @throws \LogicException
      */
     function tail($lines, $separator = PHP_EOL)
     {
         if (!$this->exists()) {
-            throw new Exception(sprintf("File does not exist: '%s'", $this->path));
+            throw new \LogicException(sprintf("File '%s' does not exist so cannot get last lines of it.", $this->path));
         }
 
         $handle = fopen($this->path, 'r');
@@ -366,12 +366,12 @@ class File
      * @param string $args Arguments
      *
      * @return array
-     * @throws Exception
+     * @throws \LogicException
      */
     public function execute($args)
     {
         if (!$this->exists()) {
-            throw new Exception(sprintf("Cannot execute program. File does not exist: '%s'", $this->path));
+            throw new \LogicException(sprintf("File '%s' does not exist so it cannot be executed.", $this->path));
         }
 
         $command = $this->path;
@@ -404,9 +404,9 @@ class File
             $file = new self($file);
         }
 
-        $samePaths = $this->getAbsolutePath() === $file->getAbsolutePath();
+        $same = $this->getAbsolutePath() === $file->getAbsolutePath();
 
-        return $samePaths;
+        return $same;
     }
 
     /**

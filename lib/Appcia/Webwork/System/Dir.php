@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\System;
 
-use Appcia\Webwork\Exception\Exception;
-
 class Dir
 {
     /**
@@ -18,12 +16,12 @@ class Dir
      *
      * @param string $path Path
      *
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct($path)
     {
         if ($path === null) {
-            throw new Exception(sprintf("Invalid directory path"));
+            throw new \InvalidArgumentException("Directory is not specified");
         }
 
         if ($path === '') {
@@ -46,21 +44,25 @@ class Dir
             return $this->path;
         }
 
-        return $this->path . '/' . $filename;
+        $path = $this->path . '/' . $filename;
+
+        return $path;
     }
 
     /**
-     * Get name
+     * Get a name
      *
      * @return string
      */
     public function getName()
     {
-        return basename($this->path);
+        $name = basename($this->path);
+
+        return $name;
     }
 
     /**
-     * Get absolute path
+     * Get an absolute path
      * Returns null if cannot be determined
      *
      * @return string|null
@@ -150,8 +152,7 @@ class Dir
      * @param int  $permission Value for CHMOD
      * @param bool $recursive  Create also parent directories
      *
-     * @return $this
-     * @throws Exception
+     * @return Dir
      */
     public function create($permission = 0777, $recursive = true)
     {
@@ -189,7 +190,6 @@ class Dir
      * @param bool $recursive Deletes all subdirectories and files
      *
      * @return Dir
-     * @throws Exception
      */
     public function remove($recursive = true)
     {
@@ -242,15 +242,17 @@ class Dir
      * Create a symlink pointing to this directory
      *
      * @param Dir|string $dir         Dir object or path
-     * @param bool       $createPaths Create paths (if don't exist)
+     * @param bool       $createPaths Create paths (if does not exist)
      *
      * @return Dir
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function symlink($dir, $createPaths = true)
     {
         if (!$this->exists()) {
-            throw new Exception(sprintf("Cannot create a link. Directory must exist: '%s'", $this->path));
+            throw new \InvalidArgumentException(sprintf(
+                "Cannot create a link. Directory must exist: '%s'", $this->path
+            ));
         }
 
         if (!$dir instanceof self) {
@@ -316,7 +318,6 @@ class Dir
      * @param string $pattern Pattern (with wildcards etc)
      *
      * @return array
-     * @throws Exception
      */
     public function glob($pattern)
     {
@@ -365,7 +366,6 @@ class Dir
      * Check whether is empty
      *
      * @return bool
-     * @throws Exception
      */
     public function isEmpty()
     {

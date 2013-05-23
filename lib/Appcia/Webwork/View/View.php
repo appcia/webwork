@@ -2,8 +2,7 @@
 
 namespace Appcia\Webwork\View;
 
-use Appcia\Webwork\Container;
-use Appcia\Webwork\Exception\Exception;
+use Appcia\Webwork\Core\Container;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
@@ -55,12 +54,12 @@ class View
      * Can be used only in view created by dispatcher
      *
      * @return Container
-     * @throws Exception
+     * @throws \LogicException
      */
     public function getContainer()
     {
         if ($this->container === null) {
-            throw new Exception('View is not associated with any container. Invalid use');
+            throw new \LogicException('View is not associated with any container. Invalid use');
         }
 
         return $this->container;
@@ -144,7 +143,6 @@ class View
      * @param Renderer $renderer Renderer
      *
      * @return View
-     * @throws Exception
      */
     public function setRenderer($renderer)
     {
@@ -164,7 +162,7 @@ class View
      * @param string $template Template
      *
      * @return string
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function getTemplatePath($template = null)
     {
@@ -176,7 +174,7 @@ class View
             $moduleFile = $this->getModulePath() . '/' . $template;
 
             if (!file_exists($moduleFile)) {
-                throw new Exception(sprintf("Template file not found: '%s'", $template));
+                throw new \InvalidArgumentException(sprintf("Template file not found: '%s'", $template));
             }
 
             $template = $moduleFile;
@@ -204,12 +202,12 @@ class View
      * Get rendered content
      *
      * @return string
-     * @throws Exception
+     * @throws \LogicException
      */
     public function render()
     {
         if ($this->renderer === null) {
-            throw new Exception('View renderer not specified');
+            throw new \LogicException('View renderer is not specified');
         }
 
         $content = $this->renderer->render();

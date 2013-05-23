@@ -91,12 +91,12 @@ class Session
      * @param string $key Key
      *
      * @return mixed
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function get($key)
     {
         if (!isset($this->storage[$key])) {
-            throw new Exception(sprintf("Session value '%s' does not exist", $key));
+            throw new \InvalidArgumentException(sprintf("Session key '%s' does not exist", $key));
         }
 
         $value = $this->storage[$key];
@@ -119,7 +119,7 @@ class Session
     public function set($key, $value)
     {
         if ($this->encoder !== null) {
-            $value = $this->encoder->code($value);
+            $value = $this->encoder->encode($value);
         }
 
         $this->storage[$key] = $value;

@@ -3,7 +3,6 @@
 namespace Appcia\Webwork\Data\Filter;
 
 use Appcia\Webwork\Data\Filter;
-use Appcia\Webwork\Exception\Exception;
 
 class Cut extends Filter
 {
@@ -13,12 +12,12 @@ class Cut extends Filter
      * @param int $start  Characters to be cut from the start (could be negative - numbered from end)
      * @param int $length String piece length
      *
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct($start, $length)
     {
         if ($length < 0) {
-            throw new Exception('Cut length cannot be a negative number');
+            throw new \InvalidArgumentException('Cut length cannot be a negative number');
         }
 
         $this->start = (int) $start;

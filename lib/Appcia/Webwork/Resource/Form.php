@@ -2,10 +2,9 @@
 
 namespace Appcia\Webwork\Resource;
 
-use Appcia\Webwork\Context;
+use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Data\Form as BasicForm;
 use Appcia\Webwork\Data\Form\Field;
-use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
 
@@ -121,7 +120,7 @@ class Form extends BasicForm
      * @param bool   $quiet Do not affect skip changed flag
      *
      * @return Form
-     * @throws Exception
+     * @throws \LogicException
      */
     public function skip($name, $quiet = false)
     {
@@ -131,7 +130,7 @@ class Form extends BasicForm
 
         $field = $this->getField($name);
         if ($field->getType() !== Field::FILE) {
-            throw new Exception(sprintf("Invalid field name to be skipped in resource loading '%s'", $name));
+            throw new \LogicException(sprintf("Field '%s' cannot be skipped in resource loading.", $name));
         }
 
         $skipped = $this->getSkipped();
@@ -154,7 +153,7 @@ class Form extends BasicForm
      * @param bool   $quiet Do not affect skip changed flag
      *
      * @return Form
-     * @throws Exception
+     * @throws \LogicException
      */
     public function unskip($name, $quiet = false)
     {
@@ -164,7 +163,7 @@ class Form extends BasicForm
 
         $field = $this->getField($name);
         if ($field->getType() !== Field::FILE) {
-            throw new Exception(sprintf("Invalid field name to be unskipped in resource loading '%s'", $name));
+            throw new \LogicException(sprintf("Field '%s' cannot be unskipped in resource loading.", $name));
         }
 
         $skipped = $this->getSkipped();
@@ -243,12 +242,13 @@ class Form extends BasicForm
      * @param array  $data  File data
      *
      * @return Resource
-     * @throws Exception
+     * @throws \InvalidArgumentException
+     * @throws \ErrorException
      */
     public function upload($token, $key, $data)
     {
         if (empty($data)) {
-            throw new Exception('Invalid uploaded file data');
+            throw new \InvalidArgumentException('Invalid uploaded file data');
         }
 
         $path = $data['name'];
@@ -257,26 +257,26 @@ class Form extends BasicForm
         if ($data['error'] != UPLOAD_ERR_OK) {
             switch ($data['error']) {
                 case UPLOAD_ERR_INI_SIZE:
-                    throw new Exception(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $path, $sizeLimit));
+                    throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $path, $sizeLimit));
                     break;
                 case UPLOAD_ERR_FORM_SIZE:
-                    throw new Exception(sprintf("Uploaded file '%s' size exceeds form limit", $path));
+                    throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds form limit", $path));
                     break;
                 case UPLOAD_ERR_PARTIAL:
-                    throw new Exception(sprintf("Uploaded file '%s' is only partially completed", $path));
+                    throw new \ErrorException(sprintf("Uploaded file '%s' is only partially completed", $path));
                     break;
                 case UPLOAD_ERR_NO_FILE:
-                    throw new Exception("File has not been uploaded");
+                    throw new \ErrorException("File has not been uploaded");
                     break;
                 case UPLOAD_ERR_NO_TMP_DIR:
-                    throw new Exception(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
+                    throw new \ErrorException(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
                     break;
                 case UPLOAD_ERR_CANT_WRITE:
-                    throw new Exception(sprintf("Failed to write uploaded file to disk: '%s'", $path));
+                    throw new \ErrorException(sprintf("Failed to write uploaded file to disk: '%s'", $path));
                     break;
                 case UPLOAD_ERR_EXTENSION:
                 default:
-                    throw new Exception(sprintf("Unknown upload error: '%s'", $path));
+                    throw new \ErrorException(sprintf("Unknown upload error: '%s'", $path));
                     break;
             }
         }
@@ -303,12 +303,12 @@ class Form extends BasicForm
      * @param array $data Data
      *
      * @return array|null
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function normalizeUpload($data)
     {
         if (!is_array($data)) {
-            throw new Exception('Uploaded data is not an array.' . PHP_EOL
+            throw new \InvalidArgumentException('Uploaded data is not an array.' . PHP_EOL
                 . 'Propably you just forget to add enctype multipart/form-data to form');
         }
 

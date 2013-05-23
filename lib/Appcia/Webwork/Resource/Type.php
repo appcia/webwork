@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\Resource;
 
-use Appcia\Webwork\Exception\Exception;
-use Appcia\Webwork\Resource;
 use Appcia\Webwork\System\File;
 
 class Type
@@ -39,8 +37,8 @@ class Type
     /**
      * Constructor
      *
-     * @param Resource $resource Base resource
-     * @param string   $path     Path pattern
+     * @param Resource $resource Resource
+     * @param string   $path     Path
      * @param array    $params   Parameters for path
      */
     public function __construct(Resource $resource, $path, array $params = array())
@@ -48,7 +46,6 @@ class Type
         $this->resource = $resource;
         $this->path = $path;
         $this->params = $params;
-        $this->file = null;
     }
 
     /**
@@ -87,7 +84,7 @@ class Type
      * @param bool $force Throw exception if it cannot be determined
      *
      * @return File|null
-     * @throws Exception
+     * @throws \ErrorException
      */
     public function getFile($force = true)
     {
@@ -98,7 +95,7 @@ class Type
                 $this->params['ext'] = $file->getExtension();
                 $this->file = $file;
             } else if ($force) {
-                throw new Exception(sprintf("Cannot determine target file for resource with path '%s'", $this->path));
+                throw new \ErrorException(sprintf("Resource target file cannot be determined for path '%s'.", $this->path));
             }
         }
 

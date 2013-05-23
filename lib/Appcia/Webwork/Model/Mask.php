@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\Model;
 
-use Appcia\Webwork\Exception\Exception;
-
 class Mask
 {
     /**
@@ -25,6 +23,22 @@ class Mask
     }
 
     /**
+     * Verify value / option
+     *
+     * @param int $value Number
+     *
+     * @return Mask
+     * @throws \InvalidArgumentException
+     */
+    private function verify($value) {
+        if (!$this->check($value)) {
+            throw new \InvalidArgumentException('Mask option value should a number which is a power of 2');
+        }
+
+        return $this;
+    }
+
+    /**
      * Check whether value is power of 2
      *
      * @param int $value Integer number
@@ -37,16 +51,23 @@ class Mask
     }
 
     /**
-     * Verify value / option
+     * Toggle mask option
      *
-     * @param int $value Number
+     * @param int  $option Option value
+     * @param bool $flag   Flag
      *
      * @return Mask
-     * @throws Exception
      */
-    private function verify($value) {
-        if (!$this->check($value)) {
-            throw new Exception('Mask option value should a number which is a power of 2');
+    public function toggle($option, $flag = null)
+    {
+        if ($flag === null) {
+            $flag = !$this->is($option);
+        }
+
+        if ($flag) {
+            $this->mark($option);
+        } else {
+            $this->unmark($option);
         }
 
         return $this;
@@ -74,7 +95,6 @@ class Mask
      * @param int $option Option value
      *
      * @return Mask
-     * @throws Exception
      */
     public function mark($option)
     {
@@ -90,7 +110,6 @@ class Mask
      * @param int $option
      *
      * @return Mask
-     * @throws Exception
      */
     public function unmark($option)
     {
@@ -101,26 +120,13 @@ class Mask
     }
 
     /**
-     * Toggle mask option
+     * Get integer value
      *
-     * @param int  $option Option value
-     * @param bool $flag   Flag
-     *
-     * @return Mask
+     * @return int
      */
-    public function toggle($option, $flag = null)
+    public function getValue()
     {
-        if ($flag === null) {
-            $flag = !$this->is($option);
-        }
-
-        if ($flag) {
-            $this->mark($option);
-        } else {
-            $this->unmark($option);
-        }
-
-        return $this;
+        return $this->value;
     }
 
     /**
@@ -136,15 +142,5 @@ class Mask
         $this->value = $value;
 
         return $this;
-    }
-
-    /**
-     * Get integer value
-     *
-     * @return int
-     */
-    public function getValue()
-    {
-        return $this->value;
     }
 }

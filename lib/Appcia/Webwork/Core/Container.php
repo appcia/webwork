@@ -1,9 +1,8 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Core;
 
 use Appcia\Webwork\Storage\Config;
-use Appcia\Webwork\Exception\Exception;
 
 /**
  * Pimple based DI container
@@ -36,14 +35,14 @@ class Container
     /**
      * Set a parameter or a service
      *
-     * @param string $id    Unique identifier
+     * @param string $key   Key
      * @param mixed  $value Parameter value or object as closure
      *
      * @return Container
      */
-    public function set($id, $value)
+    public function set($key, $value)
     {
-        $this->values[$id] = $value;
+        $this->values[$key] = $value;
 
         return $this;
     }
@@ -51,20 +50,20 @@ class Container
     /**
      * Get a parameter or a service
      *
-     * @param string $id Unique identifier
+     * @param string $key Key
      *
      * @return mixed
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
-    public function get($id)
+    public function get($key)
     {
-        if (!$this->values->has($id)) {
-            throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
+        if (!$this->values->has($key)) {
+            throw new \OutOfBoundsException(sprintf("Container key '%s' does not exist.", $key));
         }
 
-        $isFactory = is_object($this->values[$id]) && method_exists($this->values[$id], '__invoke');
+        $isFactory = is_object($this->values[$key]) && method_exists($this->values[$key], '__invoke');
 
-        return $isFactory ? $this->values[$id]($this) : $this->values[$id];
+        return $isFactory ? $this->values[$key]($this) : $this->values[$key];
     }
 
     /**
@@ -80,25 +79,25 @@ class Container
     /**
      * Check whether parameter or service is set
      *
-     * @param string $id Unique identifier
+     * @param string $key Key
      *
      * @return bool
      */
-    public function has($id)
+    public function has($key)
     {
-        return $this->values->has($id);
+        return $this->values->has($key);
     }
 
     /**
      * Remove a parameter or a service
      *
-     * @param string $id Unique identifier
+     * @param string $key Key
      *
      * @return Container
      */
-    public function remove($id)
+    public function remove($key)
     {
-        unset($this->values[$id]);
+        unset($this->values[$key]);
 
         return $this;
     }
@@ -141,43 +140,44 @@ class Container
     /**
      * Get a parameter or a service
      *
-     * @param string $id Unique identifier
+     * @param string $key Key
      *
      * @return mixed
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
-    public function raw($id)
+    public function raw($key)
     {
-        if (!$this->values->has($id)) {
-            throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
+        if (!$this->values->has($key)) {
+            throw new \OutOfBoundsException(sprintf("Container key '%s' does not exist.", $key));
         }
 
-        return $this->values[$id];
+        return $this->values[$key];
     }
 
     /**
      * Extend a service definition
      * Useful when extending an existing object closure without necessarily loading that object
      *
-     * @param string   $id       Unique identifier
+     * @param string   $key      Key
      * @param \Closure $callable Original closure replacement
      *
      * @return \Closure
-     * @throws Exception
+     * @throws \OutOfBoundsException
+     * @throws \ErrorException
      */
-    public function extend($id, \Closure $callable)
+    public function extend($key, \Closure $callable)
     {
-        if (!$this->values->has($id)) {
-            throw new Exception(sprintf('Identifier "%s" is not defined.', $id));
+        if (!$this->values->has($key)) {
+            throw new \OutOfBoundsException(sprintf("Container key '%s' does not exist.", $key));
         }
 
-        $factory = $this->values[$id];
+        $factory = $this->values[$key];
 
         if (!($factory instanceof \Closure)) {
-            throw new Exception(sprintf('Identifier "%s" does not contain an object definition.', $id));
+            throw new \ErrorException(sprintf("Container key '%s' does not contain an object definition.", $key));
         }
 
-        return $this->values[$id] = function ($container) use ($callable, $factory) {
+        return $this->values[$key] = function ($container) use ($callable, $factory) {
             return $callable($factory($container), $container);
         };
     }
@@ -185,14 +185,14 @@ class Container
     /**
      * Store callable as unique
      *
-     * @param string   $id       Unique identifier
+     * @param string   $key      Key
      * @param callable $callable Closure
      *
      * @return Container
      */
-    public function single($id, \Closure $callable)
+    public function single($key, \Closure $callable)
     {
-        $this->set($id, $this->share($callable));
+        $this->set($key, $this->share($callable));
 
         return $this;
     }

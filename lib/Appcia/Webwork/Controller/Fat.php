@@ -4,8 +4,8 @@ namespace Appcia\Webwork\Controller;
 
 use Appcia\Webwork\Exception\Error;
 use Appcia\Webwork\Exception\NotFound;
-use Appcia\Webwork\Request;
-use Appcia\Webwork\Response;
+use Appcia\Webwork\Web\Request;
+use Appcia\Webwork\Web\Response;
 use Appcia\Webwork\View\View;
 
 abstract class Fat extends Lite

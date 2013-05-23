@@ -1,9 +1,37 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Web;
 
 class Request
 {
+    const POST = 'post';
+    const GET = 'get';
+
+    const HTTP_10 = 'HTTP/1.0';
+    const HTTP_11 = 'HTTP/1.1';
+    const HTTPS = 'HTTPS';
+
+    /**
+     * Valid method list
+     *
+     * @var array
+     */
+    private static $methods = array(
+        self::POST,
+        self::GET
+    );
+
+    /**
+     * Protocol names with prefixes
+     *
+     * @var array
+     */
+    private static $protocols = array(
+        self::HTTP_10 => 'http://',
+        self::HTTP_11 => 'http://',
+        self::HTTPS => 'https://'
+    );
+
     /**
      * Source URI
      *
@@ -45,19 +73,6 @@ class Request
      * @var string
      */
     private $port;
-
-    const POST = 'post';
-    const GET = 'get';
-
-    /**
-     * Valid method list
-     *
-     * @var array
-     */
-    private static $methods = array(
-        self::POST,
-        self::GET
-    );
 
     /**
      * Method
@@ -108,21 +123,6 @@ class Request
      */
     private $ip;
 
-    const HTTP_10 = 'HTTP/1.0';
-    const HTTP_11 = 'HTTP/1.1';
-    const HTTPS = 'HTTPS';
-
-    /**
-     * Protocol names with prefixes
-     *
-     * @var array
-     */
-    private static $protocols = array(
-        self::HTTP_10 => 'http://',
-        self::HTTP_11 => 'http://',
-        self::HTTPS => 'https://'
-    );
-
     /**
      * Constructor
      */
@@ -136,7 +136,27 @@ class Request
     }
 
     /**
-     * Load request data from superglobal tables
+     * Get known protocol list
+     *
+     * @return array
+     */
+    public static function getProtocols()
+    {
+        return self::$protocols;
+    }
+
+    /**
+     * Get valid method values
+     *
+     * @return array
+     */
+    public static function getMethods()
+    {
+        return self::$methods;
+    }
+
+    /**
+     * Load request data from global tables
      *
      * @return Request
      */
@@ -163,6 +183,16 @@ class Request
     }
 
     /**
+     * Get port number
+     *
+     * @return int
+     */
+    public function getPort()
+    {
+        return $this->port;
+    }
+
+    /**
      * Set port number
      *
      * @param string $port
@@ -177,13 +207,13 @@ class Request
     }
 
     /**
-     * Get port number
+     * Get server name
      *
-     * @return int
+     * @return string
      */
-    public function getPort()
+    public function getServer()
     {
-        return $this->port;
+        return $this->server;
     }
 
     /**
@@ -201,13 +231,13 @@ class Request
     }
 
     /**
-     * Get server name
+     * Get script file
      *
      * @return string
      */
-    public function getServer()
+    public function getScriptFile()
     {
-        return $this->server;
+        return $this->scriptFile;
     }
 
     /**
@@ -225,13 +255,13 @@ class Request
     }
 
     /**
-     * Get script file
+     * Get client IP
      *
      * @return string
      */
-    public function getScriptFile()
+    public function getIp()
     {
-        return $this->scriptFile;
+        return $this->ip;
     }
 
     /**
@@ -249,35 +279,6 @@ class Request
     }
 
     /**
-     * Get client IP
-     *
-     * @return string
-     */
-    public function getIp()
-    {
-        return $this->ip;
-    }
-
-    /**
-     * Set protocol (http, https)
-     *
-     * @param $protocol
-     *
-     * @return Request
-     * @throws Exception
-     */
-    public function setProtocol($protocol)
-    {
-        if (!isset(self::$protocols[$protocol])) {
-            throw new Exception(sprintf("Unrecognized request protocol: '%s'", $protocol));
-        }
-
-        $this->protocol = (string) $protocol;
-
-        return $this;
-    }
-
-    /**
      * Get protocol (http, https)
      *
      * @return string
@@ -288,24 +289,52 @@ class Request
     }
 
     /**
-     * Get known protocol list
+     * Set protocol (http, https)
      *
-     * @return array
+     * @param $protocol
+     *
+     * @return Request
+     * @throws \InvalidArgumentException
      */
-    public static function getProtocols()
+    public function setProtocol($protocol)
     {
-        return self::$protocols;
+        if (!isset(self::$protocols[$protocol])) {
+            throw new \InvalidArgumentException(sprintf("Unrecognized request protocol: '%s'", $protocol));
+        }
+
+        $this->protocol = (string) $protocol;
+
+        return $this;
     }
 
     /**
      * Get protocol url prefix
      *
      * @return string
-     * @throws Exception
      */
     public function getProtocolPrefix()
     {
         return  self::$protocols[$this->protocol];
+    }
+
+    /**
+     * Get current path (to be matched for route)
+     *
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
+
+    /**
+     * Get current URI
+     *
+     * @return string
+     */
+    public function getUri()
+    {
+        return $this->uri;
     }
 
     /**
@@ -324,48 +353,6 @@ class Request
     }
 
     /**
-     * Parse URI and create path that could be matched to route
-     *
-     * @return Request
-     */
-    private function parsePath()
-    {
-        $path = $this->uri;
-
-        if (strpos($path, $this->scriptFile) === 0) {
-            $path = substr($path, strlen($this->scriptFile));
-        }
-
-        if ($path !== '/') {
-            $path = rtrim($path, '/');
-        }
-
-        $path = parse_url($path, PHP_URL_PATH);
-
-        $this->path = $path;
-
-        return $this;
-    }
-
-    /**
-     * Get current path (to be matched for route)
-     *
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->path;
-    }
-
-    /**
-     * @return string
-     */
-    public function getUri()
-    {
-        return $this->uri;
-    }
-
-    /**
      * Get parameters that occurs in URI
      *
      * @return array
@@ -375,6 +362,50 @@ class Request
         $params = array_merge($this->get, $this->params);
 
         return $params;
+    }
+
+    /**
+     * Get all data
+     *
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * Set all data
+     *
+     * @param array $data
+     *
+     * @return Request
+     */
+    public function setData(array $data)
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    /**
+     * Check whether used method is 'post'
+     *
+     * @return bool
+     */
+    public function isPost()
+    {
+        return $this->getMethod() == self::POST;
+    }
+
+    /**
+     * Get method
+     *
+     * @return string
+     */
+    public function getMethod()
+    {
+        return $this->method;
     }
 
     /**
@@ -392,57 +423,13 @@ class Request
     }
 
     /**
-     * Get method
-     *
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->method;
-    }
-
-    /**
-     * Get valid method values
+     * Get parameters
      *
      * @return array
      */
-    public static function getMethods()
+    public function getParams()
     {
-        return self::$methods;
-    }
-
-    /**
-     * Set data (skipped source method information)
-     *
-     * @param array $data
-     *
-     * @return Request
-     */
-    public function setData(array $data)
-    {
-        $this->data = $data;
-
-        return $this;
-    }
-
-    /**
-     * Get data (skipped source method information)
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
-     * Check whether used method is 'post'
-     *
-     * @return bool
-     */
-    public function isPost()
-    {
-        return $this->getMethod() == self::POST;
+        return $this->params;
     }
 
     /**
@@ -461,13 +448,13 @@ class Request
     }
 
     /**
-     * Get parameters
+     * Get data provided by 'post' method
      *
      * @return array
      */
-    public function getParams()
+    public function getPost()
     {
-        return $this->params;
+        return $this->post;
     }
 
     /**
@@ -486,13 +473,13 @@ class Request
     }
 
     /**
-     * Get data provided by 'post' method
+     * Get data provided by 'get' method
      *
      * @return array
      */
-    public function getPost()
+    public function getGet()
     {
-        return $this->post;
+        return $this->get;
     }
 
     /**
@@ -511,13 +498,13 @@ class Request
     }
 
     /**
-     * Get data provided by 'get' method
+     * Get uploaded files data
      *
      * @return array
      */
-    public function getGet()
+    public function getFiles()
     {
-        return $this->get;
+        return $this->files;
     }
 
     /**
@@ -533,16 +520,6 @@ class Request
         $this->data = array_merge($this->data, $files);
 
         return $this;
-    }
-
-    /**
-     * Get uploaded files data
-     *
-     * @return array
-     */
-    public function getFiles()
-    {
-        return $this->files;
     }
 
     /**
@@ -594,5 +571,29 @@ class Request
         $ajax = ($header == 'xmlhttprequest');
 
         return $ajax;
+    }
+
+    /**
+     * Parse URI and create path that could be matched to route
+     *
+     * @return Request
+     */
+    private function parsePath()
+    {
+        $path = $this->uri;
+
+        if (strpos($path, $this->scriptFile) === 0) {
+            $path = substr($path, strlen($this->scriptFile));
+        }
+
+        if ($path !== '/') {
+            $path = rtrim($path, '/');
+        }
+
+        $path = parse_url($path, PHP_URL_PATH);
+
+        $this->path = $path;
+
+        return $this;
     }
 }

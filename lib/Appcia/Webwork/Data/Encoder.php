@@ -2,21 +2,19 @@
 
 namespace Appcia\Webwork\Data;
 
-use Appcia\Webwork\Exception\Exception;
-
 class Encoder
 {
-    const PHP = 1;
-    const JSON = 2;
-    const BASE64 = 3;
+    const PHP = 'php';
+    const JSON = 'json';
+    const BASE64 = 'base64';
 
     /**
      * @var array
      */
-    private static $encodingValues = array(
-        self::PHP => 'php',
-        self::JSON => 'json',
-        self::BASE64 => 'base64'
+    private static $encodings = array(
+        self::PHP,
+        self::JSON,
+        self::BASE64
     );
 
     /**
@@ -27,7 +25,7 @@ class Encoder
     /**
      * Constructor
      *
-     * @param int $encoding
+     * @param string $encoding
      */
     public function __construct($encoding = self::BASE64)
     {
@@ -40,26 +38,30 @@ class Encoder
      * @param string $encoding Encoding
      *
      * @return Encoder
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public static function create($encoding)
     {
         if (!is_string($encoding)) {
-            throw new Exception('Encoder cannot be created. Invalid argument specified');
+            throw new \InvalidArgumentException('Encoder cannot be created. Invalid argument specified');
         }
 
         return new self($encoding);
     }
 
     /**
+     * Get available encodings
+     *
      * @return array
      */
-    public static function getEncodingValues()
+    public static function getEncodings()
     {
-        return self::$encodingValues;
+        return self::$encodings;
     }
 
     /**
+     * Get encoding
+     *
      * @return int
      */
     public function getEncoding()
@@ -71,12 +73,12 @@ class Encoder
      * @param int $encode
      *
      * @return Encoder
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
     public function setEncoding($encode)
     {
-        if (!array_key_exists($encode, self::$encodingValues)) {
-            throw new Exception(sprintf("Invalid encoding: '%s'", $encode));
+        if (!in_array($encode, self::$encodings)) {
+            throw new \OutOfBoundsException(sprintf("Encoding '%s' is invalid or unsupported.", $encode));
         }
 
         $this->encoding = $encode;
@@ -85,14 +87,13 @@ class Encoder
     }
 
     /**
-     * Code data
+     * Encode data
      *
      * @param array $value Value
      *
      * @return string
-     * @throws Exception
      */
-    public function code($value)
+    public function encode($value)
     {
         $data = null;
         switch ($this->encoding) {
@@ -118,8 +119,7 @@ class Encoder
      *
      * @param string $value Value
      *
-     * @return array
-     * @throws Exception
+     * @return mixed
      */
     public function decode($value)
     {

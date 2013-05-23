@@ -5,6 +5,7 @@ namespace Appcia\Webwork\Auth;
 use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Session\Space;
+use Psr\Log\InvalidArgumentException;
 
 class Acl extends Auth
 {
@@ -60,12 +61,12 @@ class Acl extends Auth
      * @param Route|string $route Route object or name
      *
      * @return bool
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function isAccessible($route)
     {
         if (empty($route)) {
-            throw new Exception('ACL auth failed. Invalid route specified.');
+            throw new \InvalidArgumentException('ACL auth failed. Invalid route specified.');
         }
 
         if ($route instanceof Route) {

@@ -1,6 +1,6 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Web;
 
 class Context {
 

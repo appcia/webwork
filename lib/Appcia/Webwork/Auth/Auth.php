@@ -88,12 +88,12 @@ class Auth
      * Get authorized user
      *
      * @return object
-     * @throws Exception
+     * @throws \LogicException
      */
     public function getUser()
     {
         if (!$this->isAuthorized()) {
-            throw new Exception('Auth failed. User is unauthorized.');
+            throw new \LogicException('Auth failed. User is unauthorized.');
         }
 
         if ($this->user === null) {

@@ -28,12 +28,12 @@ class Length extends Validator
      * @param int $max Maximum
      * @param int $min Minimum
      *
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function __construct($min = 0, $max = INF)
     {
         if ($min < 0 || $max < 0) {
-            throw new Exception('String length must be greater than zero');
+            throw new \InvalidArgumentException('String length must be greater than zero');
         }
 
         $this->min = $min;

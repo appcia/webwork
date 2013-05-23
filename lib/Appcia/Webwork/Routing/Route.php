@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Exception\Exception;
-
 class Route
 {
     const PARAM_CLASS = '[A-Za-z0-9-]+';
@@ -79,12 +77,12 @@ class Route
      * @param string $name
      *
      * @return Route
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function setName($name)
     {
         if (empty($name)) {
-            throw new Exception('Route name cannot be empty');
+            throw new \InvalidArgumentException('Route name cannot be empty');
         }
 
         $this->name = (string) $name;
@@ -108,7 +106,7 @@ class Route
      * @param string $path
      *
      * @return Route
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function setPath($path)
     {
@@ -119,14 +117,14 @@ class Route
             $location = $path;
         } else if (is_array($path)) {
             if (!isset($path['location'])) {
-                throw new Exception('Route location is not specified');
+                throw new \InvalidArgumentException('Route location is not specified');
             }
             
             $location = $path['location'];
             
             if (isset($path['params'])) {
                 if (!is_array($params)) {
-                    throw new Exception('Route parameters should be an array');
+                    throw new \InvalidArgumentException('Route parameters should be an array');
                 }
                 
                 $params = $path['params'];

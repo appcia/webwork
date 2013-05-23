@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\System;
 
-use Appcia\Webwork\Exception\Exception;
-
 class Php
 {
     /**
@@ -17,8 +15,6 @@ class Php
      * Constructor
      *
      * @param string $bin Path to PHP binary
-     *
-     * @throws Exception
      */
     public function __construct($bin = null)
     {
@@ -51,12 +47,12 @@ class Php
      * @param string $bin
      *
      * @return Php
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function setBin($bin)
     {
         if (empty($bin)) {
-            throw new Exception('PHP binary not specified');
+            throw new \InvalidArgumentException('PHP binary is not specified');
         }
 
         $this->bin = new File($bin);

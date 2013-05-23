@@ -2,7 +2,6 @@
 
 namespace Appcia\Webwork\View\Renderer;
 
-use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 use SimpleXMLElement;
@@ -67,15 +66,15 @@ class Xml extends Renderer
     /**
      * Set root node
      *
-     * @param string $root
+     * @param string $root Root node tag name
      *
      * @return Xml
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function setRoot($root)
     {
         if (empty($root)) {
-            throw new Exception('Root node cannot be empty');
+            throw new \InvalidArgumentException('Root node cannot be empty');
         }
 
         $this->root = $root;

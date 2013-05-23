@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Exception\Exception;
-
 class Group
 {
     /**
@@ -115,10 +113,9 @@ class Group
     /**
      * Set routes data
      *
-     * @param array $routes
+     * @param array $routes Routes data
      *
      * @return Group
-     * @throws Exception
      */
     public function setRoutes(array $routes)
     {

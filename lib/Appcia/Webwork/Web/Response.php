@@ -1,6 +1,6 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Web;
 
 class Response
 {
@@ -40,12 +40,12 @@ class Response
      * @param mixed $content Content
      *
      * @return Response
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function setContent($content)
     {
         if ($content !== null && !is_scalar($content)) {
-            throw new Exception('Response content should be a text or even scalar value');
+            throw new \InvalidArgumentException('Response content should be a text or even scalar value');
         }
 
         $this->content = $content;

@@ -1,6 +1,8 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Web;
+
+use Appcia\Webwork\Core\Bootstrap;
 
 class App
 {

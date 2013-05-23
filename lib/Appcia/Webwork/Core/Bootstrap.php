@@ -1,11 +1,11 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Core;
 
-use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Routing\Router;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Storage\Session;
+use Appcia\Webwork\Web\Context;
 
 class Bootstrap
 {
@@ -74,18 +74,19 @@ class Bootstrap
      * @param string $configFile Global configuration
      * @param object $autoloader Autoloader
      *
-     * @throws Exception
+     * @throws \InvalidArgumentException
+     * @throws \OutOfBoundsException
      */
     public function __construct($env, $rootPath, $configFile, $autoloader)
     {
         if (empty($env)) {
-            throw new Exception('Environment not specified.' . PHP_EOL
+            throw new \InvalidArgumentException('Environment not specified.' . PHP_EOL
             . "Set environmental variable named 'APPLICATION_ENV' in vhost configuration." . PHP_EOL
             . "If you are running CLI, to set this variable, you could use 'export' command.");
         }
 
         if (!in_array($env, self::$environments)) {
-            throw new Exception(sprintf("Invalid environment: '%s'", $env));
+            throw new \OutOfBoundsException(sprintf("Invalid environment: '%s'", $env));
         }
 
         $this->environment = $env;
@@ -188,7 +189,7 @@ class Bootstrap
             return $config;
         });
 
-        $this->container->set('context', function ($container) {
+        $this->container->single('context', function ($container) {
             $context = new Context();
             $container->get('config')
                 ->grab('context')
@@ -233,14 +234,14 @@ class Bootstrap
      * Load all modules basing on config
      *
      * @return Bootstrap
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     private function loadModules()
     {
         $config = $this->container->get('config');
 
         if (empty($config['app'])) {
-            throw new Exception("Configuration for base application module is empty."
+            throw new \InvalidArgumentException("Configuration for base application module is empty."
             . " Check whether key 'app' really exist in config file.");
         }
 
@@ -248,7 +249,7 @@ class Bootstrap
 
         $modules = $config->get('modules');
         if (empty($modules)) {
-            throw new Exception("Configuration for modules is empty."
+            throw new \InvalidArgumentException("Configuration for modules is empty."
             . " Check whether key 'modules' has at least one module specified.");
         }
 
@@ -266,30 +267,30 @@ class Bootstrap
      * @param array  $config Native data
      *
      * @return Bootstrap
-     * @throws Exception
+     * @throws \InvalidArgumentException
+     * @throws \ErrorException
      */
     private function loadModule($name, array $config)
     {
         if (!isset($config['path'])) {
-            throw new Exception(sprintf("Module '%s' does not have path specified", $name));
+            throw new \InvalidArgumentException(sprintf("Module '%s' does not have path specified", $name));
         }
 
         $path = $this->rootPath . '/' . $config['path'];
         $file = $path . '/module.php';
 
-        if (!file_exists($file)) {
-            throw new Exception(sprintf("Cannot find module bootstrap '%s'", $file));
-        }
-
         if ((@include_once($file)) === false) {
-            throw new Exception(sprintf("Cannot include module bootstrap '%s'", $file));
+            throw new \ErrorException(sprintf(
+                "Cannot include module bootstrap '%s'." . PHP_EOL
+                . 'Check whether that file really exists.', $file
+            ));
         }
 
         $className = ucfirst($name)
             . '\\' . ucfirst($name) . 'Module';
 
         if (!class_exists($className)) {
-            throw new Exception(sprintf("Module bootstrap '%s' does not contain class '%s'", $file, $className));
+            throw new \ErrorException(sprintf("Module bootstrap '%s' does not contain class '%s'", $file, $className));
         }
 
         $module = new $className(
@@ -323,12 +324,12 @@ class Bootstrap
      * @param string $name Name
      *
      * @return mixed
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
     public function getModule($name)
     {
         if (!isset($this->modules[$name])) {
-            throw new Exception(sprintf("Module '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Module '%s' does not exist", $name));
         }
 
         return $this->modules[$name];

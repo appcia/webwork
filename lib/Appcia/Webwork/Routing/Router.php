@@ -3,11 +3,10 @@
 namespace Appcia\Webwork\Routing;
 
 use Appcia\Webwork\Data\TextCase;
-use Appcia\Webwork\Exception\Exception;
-use Appcia\Webwork\Request;
 use Appcia\Webwork\Routing\Group;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Web\Request;
 
 class Router
 {
@@ -40,11 +39,22 @@ class Router
     {
         $this->routes = array();
         $this->defaults = array(
+            'group' => array(),
             'route' => array(
                 'template' => '*.html.php'
             )
         );
         $this->textCase = new TextCase();
+    }
+
+    /**
+     * Get default values
+     *
+     * @return array
+     */
+    public function getDefaults()
+    {
+        return $this->defaults;
     }
 
     /**
@@ -62,27 +72,6 @@ class Router
     }
 
     /**
-     * Get default values
-     *
-     * @return array
-     */
-    public function getDefaults()
-    {
-        return $this->defaults;
-    }
-
-    /**
-     * Set text case converter
-     * Used for automatic route name generation
-     *
-     * @param TextCase $textCase
-     */
-    public function setTextCase($textCase)
-    {
-        $this->textCase = $textCase;
-    }
-
-    /**
      * Get text case converter
      *
      * @return TextCase
@@ -90,6 +79,31 @@ class Router
     public function getTextCase()
     {
         return $this->textCase;
+    }
+
+    /**
+     * Set text case converter
+     * Used for automatic route name generation
+     *
+     * @param TextCase $textCase
+     *
+     * @return Router
+     */
+    public function setTextCase($textCase)
+    {
+        $this->textCase = $textCase;
+        
+        return $this;
+    }
+
+    /**
+     * Get all routes
+     *
+     * @return array
+     */
+    public function getRoutes()
+    {
+        return $this->routes;
     }
 
     /**
@@ -130,55 +144,33 @@ class Router
     }
 
     /**
-     * Clear current routes
-     *
-     * @return Router
-     */
-    public function clearRoutes()
-    {
-        $this->routes = array();
-
-        return $this;
-    }
-
-    /**
-     * Get all routes
-     *
-     * @return array
-     */
-    public function getRoutes()
-    {
-        return $this->routes;
-    }
-
-    /**
      * Add route
      *
      * @param array $data Route data
      *
      * @return Router
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function addRoute($data)
     {
         if (!is_array($data)) {
-            throw new Exception('Route data should be an array');
+            throw new \InvalidArgumentException('Route data should be an array');
         }
 
         if (!isset($data['path'])) {
-            throw new Exception('Route path is not specified');
+            throw new \InvalidArgumentException('Route path is not specified');
         }
 
         if (!isset($data['module'])) {
-            throw new Exception('Route module is not specified');
+            throw new \InvalidArgumentException('Route module is not specified');
         }
 
         if (!isset($data['controller'])) {
-            throw new Exception('Route controller is not specified');
+            throw new \InvalidArgumentException('Route controller is not specified');
         }
 
         if (!isset($data['action'])) {
-            throw new Exception('Route action is not specified');
+            throw new \InvalidArgumentException('Route action is not specified');
         }
 
         if (!isset($data['name'])) {
@@ -224,6 +216,17 @@ class Router
         return $name;
     }
 
+    /**
+     * Clear current routes
+     *
+     * @return Router
+     */
+    public function clearRoutes()
+    {
+        $this->routes = array();
+
+        return $this;
+    }
 
     /**
      * Get route by name
@@ -231,12 +234,12 @@ class Router
      * @param string $name Name
      *
      * @return Route
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
     public function getRoute($name)
     {
         if (!isset($this->routes[$name])) {
-            throw new Exception(sprintf("Route '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Route '%s' does not exist", $name));
         }
 
         $route = $this->routes[$name];
@@ -270,12 +273,12 @@ class Router
      * @param array $data Data
      *
      * @return Router
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function addGroup(array $data)
     {
         if (!isset($data['routes'])) {
-            throw new Exception('Route group has no routes specified');
+            throw new \InvalidArgumentException('Route group has no routes specified');
         }
 
         if (!empty($this->defaults['group'])) {
@@ -291,6 +294,24 @@ class Router
         $this->setRoutes($routes);
 
         return $this;
+    }
+
+    /**
+     * Match requested URI to existing routes
+     *
+     * @param Request $request Source request
+     *
+     * @return array
+     */
+    public function match(Request $request)
+    {
+        foreach ($this->routes as $route) {
+            if ($this->process($request, $route)) {
+                return $route;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -329,7 +350,7 @@ class Router
      * @param array $values Passed parameter values
      *
      * @return array
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     private function retrieveParams(Route $route, array $values)
     {
@@ -348,6 +369,10 @@ class Router
             if (isset($data['default'])) {
                 $param = $data['default'];
 
+                if (!is_scalar($param) && $param !== null) {
+                    throw new \InvalidArgumentException('Route parameter default value should be a scalar or null');
+                }
+
                 if (empty($value)) {
                     $params[$name] = $param;
                 }
@@ -358,7 +383,7 @@ class Router
                 $map = $data['map'];
 
                 if (!is_array($map)) {
-                    throw new Exception('Route parameter map should be an array');
+                    throw new \InvalidArgumentException('Route parameter map should be an array');
                 }
 
                 $param = array_search($value, $map);
@@ -373,24 +398,6 @@ class Router
     }
 
     /**
-     * Match requested URI to existing routes
-     *
-     * @param Request $request Source request
-     *
-     * @return array
-     */
-    public function match(Request $request)
-    {
-        foreach ($this->routes as $route) {
-            if ($this->process($request, $route)) {
-                return $route;
-            }
-        }
-
-        return null;
-    }
-
-    /**
      * Assemble route by name with given parameters
      * If parameters are not in route path there are interpreted as GET params
      *
@@ -398,18 +405,19 @@ class Router
      * @param array  $data  Path and GET parameters
      *
      * @return string
-     * @throws Exception
+     * @throws \OutOfBoundsException
+     * @throws \InvalidArgumentException
      */
     public function assemble($route, array $data = array())
     {
         if (is_string($route)) {
             if (!isset($this->routes[$route])) {
-                throw new Exception(sprintf("Route by name '%s' does not exist", $route));
+                throw new \OutOfBoundsException(sprintf("Route by name '%s' does not exist", $route));
             }
 
             $route = $this->routes[$route];
         } elseif (!$route instanceof Route) {
-            throw new Exception('Route should be an existing route name or object');
+            throw new \InvalidArgumentException('Route should be an existing route name or object');
         }
 
         // Prepare parameters, map and set defaults
@@ -427,7 +435,7 @@ class Router
             }
 
             if ($value === null) {
-                throw new Exception(sprintf("Route '%s' cannot be assembled when parameter '%s' is unmapped",
+                throw new \InvalidArgumentException(sprintf("Route '%s' cannot be assembled when parameter '%s' is unmapped",
                     $route->getName(),
                     $name
                 ));

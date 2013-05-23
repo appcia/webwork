@@ -2,7 +2,6 @@
 
 namespace Appcia\Webwork\View;
 
-use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\View\Renderer\Ini;
 use Appcia\Webwork\View\Renderer\Json;
@@ -13,8 +12,11 @@ use Appcia\Webwork\View\View;
 abstract class Renderer
 {
     const PHP = 'php';
+
     const JSON = 'json';
+
     const XML = 'xml';
+
     const INI = 'ini';
 
     /**
@@ -52,7 +54,7 @@ abstract class Renderer
      * @param string|array $data Data
      *
      * @return Renderer
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public static function create($data)
     {
@@ -64,7 +66,7 @@ abstract class Renderer
             $type = $data;
         } elseif (is_array($data)) {
             if (!isset($data['type'])) {
-                throw new Exception("View renderer config should have a key 'type");
+                throw new \InvalidArgumentException("View renderer config should have a key 'type");
             }
             $type = $data['type'];
 
@@ -72,7 +74,7 @@ abstract class Renderer
                 $config = new Config($data['config']);
             }
         } else {
-            throw new Exception('View renderer cannot be created. Invalid data specified');
+            throw new \InvalidArgumentException('View renderer cannot be created. Invalid data specified');
         }
 
         // Create valid object
@@ -92,7 +94,9 @@ abstract class Renderer
                 $renderer = new Ini();
                 break;
             default:
-                throw new Exception(sprintf("View renderer '%s' is invalid or unsupported / not built-in", $renderer));
+                throw new \InvalidArgumentException(sprintf(
+                    "View renderer '%s' is invalid or unsupported / not built-in", $renderer
+                ));
                 break;
         }
 

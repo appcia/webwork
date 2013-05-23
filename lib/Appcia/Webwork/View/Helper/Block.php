@@ -3,7 +3,6 @@
 namespace Appcia\Webwork\View\Helper;
 
 use Appcia\Webwork\View\Helper;
-use Appcia\Webwork\Exception\Exception;
 
 class Block extends Helper
 {
@@ -52,12 +51,12 @@ class Block extends Helper
      * @param string $name Block name
      *
      * @return void
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function block($name)
     {
         if (!isset($this->blocks[$name])) {
-            throw new Exception(sprintf("Block '%s' does not exist", $name));
+            throw new \InvalidArgumentException(sprintf("Block '%s' does not exist", $name));
         }
 
         echo $this->blocks[$name];
@@ -69,13 +68,13 @@ class Block extends Helper
      * @param string $name Block name
      * @param string $file View to be extended
      *
-     * @throws Exception
+     * @throws \LogicException
      */
     public function begin($name, $file = null)
     {
         if ($file !== null) {
             if (isset($this->extends[$name])) {
-                throw new Exception(sprintf("Block name that will be extended is already used: '%s'", $name));
+                throw new \LogicException(sprintf("Block name that will be extended is already used: '%s'", $name));
             }
 
             // Associate block with extending
@@ -97,7 +96,7 @@ class Block extends Helper
      * @param $name
      *
      * @return mixed|string
-     * @throws Exception
+     * @throws \LogicException
      */
     public function end($name = null)
     {
@@ -106,7 +105,7 @@ class Block extends Helper
         if ($name === null) {
             $name = $check;
         } else if ($name !== $check) {
-            throw new Exception(sprintf("Block begin / end structure is not consistent." . PHP_EOL
+            throw new \LogicException(sprintf("Block begin / end structure is not consistent." . PHP_EOL
                 . "Problem occurred with: '%s'", $name));
         }
 

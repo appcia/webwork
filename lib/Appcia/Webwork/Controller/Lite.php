@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Controller;
 
-use Appcia\Webwork\Container;
+use Appcia\Webwork\Core\Container;
 
 abstract class Lite
 {

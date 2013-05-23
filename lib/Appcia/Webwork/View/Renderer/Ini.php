@@ -2,7 +2,6 @@
 
 namespace Appcia\Webwork\View\Renderer;
 
-use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
@@ -42,7 +41,7 @@ class Ini extends Renderer
      * @param array $data Data
      *
      * @return int
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     private function processData(array &$data)
     {
@@ -53,14 +52,14 @@ class Ini extends Renderer
             if ($max === null) {
                 $max = $depth;
             } elseif ($depth !== $max) {
-                throw new Exception('Rendering INI format requires array with same complexity');
+                throw new \InvalidArgumentException('Rendering INI format requires array all elements with same complexity');
             }
 
         }
 
         $max = (int) $max;
         if ($max > 2) {
-            throw new Exception('Rendering INI format expects only 1 or 2 dimensional array');
+            throw new \InvalidArgumentException('Rendering INI format expects only 1 or 2 dimensional array');
         }
 
         return $max;

@@ -2,8 +2,6 @@
 
 namespace Appcia\Webwork\Storage;
 
-use Appcia\Webwork\Exception\Exception;
-
 class Config implements \Iterator, \ArrayAccess
 {
     /**
@@ -58,24 +56,24 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Load from file
+     * Load data from file
      *
      * @param string $path Path
      *
      * @return Config
-     * @throws Exception
+     * @throws \ErrorException
      */
     public function loadFile($path)
     {
         if (!file_exists($path)) {
-            throw new Exception(sprintf("Config file not exists: '%s'", $path));
+            throw new \ErrorException(sprintf("Config file not exists: '%s'", $path));
         }
 
         // Possible syntax errors, do not handle them / expensive!
         $data = include($path);
 
         if (!is_array($data)) {
-            throw new Exception("Config file should return array: '%s'", $path);
+            throw new \ErrorException("Config file should return array: '%s'", $path);
         }
 
         $this->extend(new self($data));
@@ -114,18 +112,18 @@ class Config implements \Iterator, \ArrayAccess
      * @param string $key Key in dot notation
      *
      * @return mixed
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function get($key)
     {
         if (empty($key)) {
-            throw new Exception('Config key cannot be empty');
+            throw new \InvalidArgumentException('Config key cannot be empty');
         }
 
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
             if (!is_array($data) || !array_key_exists($section, $data)) {
-                throw new Exception(sprintf("Config key '%s' does not exist", $key));
+                throw new \InvalidArgumentException(sprintf("Config key '%s' does not exist", $key));
             }
 
             $data = & $data[$section];
@@ -141,12 +139,13 @@ class Config implements \Iterator, \ArrayAccess
      * @param mixed  $value Value
      *
      * @return Config
-     * @throws Exception
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function set($key, $value)
     {
         if (empty($key)) {
-            throw new Exception('Config key cannot be empty');
+            throw new \InvalidArgumentException('Config key cannot be empty');
         }
 
         $data = & $this->data;
@@ -161,7 +160,7 @@ class Config implements \Iterator, \ArrayAccess
             if (!isset($data[$section])) {
                 $data[$section] = array();
             } else if ($s < $count && !is_array($data[$section])) {
-                throw new Exception(sprintf(
+                throw new \LogicException(sprintf(
                     "Config section '%s' in key '%s' indicates a value",
                     $section,
                     $key
@@ -183,12 +182,13 @@ class Config implements \Iterator, \ArrayAccess
      * @param string $key Key in dot notation
      *
      * @return Config
-     * @throws Exception
+     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function grab($key)
     {
         if (empty($key)) {
-            throw new Exception('Config key cannot be empty');
+            throw new \InvalidArgumentException('Config key cannot be empty');
         }
 
         $data = & $this->data;
@@ -201,7 +201,9 @@ class Config implements \Iterator, \ArrayAccess
         }
 
         if (!is_array($data)) {
-            throw new Exception(sprintf("Config key '%s' indicates a value but not a section as expected", $key));
+            throw new \LogicException(sprintf(
+                "Config key '%s' indicates a value but not a section as expected", $key
+            ));
         }
 
         $section = new self($data);
@@ -240,14 +242,14 @@ class Config implements \Iterator, \ArrayAccess
      * @param array|null $properties Properties to be retrieved
      *
      * @return Config
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function suck($object, $properties = null)
     {
         if ($properties === null) {
             $properties = get_object_vars($object);
         } elseif (!is_array($properties)) {
-            throw new Exception('Config property names should be passed as an array');
+            throw new \InvalidArgumentException('Config property names should be passed as an array');
         }
 
         foreach ($properties as $property) {

@@ -2,9 +2,6 @@
 
 namespace Appcia\Webwork\Resource;
 
-
-use Appcia\Webwork\Exception\Exception;
-use Appcia\Webwork\Resource;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
 
@@ -31,14 +28,8 @@ class Manager
     }
 
     /**
-     * @param array $map
-     */
-    public function setResources($map)
-    {
-        $this->resources = $map;
-    }
-
-    /**
+     * Get resources
+     *
      * @return array
      */
     public function getResources()
@@ -47,9 +38,35 @@ class Manager
     }
 
     /**
+     * Get resources
+     *
+     * @param array $map Config map
+     *
+     * @return Manager
+     */
+    public function setResources($map)
+    {
+        $this->resources = $map;
+
+        return $this;
+    }
+
+    /**
+     * Get directory for temporary files
+     *
+     * @return Dir
+     */
+    public function getTempDir()
+    {
+        return $this->tempDir;
+    }
+
+    /**
      * Set directory for temporary files
      *
-     * @param Dir|string $dir
+     * @param Dir|string $dir Path
+     *
+     * @return Manager
      */
     public function setTempDir($dir)
     {
@@ -62,16 +79,8 @@ class Manager
         }
 
         $this->tempDir = $dir;
-    }
 
-    /**
-     * Get directory for temporary files
-     *
-     * @return Dir
-     */
-    public function getTempDir()
-    {
-        return $this->tempDir;
+        return $this;
     }
 
     /**
@@ -88,6 +97,7 @@ class Manager
         // Hook for removing when path is null
         if ($path === null) {
             $this->remove($name, $params);
+
             return null;
         }
 
@@ -117,21 +127,6 @@ class Manager
     }
 
     /**
-     * Load resource
-     *
-     * @param string $name   Resource name
-     * @param array  $params Path parameters
-     *
-     * @return Resource
-     */
-    public function load($name, array $params)
-    {
-        $resource = new Resource($this, $name, $params);
-
-        return $resource;
-    }
-
-    /**
      * Remove resource
      *
      * @param string $name   Resource name
@@ -149,6 +144,21 @@ class Manager
         }
 
         return $this;
+    }
+
+    /**
+     * Load resource
+     *
+     * @param string $name   Resource name
+     * @param array  $params Path parameters
+     *
+     * @return Resource
+     */
+    public function load($name, array $params)
+    {
+        $resource = new Resource($this, $name, $params);
+
+        return $resource;
     }
 
     /**
@@ -182,14 +192,14 @@ class Manager
      * @param Resource|File|string $resource
      *
      * @return File|null
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     public function retrieveFile($resource)
     {
         $file = null;
 
         if (empty($resource)) {
-            throw new Exception('Invalid resource provided');
+            throw new \InvalidArgumentException('Resource file is not specified.');
         } else {
             if ($resource instanceof Type) {
                 $file = $resource->getFile();
@@ -198,7 +208,7 @@ class Manager
             } elseif (is_string($resource)) {
                 $file = new File($resource);
             } else {
-                throw new Exception('Invalid type of resource');
+                throw new \InvalidArgumentException('Resource has unsupported type.');
             }
         }
 
@@ -208,21 +218,22 @@ class Manager
     /**
      * Get resource configuration by name
      *
-     * @param string $name
+     * @param string $name Name
      *
      * @return mixed
-     * @throws Exception
+     * @throws \OutOfBoundsException
+     * @throws \InvalidArgumentException
      */
     public function getConfig($name)
     {
         if (!isset($this->resources[$name])) {
-            throw new Exception(sprintf("Configuration for resource '%s' not found", $name));
+            throw new \OutOfBoundsException(sprintf("Resource '%s' configuration not found.", $name));
         }
 
         $config = $this->resources[$name];
 
         if (!isset($config['path'])) {
-            throw new Exception(sprintf("Path for resource '%s' is not specified"));
+            throw new \InvalidArgumentException(sprintf("Resource '%s' path is not specified"));
         }
 
         return $config;

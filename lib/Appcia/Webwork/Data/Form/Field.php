@@ -4,7 +4,6 @@ namespace Appcia\Webwork\Data\Form;
 
 use Appcia\Webwork\Data\Filter;
 use Appcia\Webwork\Data\Validator;
-use Appcia\Webwork\Exception\Exception;
 
 class Field
 {
@@ -12,6 +11,22 @@ class Field
     const SET = 'set';
     const FILE = 'file';
     const PLAIN = 'plain';
+
+    /**
+     * Possible types:
+     * text - for text inputs
+     * set  - data from checkboxes
+     * file - input type file
+     * plan - unsafe, for omitting built-in CSRF protection
+     *
+     * @var array
+     */
+    private static $types = array(
+        self::TEXT,
+        self::SET,
+        self::FILE,
+        self::PLAIN
+    );
 
     /**
      * Name
@@ -62,13 +77,6 @@ class Field
      */
     private $type;
 
-    private static $types = array(
-        self::TEXT,
-        self::SET,
-        self::FILE,
-        self::PLAIN
-    );
-
     /**
      * Constructor
      *
@@ -92,17 +100,71 @@ class Field
      * @param string $name Name
      *
      * @return Field
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
     private function setName($name)
     {
         if (empty($name)) {
-            throw new Exception('Field name cannot be empty');
+            throw new \InvalidArgumentException('Field name cannot be empty');
         }
 
         $this->name = (string) $name;
 
         return $this;
+    }
+
+    /**
+     * Treat value as file that can be uploaded
+     *
+     * @param string $type Type
+     *
+     * @return Field
+     * @throws \OutOfBoundsException
+     */
+    private function setType($type)
+    {
+        if (!in_array($type, self::$types)) {
+            throw new \OutOfBoundsException(sprintf("Field type '%s' is invalid or unsupported", $type));
+        }
+
+        if ($type === self::TEXT) {
+            $this->addFilter(new Filter\StripTags());
+        }
+
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * Register filter
+     *
+     * @param Filter $filter Filter
+     *
+     * @return Field
+     * @throws \LogicException
+     */
+    public function addFilter(Filter $filter)
+    {
+        $name = $filter->getName();
+
+        if (isset($this->filters[$name])) {
+            throw new \LogicException(sprintf("Filter '%s' already exist", $name));
+        }
+
+        $this->filters[$name] = $filter;
+
+        return $this;
+    }
+
+    /**
+     * Get allowed types
+     *
+     * @return array
+     */
+    public static function getTypes()
+    {
+        return self::$types;
     }
 
     /**
@@ -113,6 +175,16 @@ class Field
     public function getName()
     {
         return $this->name;
+    }
+
+    /**
+     * Get filtered value
+     *
+     * @return mixed
+     */
+    public function getValue()
+    {
+        return $this->value;
     }
 
     /**
@@ -128,16 +200,6 @@ class Field
         $this->rawValue = $value;
 
         return $this;
-    }
-
-    /**
-     * Get filtered value
-     *
-     * @return mixed
-     */
-    public function getValue()
-    {
-        return $this->value;
     }
 
     /**
@@ -194,43 +256,6 @@ class Field
     }
 
     /**
-     * @param array $filters
-     *
-     * @return Field
-     */
-    public function setFilters($filters)
-    {
-        $this->filters = array();
-
-        foreach ($filters as $filter) {
-            $this->addFilter($filter);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Register filter
-     *
-     * @param Filter $filter Filter
-     *
-     * @return Field
-     * @throws Exception
-     */
-    public function addFilter(Filter $filter)
-    {
-        $name = $filter->getName();
-
-        if (isset($this->filters[$name])) {
-            throw new Exception(sprintf("Filter '%s' already exist", $name));
-        }
-
-        $this->filters[$name] = $filter;
-
-        return $this;
-    }
-
-    /**
      * Check whether filter is registered
      *
      * @param string $name Filter name
@@ -250,6 +275,44 @@ class Field
     public function getFilters()
     {
         return $this->filters;
+    }
+
+    /**
+     * @param array $filters
+     *
+     * @return Field
+     */
+    public function setFilters($filters)
+    {
+        $this->filters = array();
+
+        foreach ($filters as $filter) {
+            $this->addFilter($filter);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Check whether validator is registered
+     *
+     * @param string $name Validator name
+     *
+     * @return bool
+     */
+    public function hasValidator($name)
+    {
+        return isset($this->validators[$name]);
+    }
+
+    /**
+     * Get registered validators
+     *
+     * @return array
+     */
+    public function getValidators()
+    {
+        return $this->validators;
     }
 
     /**
@@ -276,41 +339,19 @@ class Field
      * @param Validator $validator Validator
      *
      * @return Field
-     * @throws Exception
+     * @throws \LogicException
      */
     public function addValidator(Validator $validator)
     {
         $name = $validator->getName();
 
         if (isset($this->validators[$name])) {
-            throw new Exception(sprintf("Validator '%s' already exist", $name));
+            throw new \LogicException(sprintf("Field validator '%s' already exist", $name));
         }
 
         $this->validators[$name] = $validator;
 
         return $this;
-    }
-
-    /**
-     * Check whether validator is registered
-     *
-     * @param string $name Validator name
-     *
-     * @return bool
-     */
-    public function hasValidator($name)
-    {
-        return isset($this->validators[$name]);
-    }
-
-    /**
-     * Get registered validators
-     *
-     * @return array
-     */
-    public function getValidators()
-    {
-        return $this->validators;
     }
 
     /**
@@ -384,29 +425,6 @@ class Field
     }
 
     /**
-     * Treat value as file that can be uploaded
-     *
-     * @param string $type Type
-     *
-     * @return Field
-     * @throws Exception
-     */
-    private function setType($type)
-    {
-        if (!in_array($type, self::$types)) {
-            throw new Exception(sprintf("Invalid field type '%s'", $type));
-        }
-
-        if ($type === self::TEXT) {
-            $this->addFilter(new Filter\StripTags());
-        }
-
-        $this->type = $type;
-
-        return $this;
-    }
-
-    /**
      * Get type
      *
      * @return string
@@ -414,16 +432,6 @@ class Field
     public function getType()
     {
         return $this->type;
-    }
-
-    /**
-     * Get allowed types
-     *
-     * @return array
-     */
-    public static function getTypes()
-    {
-        return self::$types;
     }
 
     /**

@@ -1,8 +1,8 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Core;
 
-use Appcia\Webwork\Exception\Exception;
+use Appcia\Webwork\Web\Context;
 
 abstract class Component
 {
@@ -41,8 +41,7 @@ abstract class Component
         $pos = strrpos($class, '\\');
         if ($pos === false) {
             $name = $class;
-        }
-        else {
+        } else {
             $name = mb_substr($class, $pos + 1);
         }
 
@@ -65,12 +64,12 @@ abstract class Component
      * Get use context
      *
      * @return Context
-     * @throws Exception
+     * @throws \LogicException
      */
     public function getContext()
     {
         if ($this->context === null) {
-            throw new Exception(sprintf("Component '%s' is not usable without any context", $this->name));
+            throw new \LogicException(sprintf("Component '%s' is not usable without any context", $this->name));
         }
 
         return $this->context;

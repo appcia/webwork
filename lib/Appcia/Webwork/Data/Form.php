@@ -2,13 +2,11 @@
 
 namespace Appcia\Webwork\Data;
 
-use Appcia\Webwork\Context;
+use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Data\Form\Field;
-use Appcia\Webwork\Exception\Exception;
 
 class Form
 {
-    const TOKEN_SALT = 'dskljakld32#%$@#343_';
     const METADATA = 'metadata';
 
     /**
@@ -19,11 +17,11 @@ class Form
     private $context;
 
     /**
-     * Data encoder / decoder
+     * Data encoder
      *
      * @var Encoder
      */
-    private $coder;
+    private $encoder;
 
     /**
      * Fields
@@ -54,7 +52,7 @@ class Form
         $this->context = $context;
         $this->fields = array();
         $this->valid = true;
-        $this->coder = new Encoder(Encoder::BASE64);
+        $this->encoder = new Encoder(Encoder::BASE64);
         $this->metadata = new Field(self::METADATA);
 
         $this->build();
@@ -91,17 +89,17 @@ class Form
     /**
      * Add a field
      *
-     * @param Field $field
+     * @param Field $field Field
      *
      * @return Form
-     * @throws Exception
+     * @throws \LogicException
      */
     public function addField(Field $field)
     {
         $name = $field->getName();
 
         if ($this->hasField($name)) {
-            throw new Exception(sprintf("Field '%s' already exist", $name));
+            throw new \LogicException(sprintf("Field '%s' already exist", $name));
         }
 
         $this->fields[$name] = $field;
@@ -127,12 +125,12 @@ class Form
      * @param string $name Field name
      *
      * @return Field
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
     public function getField($name)
     {
         if (!isset($this->fields[$name])) {
-            throw new Exception(sprintf("Field '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
         }
 
         return $this->fields[$name];
@@ -159,7 +157,7 @@ class Form
      */
     public function setMetadata(array $metadata)
     {
-        $value = $this->coder->code($metadata);
+        $value = $this->encoder->encode($metadata);
         $this->metadata->setValue($value);
 
         return $this;
@@ -169,38 +167,37 @@ class Form
      * Get metadata
      *
      * @return mixed
-     * @throws Exception
      */
     public function getMetadata()
     {
         $value = $this->metadata->getValue();
-        $metadata = $this->coder->decode($value);
+        $metadata = $this->encoder->decode($value);
 
         return $metadata;
     }
 
     /**
-     * Set data encoder / decoder
+     * Set data encoder
      *
-     * @param Encoder $coder
+     * @param Encoder $encoder Encoder
      *
      * @return Form
      */
-    public function setCoder($coder)
+    public function setEncoder($encoder)
     {
-        $this->coder = $coder;
+        $this->encoder = $encoder;
 
         return $this;
     }
 
     /**
-     * Get data encoder / decoder
+     * Get data encoder
      *
      * @return Encoder
      */
-    public function getCoder()
+    public function getEncoder()
     {
-        return $this->coder;
+        return $this->encoder;
     }
 
     /**
@@ -209,12 +206,12 @@ class Form
      * @param string $name Field name
      *
      * @return mixed
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
     public function get($name)
     {
         if (!isset($this->fields[$name])) {
-            throw new Exception(sprintf("Field '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
         }
 
         $field = $this->fields[$name];
@@ -260,12 +257,12 @@ class Form
      * @param mixed  $value Field value
      *
      * @return Form
-     * @throws Exception
+     * @throws \OutOfBoundsException
      */
     public function set($name, $value)
     {
         if (!isset($this->fields[$name])) {
-            throw new Exception(sprintf("Field '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
         }
 
         $field = $this->fields[$name];
@@ -288,7 +285,6 @@ class Form
      * @param array $data Data
      *
      * @return Form
-     * @throws Exception
      */
     public function populate(array $data)
     {
@@ -312,13 +308,13 @@ class Form
      * @param array $data Data
      *
      * @return Form
-     * @throws Exception
+     * @throws \LogicException
      */
     public function init(array $data)
     {
         foreach ($data as $name => $value) {
             if (isset($this->fields[$name])) {
-                throw new Exception(sprintf("Field '%s' already exists and cannot be initialized", $name));
+                throw new \LogicException(sprintf("Field '%s' already exists and cannot be initialized", $name));
             } else {
                 $field = new Field($name);
                 $field->setValue($value);
@@ -414,7 +410,6 @@ class Form
      * @param bool   $defined Only defined values (skip nulls)
      *
      * @return Form
-     * @throws Exception
      */
     public function suck($object, $defined = true)
     {
@@ -441,19 +436,19 @@ class Form
     /**
      * Generate token basing on field names and custom key
      *
-     * @param string|null $key Custom key, could be some date if token should expire after some time
+     * @param string|null $salt Salt
      *
      * @return string
-     * @throws Exception
+     * @throws \InvalidArgumentException
      */
-    public function tokenize($key = null)
+    public function tokenize($salt = null)
     {
-        if ($key !== null && !is_string($key) && !is_numeric($key)) {
-            throw new Exception('Token key should be a number or a string');
+        if ($salt !== null && !is_string($salt) && !is_numeric($salt)) {
+            throw new \InvalidArgumentException('Form token key should be a number or a string');
         }
 
-        $key = (string) $key . implode('', array_keys($this->fields));
-        $token = sha1(md5($key . self::TOKEN_SALT));
+        $salt = (string) $salt . implode('', array_keys($this->fields));
+        $token = sha1(md5($salt));
 
         return $token;
     }
