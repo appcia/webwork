@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Data;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Encoder
 {
@@ -35,20 +35,20 @@ class Encoder
     }
 
     /**
-     * @param int $encode
+     * Creator
+     *
+     * @param string $encoding Encoding
      *
      * @return Encoder
      * @throws Exception
      */
-    public function setEncoding($encode)
+    public static function create($encoding)
     {
-        if (!array_key_exists($encode, self::$encodingValues)) {
-            throw new Exception(sprintf("Invalid encoding: '%s'", $encode));
+        if (!is_string($encoding)) {
+            throw new Exception('Encoder cannot be created. Invalid argument specified');
         }
 
-        $this->encoding = $encode;
-
-        return $this;
+        return new self($encoding);
     }
 
     /**
@@ -65,6 +65,23 @@ class Encoder
     public function getEncoding()
     {
         return $this->encoding;
+    }
+
+    /**
+     * @param int $encode
+     *
+     * @return Encoder
+     * @throws Exception
+     */
+    public function setEncoding($encode)
+    {
+        if (!array_key_exists($encode, self::$encodingValues)) {
+            throw new Exception(sprintf("Invalid encoding: '%s'", $encode));
+        }
+
+        $this->encoding = $encode;
+
+        return $this;
     }
 
     /**
@@ -107,6 +124,7 @@ class Encoder
     public function decode($value)
     {
         $data = null;
+
         switch ($this->encoding) {
             case self::PHP:
                 $data = @unserialize($value);

@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\Resource;
 
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Resource;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;

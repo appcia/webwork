@@ -2,8 +2,27 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Routing\Router;
+use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Storage\Session;
+
 class Bootstrap
 {
+    const DEVELOPMENT = 'dev';
+
+    const TEST = 'test';
+
+    const PRODUCTION = 'prod';
+
+    /**
+     * @var array
+     */
+    private static $environments = array(
+        self::DEVELOPMENT,
+        self::TEST,
+        self::PRODUCTION
+    );
+
     /**
      * Container
      *
@@ -36,19 +55,6 @@ class Bootstrap
      */
     private $environment;
 
-    const DEVELOPMENT = 'dev';
-    const TEST = 'test';
-    const PRODUCTION = 'prod';
-
-    /**
-     * @var array
-     */
-    private static $environments = array(
-        self::DEVELOPMENT,
-        self::TEST,
-        self::PRODUCTION
-    );
-
     /**
      * Constructor
      *
@@ -63,8 +69,8 @@ class Bootstrap
     {
         if (empty($env)) {
             throw new Exception('Environment not specified.' . PHP_EOL
-                . "Set environmental variable named 'APPLICATION_ENV' in vhost configuration." . PHP_EOL
-                . "If you are running CLI, to set this variable, you could use 'export' command.");
+            . "Set environmental variable named 'APPLICATION_ENV' in vhost configuration." . PHP_EOL
+            . "If you are running CLI, to set this variable, you could use 'export' command.");
         }
 
         if (!in_array($env, self::$environments)) {
@@ -81,17 +87,13 @@ class Bootstrap
     }
 
     /**
-     * Get server API
+     * Get all possible environments
      *
-     * @return string
+     * @return array
      */
-    public function getSapi()
+    public static function getEnvironments()
     {
-        if (defined('PHP_SAPI') && PHP_SAPI !== '') {
-            return PHP_SAPI;
-        } else {
-            return php_sapi_name();
-        }
+        return self::$environments;
     }
 
     /**
@@ -105,6 +107,20 @@ class Bootstrap
         $flag = (substr($sapi, 0, 3) == 'cgi');
 
         return $flag;
+    }
+
+    /**
+     * Get server API
+     *
+     * @return string
+     */
+    public function getSapi()
+    {
+        if (defined('PHP_SAPI') && PHP_SAPI !== '') {
+            return PHP_SAPI;
+        } else {
+            return php_sapi_name();
+        }
     }
 
     /**
@@ -214,7 +230,7 @@ class Bootstrap
 
         if (empty($config['app'])) {
             throw new Exception("Configuration for base application module is empty."
-                . " Check whether key 'app' really exist in config file.");
+            . " Check whether key 'app' really exist in config file.");
         }
 
         $this->loadModule('app', $config['app']);
@@ -222,7 +238,7 @@ class Bootstrap
         $modules = $config->get('modules');
         if (empty($modules)) {
             throw new Exception("Configuration for modules is empty."
-                . " Check whether key 'modules' has at least one module specified.");
+            . " Check whether key 'modules' has at least one module specified.");
         }
 
         foreach ($modules as $name => $config) {
@@ -335,16 +351,6 @@ class Bootstrap
     public function getEnvironment()
     {
         return $this->environment;
-    }
-
-    /**
-     * Get all possible environments
-     *
-     * @return array
-     */
-    public static function getEnvironments()
-    {
-        return self::$environments;
     }
 
     /**

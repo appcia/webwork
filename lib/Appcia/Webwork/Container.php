@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Storage\Config;
+
 /**
  * Pimple based DI container
  *
@@ -71,7 +73,7 @@ class Container
      */
     public function keys()
     {
-        return $this->values->keys();
+        return $this->values->getKeys();
     }
 
     /**

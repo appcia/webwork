@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\View\Renderer;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
@@ -141,7 +141,7 @@ class Php extends Renderer
     /**
      * Set sanitization enabled / disabled
      *
-     * @param bool $sanitization
+     * @param bool $sanitization Flag
      *
      * @return Php
      */
@@ -169,7 +169,7 @@ class Php extends Renderer
      *
      * @return mixed
      */
-    public function sanitize($content)
+    protected function sanitize($content)
     {
         $search = array(
             '/\>[^\S ]+/s',
@@ -194,7 +194,7 @@ class Php extends Renderer
      * @return string
      * @throws Exception
      */
-    public function capture($template)
+    protected function capture($template)
     {
         $file = $this->getView()
             ->getTemplatePath($template);

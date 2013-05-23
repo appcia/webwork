@@ -1,8 +1,8 @@
 <?
 
-namespace Appcia\Webwork\Router;
+namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Group
 {
@@ -40,9 +40,6 @@ class Group
     public function __construct()
     {
         $this->routes = array();
-        $this->prefix = null;
-        $this->suffix = null;
-        $this->module = null;
     }
 
     /**

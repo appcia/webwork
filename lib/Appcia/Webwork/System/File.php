@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\System;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class File
 {

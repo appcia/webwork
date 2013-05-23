@@ -2,83 +2,47 @@
 
 namespace Appcia\Webwork\Util;
 
-use Appcia\Webwork\Session;
+use Appcia\Webwork\Storage\Session\Space;
 
 class Flash
 {
-    /**
-     * @var Session
-     */
-    private $session;
+    const SUCCESS = 'success';
+    const INFO = 'info';
+    const WARNING = 'warning';
+    const ERROR = 'error';
 
     /**
-     * @var string
-     */
-    private $namespace;
-
-    /**
-     * @var array
+     * Message storage
+     *
+     * @var Space
      */
     private $messages;
 
     /**
      * Constructor
      *
-     * @param Session $session
-     * @param string $namespace
+     * @param Space $space Session space
      */
-    public function __construct(Session $session, $namespace = 'flash')
+    public function __construct(Space $space)
     {
-        $this->session = $session;
-        $this->namespace = $namespace;
-        $this->messages = array();
-
-        $this->load();
-    }
-
-    /**
-     * Load messages from storage
-     *
-     * @return Flash
-     */
-    private function load()
-    {
-        if ($this->session->has($this->namespace)) {
-            $this->messages = $this->session->get($this->namespace);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Save messages in storage
-     *
-     * @return Flash
-     */
-    private function save()
-    {
-        $this->session->set($this->namespace, $this->messages);
-
-        return $this;
+        $space->setAutoflush(true);
+        $this->messages = $space;
     }
 
     /**
      * Add flash message to session storage
      *
-     * @param $message
-     * @param $type
+     * @param string $message Text
+     * @param string $type    Type
      *
      * @return Flash
      */
     public function addMessage($message, $type)
     {
-        if (!isset($this->messages[$type])) {
-            $this->messages[$type] = array();
-        }
+        $messages = (array) $this->messages[$type];
+        $messages[] = (string) $message;
 
-        $this->messages[$type][] = (string) $message;
-        
-        $this->save();
+        $this->messages[$type] = $messages;
 
         return $this;
     }
@@ -86,19 +50,17 @@ class Flash
     /**
      * Clear specific flash messages (or all)
      *
-     * @param string $type
+     * @param string $type Type
      *
      * @return Flash
      */
     public function clearMessages($type = null)
     {
-        if ($type) {
+        if ($type !== null) {
             unset($this->messages[$type]);
         } else {
             $this->messages = array();
         }
-
-        $this->save();
 
         return $this;
     }
@@ -123,7 +85,7 @@ class Flash
     /**
      * Set messages
      *
-     * @param array $messages
+     * @param array $messages Data
      *
      * @return array
      */
@@ -137,13 +99,13 @@ class Flash
     /**
      * Get specific flash messages (or all)
      *
-     * @param string $type
+     * @param string $type Type
      *
      * @return array
      */
     public function getMessages($type = null)
     {
-        if ($type) {
+        if ($type !== null) {
             if (!isset($this->messages[$type])) {
                 return array();
             } else {
@@ -157,7 +119,7 @@ class Flash
     /**
      * Get specific flash messages (or all)
      *
-     * @param string $type
+     * @param string $type Type
      *
      * @return array
      */
@@ -165,7 +127,7 @@ class Flash
     {
         $messages = array();
 
-        if ($type) {
+        if ($type !== null) {
             if (isset($this->messages[$type])) {
                 $messages = $this->messages[$type];
                 $this->messages[$type] = array();
@@ -175,21 +137,19 @@ class Flash
             $this->messages = array();
         }
 
-        $this->save();
-
         return $messages;
     }
 
     /**
      * Add success message
      *
-     * @param $message
+     * @param string $message Text
      *
      * @return Flash
      */
     public function success($message)
     {
-        $this->addMessage($message, 'success');
+        $this->addMessage($message, self::SUCCESS);
 
         return $this;
     }
@@ -197,13 +157,13 @@ class Flash
     /**
      * Add information message
      *
-     * @param $message
+     * @param string $message Text
      *
      * @return Flash
      */
     public function info($message)
     {
-        $this->addMessage($message, 'info');
+        $this->addMessage($message, self::INFO);
 
         return $this;
     }
@@ -211,13 +171,13 @@ class Flash
     /**
      * Add warning message
      *
-     * @param $message
+     * @param string $message Text
      *
      * @return Flash
      */
     public function warning($message)
     {
-        $this->addMessage($message, 'warning');
+        $this->addMessage($message, self::WARNING);
 
         return $this;
     }
@@ -225,13 +185,13 @@ class Flash
     /**
      * Add success message
      *
-     * @param $message
+     * @param string $message Text
      *
      * @return Flash
      */
     public function error($message)
     {
-        $this->addMessage($message, 'error');
+        $this->addMessage($message, self::ERROR);
 
         return $this;
     }

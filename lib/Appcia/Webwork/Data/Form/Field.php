@@ -4,7 +4,7 @@ namespace Appcia\Webwork\Data\Form;
 
 use Appcia\Webwork\Data\Filter;
 use Appcia\Webwork\Data\Validator;
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Field
 {

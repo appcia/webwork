@@ -1,8 +1,8 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Storage;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Config implements \Iterator, \ArrayAccess
 {
@@ -48,22 +48,34 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * @param string $file Path to file to be loaded
+     * Get keys
+     *
+     * @return array
+     */
+    public function getKeys()
+    {
+        return array_keys($this->data);
+    }
+
+    /**
+     * Load from file
+     *
+     * @param string $path Path
      *
      * @return Config
      * @throws Exception
      */
-    public function loadFile($file)
+    public function loadFile($path)
     {
-        if (!file_exists($file)) {
-            throw new Exception(sprintf("Config file not exists: '%s'", $file));
+        if (!file_exists($path)) {
+            throw new Exception(sprintf("Config file not exists: '%s'", $path));
         }
 
         // Possible syntax errors, do not handle them / expensive!
-        $data = include($file);
+        $data = include($path);
 
         if (!is_array($data)) {
-            throw new Exception("Config file should return array: '%s'", $file);
+            throw new Exception("Config file should return array: '%s'", $path);
         }
 
         $this->extend(new self($data));
@@ -359,14 +371,6 @@ class Config implements \Iterator, \ArrayAccess
     public function key()
     {
         return key($this->data);
-    }
-
-    /**
-     * @return array
-     */
-    public function keys()
-    {
-        return array_keys($this->data);
     }
 
     /**

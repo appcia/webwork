@@ -1,0 +1,169 @@
+<?
+
+namespace Appcia\Webwork\Auth;
+
+use Appcia\Webwork\Exception\Exception;
+use Appcia\Webwork\Routing\Route;
+use Appcia\Webwork\Storage\Session\Space;
+
+class Acl extends Auth
+{
+    const WILDCARD = '*';
+
+    const ALL = 'all';
+    const GUEST = 'guest';
+    const USER = 'user';
+
+    /**
+     * Access groups
+     *
+     * @var array
+     */
+    private static $groups = array(
+        self::ALL,
+        self::GUEST,
+        self::USER
+    );
+
+    /**
+     * Access control list based on groups and routes
+     *
+     * @var array
+     */
+    private $acl;
+
+    /**
+     * Constructor
+     *
+     * @param Space $space Data storage
+     */
+    public function __construct(Space $space)
+    {
+        parent::__construct($space);
+
+        $this->acl = array();
+    }
+
+    /**
+     * Get access groups
+     *
+     * @return array
+     */
+    public static function getGroups()
+    {
+        return self::$groups;
+    }
+
+    /**
+     * Verify route accessibility using ACL based on user's group
+     *
+     * @param Route|string $route Route object or name
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public function isAccessible($route)
+    {
+        if (empty($route)) {
+            throw new Exception('ACL auth failed. Invalid route specified.');
+        }
+
+        if ($route instanceof Route) {
+            $route = $route->getName();
+        }
+
+        if ($this->verifyRoute($route, self::ALL)) {
+            return true;
+        }
+
+        $guestAccess = $this->verifyRoute($route, self::GUEST);
+
+        if (!$this->isAuthorized()) {
+            return $guestAccess;
+        }
+
+        if (!$guestAccess) {
+            if ($this->verifyRoute($route, self::USER)) {
+                return true;
+            }
+
+            if ($this->verifyUser($route)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verify access to route with extra expressions
+     *
+     * @param string     $test  Route to be tested
+     * @param int|string $group Access group
+     *
+     * @return bool
+     */
+    protected function verifyRoute($test, $group)
+    {
+        if (empty($this->acl[$group])) {
+            return false;
+        }
+
+        if (in_array($test, $this->acl[$group])) {
+            return true;
+        }
+
+        foreach ($this->acl[$group] as $route) {
+            $wildcard = substr($route, -1);
+
+            if ($wildcard !== self::WILDCARD) {
+                continue;
+            }
+
+            $route = rtrim($route, self::WILDCARD);
+            $pos = strpos($test, $route);
+
+            if ($pos === 0) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Verify user access associated with external dependencies (group in database etc)
+     *
+     * @param Route $route Route
+     *
+     * @return bool
+     */
+    protected function verifyUser($route)
+    {
+        return false;
+    }
+
+    /**
+     * Get access control list
+     *
+     * @return array
+     */
+    public function getAcl()
+    {
+        return $this->acl;
+    }
+
+    /**
+     * Set access control list
+     *
+     * @param array $acl Data
+     *
+     * @return Auth
+     */
+    public function setAcl(array $acl)
+    {
+        $this->acl = $acl;
+
+        return $this;
+    }
+}

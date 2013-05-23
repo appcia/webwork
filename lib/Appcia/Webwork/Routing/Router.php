@@ -1,10 +1,13 @@
 <?
 
-namespace Appcia\Webwork;
+namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Router\Group;
-use Appcia\Webwork\Router\Route;
 use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Exception\Exception;
+use Appcia\Webwork\Request;
+use Appcia\Webwork\Routing\Group;
+use Appcia\Webwork\Routing\Route;
+use Appcia\Webwork\Storage\Config;
 
 class Router
 {

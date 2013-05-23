@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\Data\Filter;
 
 use Appcia\Webwork\Data\Filter;
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Integer extends Filter
 {

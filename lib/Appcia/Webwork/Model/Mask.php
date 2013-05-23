@@ -1,8 +1,8 @@
 <?
 
-namespace Appcia\Webwork\Data;
+namespace Appcia\Webwork\Model;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Mask
 {

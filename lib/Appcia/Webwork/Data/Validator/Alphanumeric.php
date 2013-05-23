@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Alphanumeric extends Validator
 {

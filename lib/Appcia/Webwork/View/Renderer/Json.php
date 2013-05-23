@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\View\Renderer;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 

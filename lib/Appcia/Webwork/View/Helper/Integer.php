@@ -4,7 +4,7 @@ namespace Appcia\Webwork\View\Helper;
 
 use Appcia\Webwork\View\Helper;
 
-class Number extends Helper
+class Integer extends Helper
 {
     /**
      * Caller
@@ -13,7 +13,7 @@ class Number extends Helper
      *
      * @return string
      */
-    public function number($number)
+    public function integer($number)
     {
         $number = intval($number);
 

@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\View\Helper;
 
 use Appcia\Webwork\View\Helper;
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Block extends Helper
 {

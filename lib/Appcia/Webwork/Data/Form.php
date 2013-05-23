@@ -4,7 +4,7 @@ namespace Appcia\Webwork\Data;
 
 use Appcia\Webwork\Context;
 use Appcia\Webwork\Data\Form\Field;
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Form
 {

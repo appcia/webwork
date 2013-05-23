@@ -3,21 +3,29 @@
 namespace Appcia\Webwork\Util;
 
 use Appcia\Webwork\System\File;
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Logger
 {
     /**
+     * Storage file
+     *
      * @var File
      */
     private $file;
 
     /**
+     * Date format
+     * Like in PHP date function
+     *
      * @var string
      */
     private $dateFormat;
 
     /**
+     * Message format
+     * Available variables: {date} {message} {level}
+     *
      * @var string
      */
     private $messageFormat;
@@ -40,7 +48,7 @@ class Logger
     /**
      * Set date format
      *
-     * @param $format
+     * @param string $format PHP date function format
      * @return Logger
      */
     public function setDateFormat($format)
@@ -61,7 +69,8 @@ class Logger
     }
 
     /**
-     * Get date format
+     * Set date format
+     * Available variables: {date} {message} {level}
      *
      * @param string $messageFormat
      *
@@ -95,9 +104,12 @@ class Logger
      */
     public function write($message, $level)
     {
+        $date = date($this->dateFormat);
+        $message = trim($message);
+
         $message = str_replace(
             array('{level}', '{date}', '{message}'),
-            array(mb_strtoupper($level), date($this->dateFormat), (string) $message),
+            array(mb_strtoupper($level), $date, $message),
             $this->messageFormat
         ) . PHP_EOL;
 
@@ -107,17 +119,18 @@ class Logger
     /**
      * Get last logs
      *
-     * @param int $lines Line count numbered from end
+     * @param int $count Line count numbered from end
      *
      * @return null|string
      */
-    public function tail($lines)
+    public function tail($count)
     {
         if (!$this->file->exists()) {
             return null;
         }
 
-        $data = implode($this->file->tail($lines), PHP_EOL);
+        $lines = $this->file->tail($count);
+        $data = implode($lines, PHP_EOL);
 
         return $data;
     }

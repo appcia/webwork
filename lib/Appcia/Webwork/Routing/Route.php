@@ -1,8 +1,8 @@
 <?
 
-namespace Appcia\Webwork\Router;
+namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 
 class Route
 {

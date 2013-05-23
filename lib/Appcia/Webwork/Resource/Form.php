@@ -5,7 +5,7 @@ namespace Appcia\Webwork\Resource;
 use Appcia\Webwork\Context;
 use Appcia\Webwork\Data\Form as BasicForm;
 use Appcia\Webwork\Data\Form\Field;
-use Appcia\Webwork\Exception;
+use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
 
