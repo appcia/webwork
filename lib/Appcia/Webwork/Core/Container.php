@@ -3,6 +3,7 @@
 namespace Appcia\Webwork;
 
 use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Exception\Exception;
 
 /**
  * Pimple based DI container

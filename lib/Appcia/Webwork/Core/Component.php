@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Exception\Exception;
+
 abstract class Component
 {
     /**
@@ -68,7 +70,7 @@ abstract class Component
     public function getContext()
     {
         if ($this->context === null) {
-            throw new Exception(sprintf("Cannot use component '%s' without any context", $this->name));
+            throw new Exception(sprintf("Component '%s' is not usable without any context", $this->name));
         }
 
         return $this->context;

@@ -3,6 +3,7 @@
 namespace Appcia\Webwork;
 
 use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Module;
 use Appcia\Webwork\Routing\Route;
@@ -20,26 +21,28 @@ class Dispatcher
     const END = 'dispatchEnd';
 
     /**
+     * DI container
+     *
      * @var Container
      */
     private $container;
 
     /**
-     * Dispatching event listeners
+     * Event listeners
      *
      * @var array
      */
     private $listeners;
 
     /**
-     * Specific exception handlers
+     * Exception handlers
      *
      * @var array
      */
     private $handlers;
 
     /**
-     * Catched exception
+     * Caught exception
      *
      * @var array
      */

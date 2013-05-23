@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork;
 
+use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Routing\Router;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Storage\Session;
@@ -9,12 +10,12 @@ use Appcia\Webwork\Storage\Session;
 class Bootstrap
 {
     const DEVELOPMENT = 'dev';
-
     const TEST = 'test';
-
     const PRODUCTION = 'prod';
 
     /**
+     * Possible environments
+     *
      * @var array
      */
     private static $environments = array(
@@ -31,26 +32,36 @@ class Bootstrap
     private $container;
 
     /**
+     * Registered modules
+     *
      * @var array
      */
     private $modules;
 
     /**
+     * Root path
+     *
      * @var string
      */
     private $rootPath;
 
     /**
+     * Bootstrap configuration
+     *
      * @var string
      */
     private $configFile;
 
     /**
+     * PSR autoloader
+     *
      * @var object
      */
     private $autoloader;
 
     /**
+     * Current environment
+     *
      * @var string
      */
     private $environment;

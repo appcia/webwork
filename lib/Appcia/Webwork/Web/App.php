@@ -2,10 +2,6 @@
 
 namespace Appcia\Webwork;
 
-use Appcia\Webwork\Bootstrap;
-use Appcia\Webwork\Request;
-use Appcia\Webwork\Response;
-
 class App
 {
     /**
