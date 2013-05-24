@@ -20,16 +20,14 @@ class RouteUrl extends Helper
             return null;
         }
 
-        $container = $this
-            ->getView()
-            ->getContainer();
-
         if (!is_array($params)) {
             $params = array();
         }
 
-        $router = $container->get('router');
-        $url = $router->assemble($name, $params);
+        $url = $this->getView()
+            ->getApp()
+            ->getRouter()
+            ->assemble($name, $params);
 
         return $url;
     }

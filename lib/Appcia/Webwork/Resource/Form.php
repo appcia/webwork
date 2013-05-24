@@ -71,7 +71,7 @@ class Form extends BasicForm
             }
 
             if (!$this->isSkipped($name)) {
-                $resource = $this->manager->load('upload', $params);
+                $resource = $this->manager->load(Manager::UPLOAD, $params);
 
                 if (!$resource->exists()) {
                     $resource = isset($resources[$name]) ? $resources[$name] : null;
@@ -100,7 +100,7 @@ class Form extends BasicForm
             }
 
             $this->manager->remove(
-                'upload',
+                Manager::UPLOAD,
                 array(
                     'token' => $token,
                     'key' => $name
@@ -285,7 +285,7 @@ class Form extends BasicForm
         $tempFile = new File($data['tmp_name']);
 
         $resource = $this->manager->save(
-            'upload',
+            Manager::UPLOAD,
             array(
                 'token' => $token,
                 'key' => $key,

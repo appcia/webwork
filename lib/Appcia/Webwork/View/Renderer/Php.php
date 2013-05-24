@@ -87,8 +87,7 @@ class Php extends Renderer
         }
 
         $modules = $this->getView()
-            ->getContainer()
-            ->get('bootstrap')
+            ->getApp()
             ->getModules();
 
         foreach ($modules as $module) {
@@ -113,8 +112,8 @@ class Php extends Renderer
     {
         if (!isset($this->helpers[$name])) {
             $context = $this->getView()
-                ->getContainer()
-                ->get('context');
+                ->getApp()
+                ->getContext();
 
             $helper = $this->createHelper($name);
             $helper->setView($this->getView())
@@ -202,11 +201,11 @@ class Php extends Renderer
         extract($data);
         ob_start();
 
-        if ((@include $file) === false) {
-            throw new \InvalidArgumentException(sprintf("Template file cannot be included properly: '%s'" . PHP_EOL
-                . 'Check whether that file really exists.', $file
-            ));
+        if (!is_file($file)) {
+            throw new \InvalidArgumentException(sprintf("Template file does not exist: '%s'.", $file));
         }
+
+        include $file;
 
         $content = ob_get_clean();
 

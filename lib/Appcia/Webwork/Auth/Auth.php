@@ -89,6 +89,7 @@ class Auth
      *
      * @return object
      * @throws \LogicException
+     * @throws \ErrorException
      */
     public function getUser()
     {
@@ -97,7 +98,12 @@ class Auth
         }
 
         if ($this->user === null) {
-            $this->user = $this->wakeupUser($this->data['userData']);
+            $user = $this->wakeupUser($this->data['userData']);
+            if ($user === null) {
+                throw new \ErrorException('Auth failed. User is not available.');
+            }
+
+            $this->user = $user;
         }
 
         return $this->user;

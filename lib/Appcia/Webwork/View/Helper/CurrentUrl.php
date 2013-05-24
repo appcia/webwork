@@ -13,17 +13,16 @@ class CurrentUrl extends Helper
      */
     public function currentUrl()
     {
-        $container = $this
-            ->getView()
-            ->getContainer();
+        $app = $this->getView()
+            ->getApp();
 
-        $router = $container->get('router');
-        $dispatcher = $container->get('dispatcher');
+        $router = $app->getRouter();
+        $dispatcher = $app->getDispatcher();
 
         $name = $dispatcher->getRoute()
             ->getName();
 
-        $params = $dispatcher->getRequest()
+        $params = $app->getRequest()
                 ->getUriParams();
 
         $url = $router->assemble($name, $params);

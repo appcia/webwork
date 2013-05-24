@@ -2,18 +2,18 @@
 
 namespace Appcia\Webwork\View;
 
-use Appcia\Webwork\Core\Container;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
+use Appcia\Webwork\Web\App;
 
 class View
 {
     /**
-     * DI container
+     * Application
      *
-     * @var Container
+     * @var App
      */
-    private $container;
+    private $app;
 
     /**
      * Data
@@ -39,11 +39,11 @@ class View
     /**
      * Constructor
      *
-     * @param Container $container
+     * @param App $app
      */
-    public function __construct(Container $container = null)
+    public function __construct(App $app)
     {
-        $this->container = $container;
+        $this->app = $app;
 
         $this->data = array();
         $this->setRenderer(new Renderer\Php());
@@ -51,18 +51,12 @@ class View
 
     /**
      * Get a container
-     * Can be used only in view created by dispatcher
      *
-     * @return Container
-     * @throws \LogicException
+     * @return App
      */
-    public function getContainer()
+    public function getApp()
     {
-        if ($this->container === null) {
-            throw new \LogicException('View is not associated with any container. Invalid use');
-        }
-
-        return $this->container;
+        return $this->app;
     }
 
     /**
@@ -192,7 +186,7 @@ class View
      */
     public function getModulePath()
     {
-        $dispatcher = $this->container->get('dispatcher');
+        $dispatcher = $this->app->getDispatcher();
         $path = $dispatcher->getModulePath() . '/view';
 
         return $path;

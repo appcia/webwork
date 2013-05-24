@@ -2,70 +2,98 @@
 
 namespace Appcia\Webwork\Web;
 
+use Appcia\Webwork\Core\App as BaseApp;
 use Appcia\Webwork\Core\Bootstrap;
+use Appcia\Webwork\Routing\Router;
+use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Web\Dispatcher;
 
-class App
+class App extends BaseApp
 {
-    /**
-     * @var Bootstrap
-     */
-    private $bootstrap;
-
     /**
      * @var Request
      */
     private $request;
 
     /**
-     * @var Response
+     * @var Dispatcher
      */
-    private $response;
+    private $dispatcher;
+
+    /**
+     * @var Router
+     */
+    private $router;
+
+    /**
+     * @var Context
+     */
+    private $context;
 
     /**
      * Constructor
      *
-     * @param Bootstrap $bootstrap
+     * @param Config $config Configuration
      */
-    public function __construct(Bootstrap $bootstrap)
+    public function __construct(Config $config)
     {
-        $this->bootstrap = $bootstrap;
+        parent::__construct($config);
+
+        $this->dispatcher = new Dispatcher($this);
+        $this->router = new Router();
+        $this->context = new Context();
     }
 
     /**
-     * Run in browser
+     * Initialize whole application
      *
-     * @return int
+     * @return App
+     */
+    public function bootstrap() {
+        $this->loadModules();
+        $this->applyConfig();
+
+        return $this;
+    }
+
+    /**
+     * Apply configuration
+     *
+     * @return App
+     */
+    private function applyConfig()
+    {
+        $this->config->grab('request')
+            ->inject($this->request);
+
+        $this->config->grab('router')
+            ->inject($this->router);
+
+        $this->config->grab('dispatcher')
+            ->inject($this->dispatcher);
+
+        $this->config->grab('context')
+            ->inject($this->context);
+
+        return $this;
+    }
+
+    /**
+     * Run application
+     *
+     * @return Response
+     * @throws \LogicException
      */
     public function run()
     {
-        $request = new Request();
-        $request->loadGlobals();
+        if ($this->request === null) {
+            throw new \LogicException('Application run error. Request is not specified.');
+        }
 
-        $container = $this->bootstrap->getContainer();
+        $route = $this->router->match($this->request);
+        $response = $this->dispatcher->dispatch($route);
 
-        $router = $container->get('router');
-        $route = $router->match($request);
-
-        $response = $container->get('dispatcher')
-            ->setRequest($request)
-            ->dispatch($route)
-            ->getResponse();
-
-        $response->display();
-        $status = $response->getStatus();
-
-        $this->request = $request;
-        $this->response = $response;
-
-        return $status;
-    }
-
-    /**
-     * @return Bootstrap
-     */
-    public function getBootstrap()
-    {
-        return $this->bootstrap;
+        return $response;
     }
 
     /**
@@ -77,10 +105,74 @@ class App
     }
 
     /**
-     * @return Response
+     * @param Request $request
+     *
+     * @return App
      */
-    public function getResponse()
+    public function setRequest(Request $request)
     {
-        return $this->response;
+        $this->request = $request;
+
+        return $this;
+    }
+
+    /**
+     * @return Context
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
+
+    /**
+     * @param Context $context
+     *
+     * @return App
+     */
+    public function setContext(Context $context)
+    {
+        $this->context = $context;
+
+        return $this;
+    }
+
+    /**
+     * @return Dispatcher
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher;
+    }
+
+    /**
+     * @param Dispatcher $dispatcher
+     *
+     * @return App
+     */
+    public function setDispatcher(Dispatcher $dispatcher)
+    {
+        $this->dispatcher = $dispatcher;
+
+        return $this;
+    }
+
+    /**
+     * @return Router
+     */
+    public function getRouter()
+    {
+        return $this->router;
+    }
+
+    /**
+     * @param  Router $router
+     *
+     * @return App
+     */
+    public function setRouter(Router $router)
+    {
+        $this->router = $router;
+
+        return $this;
     }
 }

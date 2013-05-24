@@ -19,7 +19,7 @@ class Partial extends Helper
     {
         $container = $this
             ->getView()
-            ->getContainer();
+            ->getApp();
 
         $view = new View($container);
         $view->setFile($file)

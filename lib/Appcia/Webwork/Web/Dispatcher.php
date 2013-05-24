@@ -1,13 +1,11 @@
 <?
 
-namespace Appcia\Webwork\Core;
+namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Core\Module;
 use Appcia\Webwork\Data\TextCase;
 use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\View\View;
-use Appcia\Webwork\Web\Request;
 use Appcia\Webwork\Web\Response;
 
 class Dispatcher
@@ -22,11 +20,32 @@ class Dispatcher
     const END = 'dispatchEnd';
 
     /**
-     * DI container
+     * Application
      *
-     * @var Container
+     * @var App
      */
-    private $container;
+    private $app;
+
+    /**
+     * Current route
+     *
+     * @var Route
+     */
+    private $route;
+
+    /**
+     * Current View
+     *
+     * @var View
+     */
+    private $view;
+
+    /**
+     * Current response
+     *
+     * @var Response
+     */
+    private $response;
 
     /**
      * Event listeners
@@ -64,35 +83,9 @@ class Dispatcher
     private $handler;
 
     /**
-     * Current request
-     *
-     * @var Request
-     */
-    private $request;
-
-    /**
-     * Matched route
-     *
-     * @var Route
-     */
-    private $route;
-
-    /**
-     * @var View
-     */
-    private $view;
-
-    /**
      * @var array
      */
     private $data;
-
-    /**
-     * Current response
-     *
-     * @var Response
-     */
-    private $response;
 
     /**
      * Event collection
@@ -121,11 +114,11 @@ class Dispatcher
     /**
      * Constructor
      *
-     * @param Container $container
+     * @param App $app
      */
-    public function __construct(Container $container)
+    public function __construct(App $app)
     {
-        $this->container = $container;
+        $this->app = $app;
         $this->data = array();
 
         $this->handlers = array();
@@ -153,54 +146,6 @@ class Dispatcher
         }
 
         $this->exceptionOnError = $flag;
-
-        return $this;
-    }
-
-    /**
-     * Get request
-     *
-     * @return Request
-     */
-    public function getRequest()
-    {
-        return $this->request;
-    }
-
-    /**
-     * Set request
-     *
-     * @param Request $request
-     *
-     * @return Dispatcher
-     */
-    public function setRequest(Request $request)
-    {
-        $this->request = $request;
-
-        return $this;
-    }
-
-    /**
-     * Get processed data
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
-     * Set processed data
-     *
-     * @param array $data Data
-     *
-     * @return Dispatcher
-     */
-    public function setData(array $data)
-    {
-        $this->data = $data;
 
         return $this;
     }
@@ -251,75 +196,64 @@ class Dispatcher
     }
 
     /**
-     * Get output response
-     *
-     * @return Response
-     */
-    public function getResponse()
-    {
-        return $this->response;
-    }
-
-    /**
-     * Get view
-     *
-     * @return View
-     */
-    public function getView()
-    {
-        return $this->view;
-    }
-
-    /**
-     * Set view
-     *
-     * @param View $view View
-     *
-     * @return Dispatcher
-     */
-    public function setView(View $view)
-    {
-        $this->view = $view;
-
-        return $this;
-    }
-
-    /**
      * Dispatch specified route
      *
      * @param mixed $route Route object or name
      *
-     * @return Dispatcher
+     * @return Response
      */
     public function dispatch($route)
     {
-        $this->response = null;
-        $this->view = null;
-
-        // Dispatch route
         $this->notify(self::START);
 
-        try {
-            $this->createResponse()
-                ->notify(self::CREATE_RESPONSE)
-                ->setRoute($route)
-                ->notify(self::FIND_ROUTE)
-                ->createView()
-                ->notify(self::CREATE_VIEW)
-                ->invokeAction()
-                ->notify(self::INVOKE_ACTION)
-                ->processResponse()
-                ->notify(self::PROCESS_RESPONSE);
-        } catch (\Exception $e) {
-            $this->response->clean();
+        $response = null;
+        $view = null;
 
-            $this->handle($e)
-                ->notify(self::HANDLE_EXCEPTION);
+        try {
+            $this->forceRoute($route);
+            $this->notify(self::FIND_ROUTE);
+
+            $response = new Response();
+            $this->app->getConfig()
+                ->grab('response')
+                ->inject($response);
+
+            $this->response = $response;
+            $this->notify(self::CREATE_RESPONSE);
+
+            $template = $this->getTemplatePath();
+            $data = $this->invokeAction();
+            $this->notify(self::INVOKE_ACTION);
+
+            $view = new View($this->app);
+            $this->app->getConfig()
+                ->grab('view')
+                ->inject($view);
+
+            $view->setTemplate($template)
+                ->addData($data);
+
+            $this->view = $view;
+            $this->notify(self::CREATE_VIEW);
+
+            if (!$response->hasContent()) {
+                $content = $view->render();
+                $response->setContent($content);
+            }
+            $this->notify(self::PROCESS_RESPONSE);
+        } catch (\Exception $e) {
+            $this->notify(self::HANDLE_EXCEPTION);
+
+            if ($response !== null) {
+                $response->clean();
+            }
+
+            $response = $this->handle($e);
         }
 
         $this->notify(self::END);
 
-        return $this;
+        return $response;
     }
 
     /**
@@ -333,7 +267,7 @@ class Dispatcher
     {
         foreach ($this->listeners as $listener) {
             if ($listener['event'] === $event) {
-                call_user_func_array($listener['callback'], array($this->container));
+                call_user_func_array($listener['callback'], array($this));
             }
         }
 
@@ -341,26 +275,106 @@ class Dispatcher
     }
 
     /**
-     * Process data, make views, set response
+     * Force route
+     *
+     * @param Route|string $route Route object or name
      *
      * @return Dispatcher
+     * @throws NotFound
      */
-    private function processResponse()
+    private function forceRoute($route)
     {
-        $this->view->addData($this->data);
-
-        if (!$this->response->hasContent()) {
-            $content = $this->view->render();
-            $this->response->setContent($content);
+        if (is_string($route)) {
+            $router = $this->app->getRouter();
+            $route = $router->getRoute($route);
         }
+
+        if ($route === null) {
+            throw new NotFound('Dispatch error. Route not found');
+        }
+
+        $this->route = $route;
 
         return $this;
     }
 
     /**
-     * Invoke action
+     * Get template path
      *
-     * @return Dispatcher
+     * @return string
+     */
+    public function getTemplatePath()
+    {
+        $template = $this->getModulePath() . '/view/' . $this->getControllerPath() . '/' . $this->getTemplateFilename();
+
+        return $template;
+    }
+
+    /**
+     * Get module path basing on current route
+     *
+     * @return string
+     */
+    public function getModulePath()
+    {
+        $moduleName = $this->route->getModule();
+        $path = $this->app->getModule($moduleName)
+            ->getPath();
+
+        return $path;
+    }
+
+    /**
+     * Get controller path basing on current route
+     *
+     * @return string
+     */
+    public function getControllerPath()
+    {
+        $controllerName = $this->route->getController();
+        $path = $this->getPath($controllerName);
+
+        return $path;
+    }
+
+    /**
+     * Convert class with namespace to path
+     *
+     * @param string $class Class
+     *
+     * @return string
+     */
+    private function getPath($class)
+    {
+        $parts = explode('\\', rtrim($class, '\\'));
+
+        foreach ($parts as $key => $part) {
+            $parts[$key] = $this->textCase->camelToDashed($part);
+        }
+
+        $path = implode('/', $parts);
+
+        return $path;
+    }
+
+    /**
+     * Get view template filename basing on current route
+     * If template name contains '*' it will be replaced by route action
+     *
+     * @return string
+     */
+    public function getTemplateFilename()
+    {
+        $action = $this->getPath($this->route->getAction());
+        $template = mb_strtolower(str_replace('*', $action, $this->route->getTemplate()));
+
+        return $template;
+    }
+
+    /**
+     * Invoke controller action
+     *
+     * @return array
      * @throws \ErrorException
      */
     private function invokeAction()
@@ -376,7 +390,7 @@ class Dispatcher
         }
 
         $module = $this->runModule();
-        $controller = new $className($this->container, $module->getContainer());
+        $controller = new $className($this->app, $module->getApp());
         $action = array($controller, $methodName);
 
         if (!is_callable($action)) {
@@ -388,14 +402,11 @@ class Dispatcher
 
         $data = call_user_func($action);
 
-        if ($data !== null) {
-            if (!is_array($data)) {
-                throw new \ErrorException("Controller action must return values as array");
-            }
-            $this->addData($data);
+        if (!is_array($data)) {
+            throw new \ErrorException("Controller action must return values as array");
         }
 
-        return $this;
+        return $data;
     }
 
     /**
@@ -436,11 +447,11 @@ class Dispatcher
      */
     private function runModule()
     {
-        $bootstrap = $this->container->get('bootstrap');
-        $moduleName = $this->getRoute()->getModule();
+        $moduleName = $this->getRoute()
+            ->getModule();
 
-        $app = $bootstrap->getModule('app');
-        $module = $bootstrap->getModule($moduleName);
+        $app = $this->app->getModule('app');
+        $module = $this->app->getModule($moduleName);
 
         $app->run();
         $module->run();
@@ -459,149 +470,11 @@ class Dispatcher
     }
 
     /**
-     * Force route
-     *
-     * @param Route|string $route Route object or name
-     *
-     * @return Dispatcher
-     * @throws NotFound
-     */
-    public function setRoute($route)
-    {
-        if (is_string($route)) {
-            $router = $this->container->get('router');
-            $route = $router->getRoute($route);
-        }
-
-        if ($route === null) {
-            throw new NotFound('Cannot dispatch. Route not found');
-        }
-
-        $this->route = $route;
-
-        return $this;
-    }
-
-    /**
-     * Add processed data
-     *
-     * @param array $data
-     *
-     * @return Dispatcher
-     */
-    private function addData(array $data)
-    {
-        $this->data = array_merge($this->data, $data);
-
-        return $this;
-    }
-
-    /**
-     * Create a view
-     *
-     * @return Dispatcher
-     */
-    private function createView()
-    {
-        // Create view
-        $view = new View($this->container);
-
-        $template = $this->getModulePath() . '/view/' . $this->getControllerPath() . '/' . $this->getTemplateFilename();
-        $view->setTemplate($template);
-
-        $this->container->get('config')
-            ->grab('view')
-            ->inject($view);
-
-        $this->view = $view;
-
-        return $this;
-    }
-
-    /**
-     * Get module path basing on current route
-     *
-     * @return string
-     */
-    public function getModulePath()
-    {
-        return $this->container->get('bootstrap')
-            ->getModule($this->route->getModule())
-            ->getPath();
-    }
-
-    /**
-     * Get controller path basing on current route
-     *
-     * @return string
-     */
-    public function getControllerPath()
-    {
-        return $this->getPath($this->route->getController());
-    }
-
-    /**
-     * Convert class with namespace to path
-     *
-     * @param string $class Class
-     *
-     * @return string
-     */
-    private function getPath($class)
-    {
-        $parts = explode('\\', rtrim($class, '\\'));
-
-        foreach ($parts as $key => $part) {
-            $parts[$key] = $this->textCase->camelToDashed($part);
-        }
-
-        $path = implode('/', $parts);
-
-        return $path;
-    }
-
-    /**
-     * Get view template filename basing on current route
-     * If template name contains '*' it will be replaced by route action
-     *
-     * @return string
-     */
-    public function getTemplateFilename()
-    {
-        $action = $this->getPath($this->route->getAction());
-        $template = mb_strtolower(str_replace('*', $action, $this->route->getTemplate()));
-
-        return $template;
-    }
-
-    /**
-     * Create a response
-     *
-     * @return Dispatcher
-     */
-    private function createResponse()
-    {
-        if ($this->response !== null) {
-            $this->response->clean();
-        }
-
-        $response = new Response();
-
-        $this->container->get('config')
-            ->grab('response')
-            ->inject($response);
-
-        $this->response = $response;
-
-        return $this;
-    }
-
-    /**
      * Call handler on exception
      *
      * @param \Exception $e Exception
      *
-     * @return Dispatcher
+     * @return Response
      * @throws \Exception
      */
     private function handle($e)
@@ -609,6 +482,8 @@ class Dispatcher
         // Prevent nested exceptions
         if ($this->exception !== null) {
             throw $e;
+        } else {
+            $this->exception = $e;
         }
 
         // Find best
@@ -635,19 +510,21 @@ class Dispatcher
             throw $e;
         }
 
-        // Call handler
-        $this->exception = $e;
-        call_user_func_array($handler['callback'], array($this->container));
+        $response = call_user_func_array($handler['callback'], array($this));
 
-        return $this;
+        if (!$response instanceof Response) {
+            throw new \ErrorException('Dispatch error handler should return response object');
+        }
+
+        return $response;
     }
 
     /**
      * Register exception handler
      *
      * Exception could be:
-     * - object     for example: new Appcia\Webwork\NotFound\NotFound()
      * - class name for example: Appcia\Webwork\NotFound
+     * - object     for example: new Appcia\Webwork\Exception\NotFound()
      * - bool       if should always / never handle any type of exception
      *
      * @param mixed    $exception Exception to be handled, see description!
@@ -676,6 +553,16 @@ class Dispatcher
         );
 
         return $this;
+    }
+
+    /**
+     * Get current view
+     *
+     * @return View
+     */
+    public function getView()
+    {
+        return $this->view;
     }
 
     /**
@@ -743,5 +630,47 @@ class Dispatcher
     public function isExceptionOnError()
     {
         return $this->exceptionOnError;
+    }
+
+    /**
+     * Get application
+     *
+     * @return App
+     */
+    public function getApp()
+    {
+        return $this->app;
+    }
+
+    /**
+     * Get response data
+     *
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * @return Response
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
+     * Add processed data
+     *
+     * @param array $data
+     *
+     * @return Dispatcher
+     */
+    private function addData(array $data)
+    {
+        $this->data = array_merge($this->data, $data);
+
+        return $this;
     }
 }

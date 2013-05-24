@@ -16,6 +16,7 @@ class Get extends Helper
     public function get($key)
     {
         $service = $this->getView()
+            ->getApp()
             ->getContainer()
             ->get($key);
 

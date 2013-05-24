@@ -5,11 +5,11 @@ namespace Appcia\Webwork\Core;
 abstract class Module
 {
     /**
-     * Container
+     * Application
      *
-     * @var Container
+     * @var App
      */
-    protected $container;
+    private $app;
 
     /**
      * Name
@@ -35,16 +35,14 @@ abstract class Module
     /**
      * Constructor
      *
-     * @param Container $container Container
-     * @param string    $name      Name
-     * @param string    $namespace Namespace
-     * @param string    $path      Path
-     *
-     * @throws Exception
+     * @param App    $app       Application
+     * @param string $name      Name
+     * @param string $namespace Namespace
+     * @param string $path      Path
      */
-    public function __construct(Container $container, $name, $namespace, $path)
+    public function __construct(App $app, $name, $namespace, $path)
     {
-        $this->container = $container;
+        $this->app = $app;
         $this->name = (string) $name;
         $this->namespace = $namespace;
         $this->path = $path;
@@ -89,23 +87,20 @@ abstract class Module
     {
         $path = !empty($this->path) ? $this->path . '/lib' : 'lib';
 
-        $bootstrap = $this->container
-            ->get('bootstrap');
-
-        $bootstrap->getAutoloader()
+        $this->app->getAutoloader()
             ->add($this->namespace, $path);
 
         return $this;
     }
 
     /**
-     * Get module specific container
+     * Get application
      *
-     * @return Container
+     * @return App
      */
-    public function getContainer()
+    public function getApp()
     {
-        return $this->container;
+        return $this->app;
     }
 
     /**

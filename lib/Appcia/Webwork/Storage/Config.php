@@ -76,7 +76,7 @@ class Config implements \Iterator, \ArrayAccess
             throw new \ErrorException("Config file should return array: '%s'", $path);
         }
 
-        $this->extend(new self($data));
+        $this->data = $this->merge($this->data, $data);
 
         return $this;
     }

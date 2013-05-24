@@ -2,33 +2,33 @@
 
 namespace Appcia\Webwork\Controller;
 
-use Appcia\Webwork\Core\Container;
+use Appcia\Webwork\Web\App;
 
 abstract class Lite
 {
     /**
-     * @var Container
+     * @var App
      */
-    private $container;
+    private $app;
 
     /**
      * Constructor
      *
-     * @param Container $container Container
+     * @param App $app Application
      */
-    public function __construct(Container $container)
+    public function __construct(App $app)
     {
-        $this->container = $container;
+        $this->app = $app;
     }
 
     /**
-     * Get DI container
+     * Get application
      *
-     * @return Container
+     * @return App
      */
-    public function getContainer()
+    protected function getApp()
     {
-        return $this->container;
+        return $this->app;
     }
 
     /**
@@ -40,6 +40,7 @@ abstract class Lite
      */
     protected function get($key)
     {
-        return $this->container->get($key);
+        return $this->getApp()
+            ->get($key);
     }
 }

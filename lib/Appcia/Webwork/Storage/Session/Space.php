@@ -240,9 +240,8 @@ class Space implements \ArrayAccess
 
         if (!array_key_exists($key, $this->data) || $value !== $this->data[$key]) {
             $this->clean = false;
+            $this->data[$key] = $value;
         }
-
-        $this->data[$key] = $value;
 
         if ($this->autoflush) {
             $this->save();

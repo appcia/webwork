@@ -4,9 +4,11 @@ namespace Appcia\Webwork\Controller;
 
 use Appcia\Webwork\Exception\Error;
 use Appcia\Webwork\Exception\NotFound;
+use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\View\View;
+use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Web\Request;
 use Appcia\Webwork\Web\Response;
-use Appcia\Webwork\View\View;
 
 abstract class Fat extends Lite
 {
@@ -15,21 +17,39 @@ abstract class Fat extends Lite
      *
      * @return Request
      */
-    public function getRequest()
+    protected function getRequest()
     {
-        return $this->get('dispatcher')
+        return $this->getApp()
             ->getRequest();
     }
 
+    /**
+     * @return Config
+     */
+    protected function getConfig()
+    {
+        return $this->getApp()
+            ->getConfig();
+    }
+
+    /**
+     * @return Context
+     */
+    protected function getContext()
+    {
+        return $this->getApp()
+            ->getContext();
+    }
 
     /**
      * Get a view
      *
      * @return View
      */
-    public function getView()
+    protected function getView()
     {
-        return $this->get('dispatcher')
+        return $this->getApp()
+            ->getDispatcher()
             ->getView();
     }
 
@@ -41,7 +61,7 @@ abstract class Fat extends Lite
      * @return void
      * @throws Error
      */
-    public function goError($message = null)
+    protected function goError($message = null)
     {
         throw new Error($message);
     }
@@ -54,7 +74,7 @@ abstract class Fat extends Lite
      * @return void
      * @throws NotFound
      */
-    public function goNotFound($message = null)
+    protected function goNotFound($message = null)
     {
         throw new NotFound($message);
     }
@@ -64,16 +84,18 @@ abstract class Fat extends Lite
      *
      * @return void
      */
-    public function goRefresh()
+    protected function goRefresh()
     {
-        $dispatcher = $this->get('dispatcher');
-        $name = $dispatcher->getRoute()
+        $route = $this->getApp()
+            ->getDispatcher()
+            ->getRoute()
             ->getName();
 
-        $params = $dispatcher->getRequest()
+        $params = $this->getApp()
+            ->getRequest()
             ->getUriParams();
 
-        $this->goRoute($name, $params);
+        $this->goRoute($route, $params);
     }
 
     /**
@@ -84,7 +106,7 @@ abstract class Fat extends Lite
      *
      * @return void
      */
-    public function goRoute($route, array $params = array())
+    protected function goRoute($route, array $params = array())
     {
         $url = $this->generateUrl($route, $params);
         $this->goRedirect($url);
@@ -98,9 +120,10 @@ abstract class Fat extends Lite
      *
      * @return string
      */
-    public function generateUrl($route, array $params = array())
+    protected function generateUrl($route, array $params = array())
     {
-        return $this->get('router')
+        return $this->getApp()
+            ->getRouter()
             ->assemble($route, $params);
     }
 
@@ -111,7 +134,7 @@ abstract class Fat extends Lite
      *
      * @return void
      */
-    public function goRedirect($url)
+    protected function goRedirect($url)
     {
         $this->getResponse()
             ->redirect($url);
@@ -122,9 +145,10 @@ abstract class Fat extends Lite
      *
      * @return Response
      */
-    public function getResponse()
+    protected function getResponse()
     {
-        return $this->get('dispatcher')
+        return $this->getApp()
+            ->getDispatcher()
             ->getResponse();
     }
 }

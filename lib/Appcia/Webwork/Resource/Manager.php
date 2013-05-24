@@ -7,6 +7,8 @@ use Appcia\Webwork\System\File;
 
 class Manager
 {
+    const UPLOAD = 'upload';
+
     /**
      * Resource map
      *
