@@ -1,6 +1,6 @@
 Appcia Webwork
 ================
-PHP Framework, codename 'Webwork', version 0.7.4
+PHP Framework, codename 'Webwork', version 0.7.6
 
 #### Main ideas
 
@@ -21,6 +21,13 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.7.6**
+* intl translator (gettext)
+
+**0.7.5**
+* framework structure change
+* app class rewritten, bootstrap incorporated
+
 **0.7.4**
 * view renderers (php, json, xml, ini)
 * controller improvements
