@@ -5,6 +5,11 @@ namespace Appcia\Webwork\View\Renderer;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
+/**
+ * Native PHP renderer
+ *
+ * @package Appcia\Webwork\View\Renderer
+ */
 class Php extends Renderer
 {
     /**

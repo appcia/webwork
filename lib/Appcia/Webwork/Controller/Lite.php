@@ -4,6 +4,11 @@ namespace Appcia\Webwork\Controller;
 
 use Appcia\Webwork\Web\App;
 
+/**
+ * Skeleton controller, only essentials
+ *
+ * @package Appcia\Webwork\Controller
+ */
 abstract class Lite
 {
     /**

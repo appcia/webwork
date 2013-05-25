@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Data;
 
+/**
+ * Text case converter
+ *
+ * @package Appcia\Webwork\Data
+ */
 class TextCase
 {
     /**

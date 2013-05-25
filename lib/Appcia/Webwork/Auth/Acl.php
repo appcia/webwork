@@ -7,6 +7,11 @@ use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Session\Space;
 use Psr\Log\InvalidArgumentException;
 
+/**
+ * Authorization with access control list based on route names and access groups
+ *
+ * @package Appcia\Webwork\Auth
+ */
 class Acl extends Auth
 {
     const WILDCARD = '*';

@@ -8,6 +8,11 @@ use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
 
+/**
+ * Form with resource service (upload with temporary state)
+ *
+ * @package Appcia\Webwork\Resource
+ */
 class Form extends BasicForm
 {
     const METADATA_SKIPPED_RESOURCE = 'skippedResource';

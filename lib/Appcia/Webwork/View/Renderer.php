@@ -9,14 +9,16 @@ use Appcia\Webwork\View\Renderer\Php;
 use Appcia\Webwork\View\Renderer\Xml;
 use Appcia\Webwork\View\View;
 
+/**
+ * Base for view renderer
+ *
+ * @package Appcia\Webwork\View
+ */
 abstract class Renderer
 {
     const PHP = 'php';
-
     const JSON = 'json';
-
     const XML = 'xml';
-
     const INI = 'ini';
 
     /**

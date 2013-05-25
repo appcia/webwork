@@ -5,6 +5,12 @@ namespace Appcia\Webwork\Storage;
 use Appcia\Webwork\Data\Encoder;
 use Appcia\Webwork\Exception\Exception;
 
+/**
+ * Cookie representation
+ *
+ * @todo Not implemented yet!
+ * @package Appcia\Webwork\Storage
+ */
 class Cookie
 {
     /**

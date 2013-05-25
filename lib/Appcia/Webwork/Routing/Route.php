@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Routing;
 
+/**
+ * Associates URI address with action to be executed
+ *
+ * @package Appcia\Webwork\Routing
+ */
 class Route
 {
     const PARAM_CLASS = '[A-Za-z0-9-]+';

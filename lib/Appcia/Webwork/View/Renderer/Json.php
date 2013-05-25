@@ -6,6 +6,11 @@ use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
+/**
+ * JSON view renderer
+ *
+ * @package Appcia\Webwork\View\Renderer
+ */
 class Json extends Renderer
 {
     /**

@@ -2,6 +2,13 @@
 
 namespace Appcia\Webwork\System;
 
+/**
+ * Wrapper for PHP binary
+ *
+ * Useful for checking file syntax
+ *
+ * @package Appcia\Webwork\System
+ */
 class Php
 {
     /**

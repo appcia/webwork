@@ -8,6 +8,11 @@ use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Request;
 
+/**
+ * Processor which is matching request to route
+ *
+ * @package Appcia\Webwork\Routing
+ */
 class Router
 {
     /**

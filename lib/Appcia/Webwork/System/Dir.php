@@ -2,6 +2,13 @@
 
 namespace Appcia\Webwork\System;
 
+/**
+ * Filesystem directory representation.
+ *
+ * Does not necessarily refer to an existing directory.
+ *
+ * @package Appcia\Webwork\System
+ */
 class Dir
 {
     /**

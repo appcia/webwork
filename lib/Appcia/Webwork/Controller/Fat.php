@@ -10,6 +10,11 @@ use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Web\Request;
 use Appcia\Webwork\Web\Response;
 
+/**
+ * Standard controller with wrappers for most commonly used staff
+ *
+ * @package Appcia\Webwork\Controller
+ */
 abstract class Fat extends Lite
 {
     /**

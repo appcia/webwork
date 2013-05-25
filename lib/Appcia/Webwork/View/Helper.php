@@ -5,6 +5,11 @@ namespace Appcia\Webwork\View;
 use Appcia\Webwork\View\View;
 use Appcia\Webwork\Core\Component;
 
+/**
+ * Base for view helper (PHP renderer tool)
+ *
+ * @package Appcia\Webwork\View
+ */
 abstract class Helper extends Component
 {
     /**

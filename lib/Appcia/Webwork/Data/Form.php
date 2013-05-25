@@ -5,6 +5,11 @@ namespace Appcia\Webwork\Data;
 use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Data\Form\Field;
 
+/**
+ * General utility for servicing web forms (data manipulation)
+ *
+ * @package Appcia\Webwork\Resource
+ */
 class Form
 {
     const METADATA = 'metadata';

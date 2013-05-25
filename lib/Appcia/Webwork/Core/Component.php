@@ -4,6 +4,12 @@ namespace Appcia\Webwork\Core;
 
 use Appcia\Webwork\Web\Context;
 
+/**
+ * Object related with web context
+ * Base for view helpers, data validators and filters
+ *
+ * @package Appcia\Webwork\Core
+ */
 abstract class Component
 {
     /**

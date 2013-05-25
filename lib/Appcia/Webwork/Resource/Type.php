@@ -4,6 +4,11 @@ namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\System\File;
 
+/**
+ * Subtype of resource (thumbnail, format derivation)
+ *
+ * @package Appcia\Webwork\Resource
+ */
 class Type
 {
     /**

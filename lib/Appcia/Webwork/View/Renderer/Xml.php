@@ -6,6 +6,11 @@ use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 use SimpleXMLElement;
 
+/**
+ * XML renderer
+ *
+ * @package Appcia\Webwork\View\Renderer
+ */
 class Xml extends Renderer
 {
     /**

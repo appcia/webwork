@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Resource;
 
+/**
+ * Base for resource processor (for thumbnails, format derivatives)
+ *
+ * @package Appcia\Webwork\Resource
+ */
 abstract class Processor {
 
     /**

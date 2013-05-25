@@ -4,6 +4,11 @@ namespace Appcia\Webwork\Storage\Session;
 
 use Appcia\Webwork\Storage\Session;
 
+/**
+ * Correlates data into one namespace in session storage
+ *
+ * @package Appcia\Webwork\Storage\Session
+ */
 class Space implements \ArrayAccess
 {
     /**

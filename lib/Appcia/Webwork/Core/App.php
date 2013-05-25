@@ -4,6 +4,11 @@ namespace Appcia\Webwork\Core;
 
 use Appcia\Webwork\Storage\Config;
 
+/**
+ * Base for modular application
+ *
+ * @package Appcia\Webwork\Core
+ */
 abstract class App
 {
     const DEVELOPMENT = 'dev';

@@ -5,7 +5,7 @@ namespace Appcia\Webwork\Core;
 use Appcia\Webwork\Storage\Config;
 
 /**
- * Pimple based DI container
+ * DI container based on Pimple
  *
  * @link http://pimple.sensiolabs.org/
  */

@@ -2,6 +2,13 @@
 
 namespace Appcia\Webwork\System;
 
+/**
+ * Filesystem file representation
+ *
+ * Does not necessarily refer to an existing file
+ *
+ * @package Appcia\Webwork\System
+ */
 class File
 {
     /**

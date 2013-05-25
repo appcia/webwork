@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Resource;
 
+/**
+ * General file / URL representation for images, videos, anything...
+ *
+ * @package Appcia\Webwork\Resource
+ */
 class Resource extends Type
 {
     /**

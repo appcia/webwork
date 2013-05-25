@@ -5,6 +5,11 @@ namespace Appcia\Webwork\Resource;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
 
+/**
+ * Resource manager with path mapping and subtype processing
+ *
+ * @package Appcia\Webwork\Resource
+ */
 class Manager
 {
     const UPLOAD = 'upload';

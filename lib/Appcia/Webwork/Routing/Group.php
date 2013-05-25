@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Routing;
 
+/**
+ * Common configuration for a lot of routes
+ *
+ * @package Appcia\Webwork\Routing
+ */
 class Group
 {
     /**

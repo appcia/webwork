@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Web;
 
+/**
+ * Web response representation
+ *
+ * @package Appcia\Webwork\Web
+ */
 class Response
 {
     /**

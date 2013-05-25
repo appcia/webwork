@@ -6,6 +6,11 @@ use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 use Appcia\Webwork\Web\App;
 
+/**
+ * Output data model
+ *
+ * @package Appcia\Webwork\View
+ */
 class View
 {
     /**

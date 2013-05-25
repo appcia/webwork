@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Web;
 
+/**
+ * Web request representation
+ *
+ * @package Appcia\Webwork\Web
+ */
 class Request
 {
     const POST = 'post';

@@ -4,6 +4,11 @@ namespace Appcia\Webwork\Storage;
 
 use Appcia\Webwork\Data\Encoder;
 
+/**
+ * Session representation
+ *
+ * @package Appcia\Webwork\Storage
+ */
 class Session
 {
     /**

@@ -4,6 +4,11 @@ namespace Appcia\Webwork\Data;
 
 use Appcia\Webwork\Core\Component;
 
+/**
+ * Base for data filter
+ *
+ * @package Appcia\Webwork\Data
+ */
 abstract class Filter extends Component {
 
     /**

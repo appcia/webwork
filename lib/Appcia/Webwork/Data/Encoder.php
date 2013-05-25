@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Data;
 
+/**
+ * Data encoder
+ *
+ * @package Appcia\Webwork\Data
+ */
 class Encoder
 {
     const PHP = 'php';

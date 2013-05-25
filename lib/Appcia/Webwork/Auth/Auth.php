@@ -7,6 +7,12 @@ use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Session\Space;
 
+/**
+ * Provides basic authorization
+ * User data stored in session space for specified time
+ *
+ * @package Appcia\Webwork\Auth
+ */
 class Auth
 {
     /**
@@ -46,8 +52,6 @@ class Auth
     {
         $space->setAutoflush(true);
         $this->data = $space;
-
-        $this->acl = array();
     }
 
     /**

@@ -8,6 +8,11 @@ use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\View\View;
 use Appcia\Webwork\Web\Response;
 
+/**
+ * Unit which is processing a route and producing a response
+ *
+ * @package Appcia\Webwork\Web
+ */
 class Dispatcher
 {
     const START = 'dispatchStart';

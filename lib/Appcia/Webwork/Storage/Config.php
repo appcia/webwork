@@ -2,6 +2,14 @@
 
 namespace Appcia\Webwork\Storage;
 
+/**
+ * Aggregator for related data
+ *
+ * Loader for native arrays placed in PHP files
+ * Allows injecting into objects
+ *
+ * @package Appcia\Webwork\Storage
+ */
 class Config implements \Iterator, \ArrayAccess
 {
     /**

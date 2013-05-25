@@ -8,6 +8,12 @@ use Appcia\Webwork\Routing\Router;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Dispatcher;
 
+/**
+ * Web application
+ * To get a response: bootstrap, set a request and run...
+ *
+ * @package Appcia\Webwork\Web
+ */
 class App extends BaseApp
 {
     /**

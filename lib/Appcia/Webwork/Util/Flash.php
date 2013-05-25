@@ -4,6 +4,13 @@ namespace Appcia\Webwork\Util;
 
 use Appcia\Webwork\Storage\Session\Space;
 
+/**
+ * Basic flash messenger
+ *
+ * Is using session space as storage
+ *
+ * @package Appcia\Webwork\Util
+ */
 class Flash
 {
     const SUCCESS = 'success';

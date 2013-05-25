@@ -2,7 +2,23 @@
 
 namespace Appcia\Webwork\Web;
 
+/**
+ * Configuration related with WWW technology
+ *
+ * @package Appcia\Webwork\Web
+ */
 class Context {
+
+    const HTML_5 = 'HTML 5';
+    const HTML_401 = 'HTML 4.01';
+
+    /**
+     * @var array
+     */
+    private static $htmlVersions = array(
+        self::HTML_5,
+        self::HTML_401
+    );
 
     /**
      * @var string
@@ -17,18 +33,12 @@ class Context {
     /**
      * @var string
      */
-    private $charset;
-
-    const HTML_5 = 'HTML 5';
-    const HTML_401 = 'HTML 4.01';
+    private $textDomain;
 
     /**
-     * @var array
+     * @var string
      */
-    private static $htmlVersions = array(
-        self::HTML_5,
-        self::HTML_401
-    );
+    private $charset;
 
     /**
      * @var string
@@ -49,11 +59,29 @@ class Context {
     }
 
     /**
-     * @param string $baseUrl
+     * @return Context
      */
-    public function setBaseUrl($baseUrl)
+    private function updateLocale()
     {
-        $this->baseUrl = $baseUrl;
+        $locale =  $this->locale . '.' . strtoupper($this->charset);
+
+        putenv('LC_ALL=' . $locale);
+        setlocale(LC_ALL, $locale);
+
+        $domain = "messages";
+        bindtextdomain($domain, "./locale");
+        bind_textdomain_codeset($domain, 'UTF-8');
+        textdomain($domain);
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getHtmlVersions()
+    {
+        return self::$htmlVersions;
     }
 
     /**
@@ -62,6 +90,28 @@ class Context {
     public function getBaseUrl()
     {
         return $this->baseUrl;
+    }
+
+    /**
+     * Set base URL
+     *
+     * @param string $baseUrl
+     *
+     * @return Context
+     */
+    public function setBaseUrl($baseUrl)
+    {
+        $this->baseUrl = $baseUrl;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocale()
+    {
+        return $this->locale;
     }
 
     /**
@@ -80,9 +130,9 @@ class Context {
     /**
      * @return string
      */
-    public function getLocale()
+    public function getCharset()
     {
-        return $this->locale;
+        return $this->charset;
     }
 
     /**
@@ -101,46 +151,21 @@ class Context {
     /**
      * @return string
      */
-    public function getCharset()
-    {
-        return $this->charset;
-    }
-
-    /**
-     * @return Context
-     */
-    private function updateLocale()
-    {
-        $locale =  $this->locale . '.' . strtoupper($this->charset);
-
-        putenv('LC_ALL=' . $locale);
-        setlocale(LC_ALL, $locale);
-
-        return $this;
-    }
-
-    /**
-     * @param string $htmlVersion
-     */
-    public function setHtmlVersion($htmlVersion)
-    {
-        $this->htmlVersion = $htmlVersion;
-    }
-
-    /**
-     * @return string
-     */
     public function getHtmlVersion()
     {
         return $this->htmlVersion;
     }
 
     /**
-     * @return array
+     * @param string $htmlVersion
+     *
+     * @return Context
      */
-    public static function getHtmlVersions()
+    public function setHtmlVersion($htmlVersion)
     {
-        return self::$htmlVersions;
+        $this->htmlVersion = $htmlVersion;
+
+        return $this;
     }
 
 }

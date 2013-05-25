@@ -2,6 +2,13 @@
 
 namespace Appcia\Webwork\Model;
 
+/**
+ * Wrapper for number which is power of 2
+ *
+ * Useful for optimized options (storing in database as one integer column etc...)
+ *
+ * @package Appcia\Webwork\Model
+ */
 class Mask
 {
     /**

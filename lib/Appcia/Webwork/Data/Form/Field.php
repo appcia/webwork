@@ -5,6 +5,11 @@ namespace Appcia\Webwork\Data\Form;
 use Appcia\Webwork\Data\Filter;
 use Appcia\Webwork\Data\Validator;
 
+/**
+ * Form field
+ *
+ * @package Appcia\Webwork\Data\Form
+ */
 class Field
 {
     const TEXT = 'text';

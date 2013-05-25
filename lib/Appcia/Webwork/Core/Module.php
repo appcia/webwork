@@ -2,6 +2,11 @@
 
 namespace Appcia\Webwork\Core;
 
+/**
+ * Base for application module
+ *
+ * @package Appcia\Webwork\Core
+ */
 abstract class Module
 {
     /**
