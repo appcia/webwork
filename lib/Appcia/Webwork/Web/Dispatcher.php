@@ -287,7 +287,7 @@ class Dispatcher
      * @return Dispatcher
      * @throws NotFound
      */
-    private function forceRoute($route)
+    public function forceRoute($route)
     {
         if (is_string($route)) {
             $router = $this->app->getRouter();
