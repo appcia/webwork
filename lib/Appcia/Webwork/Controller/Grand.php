@@ -29,4 +29,15 @@ abstract class Grand extends Fat
         return $this->get('translator')
             ->translate($id);
     }
+
+    /**
+     * Go to previous tracked URL
+     */
+    protected function goBack()
+    {
+        $url = $this->get('tracker')
+            ->getPreviousUrl();
+
+        $this->goRedirect($url);
+    }
 }
