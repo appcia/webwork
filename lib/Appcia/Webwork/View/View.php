@@ -159,26 +159,31 @@ class View
      * Get template file path
      *
      * @param string $template Template
+     * @param array  $paths    Search paths
      *
      * @return string
      * @throws \InvalidArgumentException
      */
-    public function getTemplatePath($template = null)
+    public function getTemplatePath($template = null, $paths = array())
     {
         if ($template === null) {
             $template = $this->template;
         }
 
-        if (!file_exists($template)) {
-            $moduleFile = $this->getModulePath() . '/' . $template;
+        if (empty($paths)) {
+            $paths[] = $this->getModulePath();
+        }
 
-            if (!file_exists($moduleFile)) {
-                throw new \InvalidArgumentException(sprintf("Template file not found: '%s'", $template));
+        if (!file_exists($template)) {
+            foreach (array_reverse($paths) as $path) {
+                $file = $path . '/' . $template;
+
+                if (file_exists($file)) {
+                    return $file;
+                }
             }
 
-            $template = $moduleFile;
-
-            return $template;
+            throw new \InvalidArgumentException(sprintf("Template file not found: '%s'", $template));
         }
 
         return $template;

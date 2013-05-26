@@ -20,6 +20,13 @@ class Php extends Renderer
     private $helpers;
 
     /**
+     * Path stack for nested extending
+     *
+     * @var array
+     */
+    private $paths;
+
+    /**
      * Output compression
      *
      * @var bool
@@ -32,6 +39,7 @@ class Php extends Renderer
     public function __construct()
     {
         $this->helpers = array();
+        $this->paths = array();
         $this->sanitization = false;
     }
 
@@ -40,7 +48,18 @@ class Php extends Renderer
      */
     public function render($template = null)
     {
+        $path = dirname($template);
+        $current = in_array($path, array('', '.'));
+
+        if (!$current) {
+            array_push($this->paths, $path);
+        }
+
         $content = $this->capture($template);
+
+        if (!$current) {
+            array_pop($this->paths);
+        }
 
         if ($this->sanitization) {
             $content = $this->sanitize($content);
@@ -199,7 +218,7 @@ class Php extends Renderer
     protected function capture($template)
     {
         $file = $this->getView()
-            ->getTemplatePath($template);
+            ->getTemplatePath($template, $this->paths);
         $data = $this->getView()
             ->getData();
 
