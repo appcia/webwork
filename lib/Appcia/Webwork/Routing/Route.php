@@ -72,6 +72,13 @@ class Route
     private $pattern;
 
     /**
+     * Alias for name
+     *
+     * @var string|null
+     */
+    private $alias;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -358,5 +365,34 @@ class Route
     public function getTemplate()
     {
         return $this->template;
+    }
+
+    /**
+     * Set name alias
+     *
+     * @param null|string $alias Alias
+     *
+     * @return string
+     * @throws \InvalidArgumentException
+     */
+    public function setAlias($alias)
+    {
+        if (empty($alias)) {
+            throw new \InvalidArgumentException('Route alias cannot be empty');
+        }
+
+        $this->alias = $alias;
+
+        return $this;
+    }
+
+    /**
+     * Get name alias
+     *
+     * @return null|string
+     */
+    public function getAlias()
+    {
+        return $this->alias;
     }
 }

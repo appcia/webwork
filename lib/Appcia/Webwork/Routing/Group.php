@@ -121,17 +121,26 @@ class Group
      * @param array $routes Routes data
      *
      * @return Group
+     * @throws \InvalidArgumentException
      */
     public function setRoutes(array $routes)
     {
         foreach ($routes as $key => $route) {
-            if ($this->prefix !== null) {
-                $route['path'] = $this->prefix . $route['path'];
-            }
-            if ($this->suffix !== null) {
-                $route['path'] .= $this->suffix;
+
+            // Path generation
+            if (is_string($route['path'])) {
+                $route['path'] = $this->processPath($route['path']);
+            } elseif (is_array($route['path'])) {
+                if (!isset($route['path']['location'])) {
+                    throw new \InvalidArgumentException("Route path location is not specified");
+                }
+
+                $route['path']['location'] = $this->processPath($route['path']['location']);
+            } else {
+                throw new \InvalidArgumentException("Route path has invalid format");
             }
 
+            // Module completion
             if ($this->module !== null && !isset($route['module'])) {
                 $route['module'] = $this->module;
             }
@@ -152,5 +161,25 @@ class Group
     public function getRoutes()
     {
         return $this->routes;
+    }
+
+    /**
+     * Process route path
+     *
+     * @param string $path Path
+     *
+     * @return string
+     */
+    private function processPath($path)
+    {
+        if ($this->prefix !== null) {
+            $path = $this->prefix . $path;
+        }
+
+        if ($this->suffix !== null) {
+            $path .= $this->suffix;
+        }
+
+        return $path;
     }
 }

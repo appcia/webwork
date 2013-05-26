@@ -81,7 +81,7 @@ class Router
      * @param Route|array $route Route
      *
      * @return Router
-     * @throws \InvalidArgumentException
+     * @throws \LogicException
      */
     public function addRoute($route)
     {
@@ -91,6 +91,16 @@ class Router
 
         $name = $route->getName();
         $this->routes[$name] = $route;
+
+        $alias = $route->getAlias();
+
+        if ($alias !== null) {
+            if (isset($this->routes[$alias])) {
+                throw new \LogicException(sprintf("Route alias '%s' is already used.", $alias));
+            }
+
+            $this->routes[$alias] = & $this->routes[$name];
+        }
 
         return $this;
     }
@@ -118,7 +128,7 @@ class Router
     public function getRoute($name)
     {
         if (!isset($this->routes[$name])) {
-            throw new \OutOfBoundsException(sprintf("Route '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Route '%s' does not exist.", $name));
         }
 
         $route = $this->routes[$name];
@@ -157,7 +167,7 @@ class Router
     public function addGroup(array $data)
     {
         if (!isset($data['routes'])) {
-            throw new \InvalidArgumentException('Route group has no routes specified');
+            throw new \InvalidArgumentException('Route group has no routes specified.');
         }
 
         $group = new Group();
@@ -245,7 +255,7 @@ class Router
                 $param = $data['default'];
 
                 if (!is_scalar($param) && $param !== null) {
-                    throw new \InvalidArgumentException('Route parameter default value should be a scalar or null');
+                    throw new \InvalidArgumentException('Route parameter default value should be a scalar or null.');
                 }
 
                 if (empty($value)) {
@@ -258,7 +268,7 @@ class Router
                 $map = $data['map'];
 
                 if (!is_array($map)) {
-                    throw new \InvalidArgumentException('Route parameter map should be an array');
+                    throw new \InvalidArgumentException('Route parameter map should be an array.');
                 }
 
                 $param = array_search($value, $map);
@@ -287,12 +297,12 @@ class Router
     {
         if (is_string($route)) {
             if (!isset($this->routes[$route])) {
-                throw new \OutOfBoundsException(sprintf("Route by name '%s' does not exist", $route));
+                throw new \OutOfBoundsException(sprintf("Route by name '%s' does not exist.", $route));
             }
 
             $route = $this->routes[$route];
         } elseif (!$route instanceof Route) {
-            throw new \InvalidArgumentException('Route should be an existing route name or object');
+            throw new \InvalidArgumentException('Route should be an existing route name or object.');
         }
 
         // Prepare parameters, map and set defaults
@@ -310,7 +320,8 @@ class Router
             }
 
             if ($value === null) {
-                throw new \InvalidArgumentException(sprintf("Route '%s' cannot be assembled when parameter '%s' is unmapped",
+                throw new \InvalidArgumentException(sprintf(
+                    "Route '%s' cannot be assembled. Parameter '%s' is not specified.",
                     $route->getName(),
                     $name
                 ));
