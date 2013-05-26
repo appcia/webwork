@@ -44,6 +44,20 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
+     * Add data
+     *
+     * @param array $data
+     *
+     * @return Config
+     */
+    public function addData(array $data)
+    {
+        $this->data = $this->merge($this->data, $data);
+
+        return $this;
+    }
+
+    /**
      * Get data
      *
      * @return array
@@ -84,7 +98,7 @@ class Config implements \Iterator, \ArrayAccess
             throw new \ErrorException("Config file should return array: '%s'", $path);
         }
 
-        $this->data = $this->merge($this->data, $data);
+        $this->addData($data);
 
         return $this;
     }
@@ -315,18 +329,22 @@ class Config implements \Iterator, \ArrayAccess
         }
 
         foreach ($arr2 as $key => $value) {
-            if (is_array($value)) {
+            if (is_array($arr2[$key])) {
                 if (!isset($arr1[$key])) {
                     $arr1[$key] = array();
                 }
 
                 if (is_int($key)) {
-                    $arr1[] = static::merge($arr1[$key], $arr2[$key]);
+                    $arr1[] = static::merge($arr1[$key], $value);
                 } else {
-                    $arr1[$key] = static::merge($arr1[$key], $arr2[$key]);
+                    $arr1[$key] = static::merge($arr1[$key], $value);
                 }
             } else {
-                $arr1[$key] = $value;
+                if (is_int($key)) {
+                    $arr1[] = $value;
+                } else {
+                    $arr1[$key] = $value;
+                }
             }
         }
 
