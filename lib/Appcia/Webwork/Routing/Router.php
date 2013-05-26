@@ -23,82 +23,11 @@ class Router
     private $routes;
 
     /**
-     * Default values
-     *
-     * @var array
-     */
-    private $defaults;
-
-    /**
-     * Text case converter
-     * Used for automatic route name generation
-     *
-     * @var TextCase
-     */
-    private $textCase;
-
-    /**
      * Constructor
      */
     public function __construct()
     {
         $this->routes = array();
-        $this->defaults = array(
-            'group' => array(),
-            'route' => array(
-                'template' => '*.html.php'
-            )
-        );
-        $this->textCase = new TextCase();
-    }
-
-    /**
-     * Get default values
-     *
-     * @return array
-     */
-    public function getDefaults()
-    {
-        return $this->defaults;
-    }
-
-    /**
-     * Set default values
-     *
-     * @param array $data Data
-     *
-     * @return Router
-     */
-    public function setDefaults($data)
-    {
-        $this->defaults = $data;
-
-        return $this;
-    }
-
-    /**
-     * Get text case converter
-     *
-     * @return TextCase
-     */
-    public function getTextCase()
-    {
-        return $this->textCase;
-    }
-
-    /**
-     * Set text case converter
-     * Used for automatic route name generation
-     *
-     * @param TextCase $textCase
-     *
-     * @return Router
-     */
-    public function setTextCase($textCase)
-    {
-        $this->textCase = $textCase;
-        
-        return $this;
     }
 
     /**
@@ -117,7 +46,6 @@ class Router
      * @param array $routes Routes
      *
      * @return Router
-     * @throws Exception
      */
     public function setRoutes(array $routes)
     {
@@ -133,7 +61,6 @@ class Router
      * @param array $routes Routes
      *
      * @return Router
-     * @throws Exception
      */
     public function addRoutes(array $routes)
     {
@@ -151,74 +78,21 @@ class Router
     /**
      * Add route
      *
-     * @param array $data Route data
+     * @param Route|array $route Route
      *
      * @return Router
      * @throws \InvalidArgumentException
      */
-    public function addRoute($data)
+    public function addRoute($route)
     {
-        if (!is_array($data)) {
-            throw new \InvalidArgumentException('Route data should be an array');
+        if (!$route instanceof Route) {
+           $route = Route::create($route);
         }
-
-        if (!isset($data['path'])) {
-            throw new \InvalidArgumentException('Route path is not specified');
-        }
-
-        if (!isset($data['module'])) {
-            throw new \InvalidArgumentException('Route module is not specified');
-        }
-
-        if (!isset($data['controller'])) {
-            throw new \InvalidArgumentException('Route controller is not specified');
-        }
-
-        if (!isset($data['action'])) {
-            throw new \InvalidArgumentException('Route action is not specified');
-        }
-
-        if (!isset($data['name'])) {
-            $data['name'] = $this->generateRouteName($data);
-        }
-
-        if (!empty($this->defaults['route'])) {
-            $data = array_merge($this->defaults['route'], $data);
-        }
-
-        $route = new Route();
-
-        $config = new Config($data);
-        $config->inject($route);
 
         $name = $route->getName();
         $this->routes[$name] = $route;
 
         return $this;
-    }
-
-    /**
-     * Generate route name basing on its specific data
-     *
-     * @param array $data Route data
-     *
-     * @return string
-     */
-    public function generateRouteName(array $data)
-    {
-        $parts = array_merge(
-            explode('/', $data['module']),
-            explode('/', $data['controller']),
-            array($data['action'])
-        );
-
-        foreach ($parts as $key => $value) {
-            $parts[$key] = $this->textCase->camelToDashed($value);
-        }
-
-        $name = implode('-', $parts);
-
-        return $name;
     }
 
     /**
@@ -286,17 +160,13 @@ class Router
             throw new \InvalidArgumentException('Route group has no routes specified');
         }
 
-        if (!empty($this->defaults['group'])) {
-            $data = array_merge($this->defaults['group'], $data);
-        }
-
         $group = new Group();
 
         $config = new Config($data);
         $config->inject($group);
 
         $routes = $group->getRoutes();
-        $this->setRoutes($routes);
+        $this->addRoutes($routes);
 
         return $this;
     }

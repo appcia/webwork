@@ -2,6 +2,9 @@
 
 namespace Appcia\Webwork\Routing;
 
+use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Storage\Config;
+
 /**
  * Associates URI address with action to be executed
  *
@@ -74,6 +77,66 @@ class Route
     public function __construct()
     {
         $this->params = array();
+        $this->template = '*.html.php';
+    }
+
+    /**
+     * Creator
+     *
+     * @param array    $data      Route data
+     * @param TextCase $converter Text case converter
+     *
+     * @return Route
+     * @throws \InvalidArgumentException
+     */
+    public static function create(array $data, TextCase $converter = null)
+    {
+        if ($converter === null) {
+            $converter = new TextCase();
+        }
+
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException('Route data should be an array');
+        }
+
+        if (!isset($data['path'])) {
+            throw new \InvalidArgumentException('Route path is not specified');
+        }
+
+        if (!isset($data['module'])) {
+            throw new \InvalidArgumentException('Route module is not specified');
+        }
+
+        if (!isset($data['controller'])) {
+            throw new \InvalidArgumentException('Route controller is not specified');
+        }
+
+        if (!isset($data['action'])) {
+            throw new \InvalidArgumentException('Route action is not specified');
+        }
+
+        if (!isset($data['name'])) {
+            $parts = array_merge(
+                explode('/', $data['module']),
+                explode('/', $data['controller']),
+                array($data['action'])
+            );
+
+            foreach ($parts as $key => $value) {
+                $parts[$key] = $converter->camelToDashed($value);
+            }
+
+            $name = implode('-', $parts);
+
+            $data['name'] = $name;
+        }
+
+        $route = new Route();
+
+        $config = new Config($data);
+        $config->inject($route);
+
+        return $route;
     }
 
     /**
@@ -124,14 +187,14 @@ class Route
             if (!isset($path['location'])) {
                 throw new \InvalidArgumentException('Route location is not specified');
             }
-            
+
             $location = $path['location'];
-            
+
             if (isset($path['params'])) {
                 if (!is_array($params)) {
                     throw new \InvalidArgumentException('Route parameters should be an array');
                 }
-                
+
                 $params = $path['params'];
             }
         }
