@@ -4,6 +4,7 @@ namespace Appcia\Webwork\Intl;
 
 use Appcia\Webwork\Intl\Translator\Gettext;
 use Appcia\Webwork\Web\Context;
+use Appcia\Webwork\Storage\Config;
 
 /**
  * Translating texts between languages
@@ -31,6 +32,7 @@ abstract class Translator
     public static function create($data)
     {
         $type = null;
+        $config = null;
 
         if (is_string($data)) {
             $type = $data;
@@ -40,6 +42,10 @@ abstract class Translator
             }
 
             $type = $data['type'];
+
+            if (isset($data['config'])) {
+                $config = new Config($data['config']);
+            }
         } else {
             throw new \InvalidArgumentException("Translator config should be an array.");
         }
@@ -53,6 +59,10 @@ abstract class Translator
             default:
                 throw new \OutOfBoundsException(sprintf("Translator type '%s' is invalid or unsupported.", $type));
                 break;
+        }
+
+        if ($config !== null) {
+            $config->inject($translator);
         }
 
         return $translator;
