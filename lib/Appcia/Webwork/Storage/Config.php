@@ -329,7 +329,9 @@ class Config implements \Iterator, \ArrayAccess
         }
 
         foreach ($arr2 as $key => $value) {
-            if (is_array($arr2[$key])) {
+            if (is_int($key)) {
+                $arr1[] = $value;
+            } elseif (is_array($arr2[$key])) {
                 if (!isset($arr1[$key])) {
                     $arr1[$key] = array();
                 }
@@ -340,11 +342,7 @@ class Config implements \Iterator, \ArrayAccess
                     $arr1[$key] = static::merge($arr1[$key], $value);
                 }
             } else {
-                if (is_int($key)) {
-                    $arr1[] = $value;
-                } else {
-                    $arr1[$key] = $value;
-                }
+                $arr1[$key] = $value;
             }
         }
 
