@@ -15,7 +15,8 @@ class End extends Helper
      */
     public function end($name = null)
     {
-        $this->getHelper('block')
-            ->end($name);
+        $this->getView()
+            ->getRenderer()
+            ->endBlock($name);
     }
 }
