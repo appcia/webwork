@@ -12,6 +12,13 @@ use Appcia\Webwork\Storage\Config;
 class Container
 {
     /**
+     * Service or parameter container
+     *
+     * @var Container
+     */
+    private static $instance;
+
+    /**
      * Services and parameters
      *
      * @var Config
@@ -33,18 +40,31 @@ class Container
     }
 
     /**
-     * Set a parameter or a service
+     * Setup instance
      *
-     * @param string $key   Key
-     * @param mixed  $value Parameter value or object as closure
+     * @param Container $container
      *
-     * @return Container
+     * @return void
      */
-    public function set($key, $value)
+    public static function setup($container = null)
     {
-        $this->values[$key] = $value;
+        if ($container === null) {
+            $container = new self();
+        }
 
-        return $this;
+        self::$instance = $container;
+    }
+
+    /**
+     * Shortcut getter
+     *
+     * @param string $key Key
+     *
+     * @return mixed
+     */
+    public static function acquire($key)
+    {
+        return self::instance()->get($key);
     }
 
     /**
@@ -64,6 +84,16 @@ class Container
         $isFactory = is_object($this->values[$key]) && method_exists($this->values[$key], '__invoke');
 
         return $isFactory ? $this->values[$key]($this) : $this->values[$key];
+    }
+
+    /**
+     * Get instance
+     *
+     * @return Container
+     */
+    public static function instance()
+    {
+        return self::$instance;
     }
 
     /**
@@ -100,26 +130,6 @@ class Container
         unset($this->values[$key]);
 
         return $this;
-    }
-
-    /**
-     * Get a closure that stores the result of the given closure for uniqueness
-     *
-     * @param \Closure $callable Closure for wrapping for uniqueness
-     *
-     * @return \Closure
-     */
-    public function share(\Closure $callable)
-    {
-        return function ($container) use ($callable) {
-            static $object;
-
-            if (null === $object) {
-                $object = $callable($container);
-            }
-
-            return $object;
-        };
     }
 
     /**
@@ -195,5 +205,40 @@ class Container
         $this->set($key, $this->share($callable));
 
         return $this;
+    }
+
+    /**
+     * Set a parameter or a service
+     *
+     * @param string $key   Key
+     * @param mixed  $value Parameter value or object as closure
+     *
+     * @return Container
+     */
+    public function set($key, $value)
+    {
+        $this->values[$key] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Get a closure that stores the result of the given closure for uniqueness
+     *
+     * @param \Closure $callable Closure for wrapping for uniqueness
+     *
+     * @return \Closure
+     */
+    public function share(\Closure $callable)
+    {
+        return function ($container) use ($callable) {
+            static $object;
+
+            if (null === $object) {
+                $object = $callable($container);
+            }
+
+            return $object;
+        };
     }
 }
