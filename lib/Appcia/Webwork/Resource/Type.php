@@ -11,6 +11,8 @@ use Appcia\Webwork\System\File;
  */
 class Type
 {
+    const EXTENSION_WILDCARD = '*';
+
     /**
      * Base resource
      *
@@ -86,12 +88,10 @@ class Type
     /**
      * Get lazy loaded file
      *
-     * @param bool $force Throw exception if it cannot be determined
-     *
      * @return File|null
      * @throws \ErrorException
      */
-    public function getFile($force = true)
+    public function getFile()
     {
         if ($this->file === null) {
             $file = $this->determineFile($this->path, $this->params);
@@ -99,8 +99,6 @@ class Type
             if ($file !== null) {
                 $this->params['ext'] = $file->getExtension();
                 $this->file = $file;
-            } else if ($force) {
-                throw new \ErrorException(sprintf("Resource target file cannot be determined for path '%s'.", $this->path));
             }
         }
 
@@ -120,7 +118,7 @@ class Type
     {
         // Extension usually is unknown so use wildcard (except case when saving resource)
         if (!isset($params['ext'])) {
-            $params['ext'] = '*';
+            $params['ext'] = self::EXTENSION_WILDCARD;
         }
 
         foreach ($params as $key => $value) {
@@ -137,7 +135,7 @@ class Type
         // Use glob to know extension
         $file = new File($path);
 
-        if ($file->getExtension() === '*') {
+        if ($file->getExtension() === self::EXTENSION_WILDCARD) {
             $dir = $file->getDir();
             $paths = $dir->glob($file->getBaseName());
             $count = count($paths);
@@ -160,12 +158,12 @@ class Type
      */
     public function __toString()
     {
-        $file = $this->getFile(false);
+        $file = $this->getFile();
 
         if ($file === null) {
             return '';
         } else {
-            return $file->__toString();
+            return (string) $file;
         }
     }
 

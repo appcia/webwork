@@ -75,10 +75,10 @@ class Form extends BasicForm
                 $this->unskip($name, true);
             }
 
-            if (!$this->isSkipped($name)) {
+            if ($resource === null && !$this->isSkipped($name)) {
                 $resource = $this->manager->load(Manager::UPLOAD, $params);
 
-                if (!$resource->exists()) {
+                if ($resource !== null) {
                     $resource = isset($resources[$name]) ? $resources[$name] : null;
                 }
             }

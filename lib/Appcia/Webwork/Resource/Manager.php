@@ -145,9 +145,13 @@ class Manager
     {
         $resource = $this->load($name, $params);
 
-        $this->removeFile($resource->getFile(false));
-        foreach ($resource->getTypes() as $type) {
-            $this->removeFile($type->getFile(false));
+        if ($resource !== null) {
+            $this->removeFile($resource->getFile());
+
+            foreach ($resource->getTypes() as $type) {
+                $this->removeFile($type->getFile());
+            }
+
         }
 
         return $this;
@@ -159,11 +163,16 @@ class Manager
      * @param string $name   Resource name
      * @param array  $params Path parameters
      *
-     * @return Resource
+     * @return Resource|null
      */
     public function load($name, array $params)
     {
         $resource = new Resource($this, $name, $params);
+        $file = $resource->getFile();
+
+        if ($file === null) {
+            return null;
+        }
 
         return $resource;
     }
@@ -177,10 +186,6 @@ class Manager
      */
     private function removeFile($file)
     {
-        if ($file === null) {
-            return $this;
-        }
-
         if ($file->exists()) {
             $file->remove();
         }

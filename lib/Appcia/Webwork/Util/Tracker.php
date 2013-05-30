@@ -227,13 +227,13 @@ class Tracker
     /**
      * Set steps count to be tracked
      *
-     * @param int $stepCount Count
+     * @param int $count Count
      *
      * @return Tracker
      */
-    public function setStepCount($stepCount)
+    public function setStepCount($count)
     {
-        $this->stepCount = $stepCount;
+        $this->stepCount = $count;
 
         return $this;
     }

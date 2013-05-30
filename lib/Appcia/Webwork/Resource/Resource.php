@@ -241,11 +241,10 @@ class Resource extends Type
      */
     public function exists()
     {
-        $file = $this->getFile(false);
-        $exists = ($file !== null) && $file->exists();
+        $file = $this->getFile();
+        $flag = ($file !== null) && $file->exists();
 
-        return $exists;
+        return $flag;
     }
-
 }
 

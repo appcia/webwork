@@ -25,36 +25,31 @@ class Mask
      */
     public function __construct($value = 0)
     {
-        $this->verify($value);
-        $this->value = (int) $value;
-    }
-
-    /**
-     * Verify value / option
-     *
-     * @param int $value Number
-     *
-     * @return Mask
-     * @throws \InvalidArgumentException
-     */
-    private function verify($value) {
-        if (!$this->check($value)) {
-            throw new \InvalidArgumentException('Mask option value should a number which is a power of 2');
-        }
-
-        return $this;
+        $this->setValue($value);
     }
 
     /**
      * Check whether value is power of 2
      *
-     * @param int $value Integer number
+     * @param int $option Integer number
      *
      * @return bool
      */
-    public static function check($value)
+    public static function checkOption($option)
     {
-        return ($value === 0) || (($value & ($value - 1)) == 0);
+        return ($option === 0) || (($option & ($option - 1)) == 0);
+    }
+
+    /**
+     * Check whether value could be a mask
+     *
+     * @param $value
+     *
+     * @return bool
+     */
+    public static function checkValue($value)
+    {
+        return $value >= 0;
     }
 
     /**
@@ -71,11 +66,7 @@ class Mask
             $flag = !$this->is($option);
         }
 
-        if ($flag) {
-            $this->mark($option);
-        } else {
-            $this->unmark($option);
-        }
+        $this->set($option, $flag);
 
         return $this;
     }
@@ -89,39 +80,37 @@ class Mask
      */
     public function is($option)
     {
-        if (!$this->check($option)) {
+        if (!$this->checkOption($option)) {
             return false;
         }
 
-        return ($this->value & $option) > 0;
+        $flag = ($this->value & $option) > 0;
+
+        return $flag;
     }
 
     /**
      * Set mask option
      *
-     * @param int $option Option value
+     * @param int  $option Option value
+     * @param bool $flag   True of false
      *
      * @return Mask
+     * @throws \InvalidArgumentException
      */
-    public function mark($option)
+    public function set($option, $flag)
     {
-        $this->verify($option);
-        $this->value |= $option;
+        if (!$this->checkOption($option)) {
+            throw new \InvalidArgumentException(sprintf(
+                "Mask option should be a number which is power of 2.", $option
+            ));
+        }
 
-        return $this;
-    }
-
-    /**
-     * Unset mask option
-     *
-     * @param int $option
-     *
-     * @return Mask
-     */
-    public function unmark($option)
-    {
-        $this->verify($option);
-        $this->value &= ~$option;
+        if ($flag) {
+            $this->value |= $option;
+        } else {
+            $this->value &= ~$option;
+        }
 
         return $this;
     }
@@ -142,10 +131,14 @@ class Mask
      * @param int $value Value
      *
      * @return Mask
+     * @throws \InvalidArgumentException
      */
     public function setValue($value)
     {
-        $this->verify($value);
+        if ($value < 0) {
+            throw new \InvalidArgumentException("Mask value should be greater than 0.");
+        }
+
         $this->value = $value;
 
         return $this;
