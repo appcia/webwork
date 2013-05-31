@@ -78,7 +78,7 @@ class Container
     public function get($key)
     {
         if (!$this->values->has($key)) {
-            throw new \OutOfBoundsException(sprintf("Container key '%s' does not exist.", $key));
+            throw new \OutOfBoundsException(sprintf("Container service or parameter '%s' does not exist.", $key));
         }
 
         $isFactory = is_object($this->values[$key]) && method_exists($this->values[$key], '__invoke');
@@ -158,7 +158,7 @@ class Container
     public function raw($key)
     {
         if (!$this->values->has($key)) {
-            throw new \OutOfBoundsException(sprintf("Container key '%s' does not exist.", $key));
+            throw new \OutOfBoundsException(sprintf("Container service or parameter '%s' does not exist.", $key));
         }
 
         return $this->values[$key];
@@ -178,7 +178,7 @@ class Container
     public function extend($key, \Closure $callable)
     {
         if (!$this->values->has($key)) {
-            throw new \OutOfBoundsException(sprintf("Container key '%s' does not exist.", $key));
+            throw new \OutOfBoundsException(sprintf("Container service or parameter '%s' does not exist.", $key));
         }
 
         $factory = $this->values[$key];

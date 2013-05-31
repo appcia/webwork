@@ -9,6 +9,7 @@ namespace Appcia\Webwork\Web;
  */
 class Context {
 
+    // HTML versions
     const HTML_5 = 'HTML 5';
     const HTML_401 = 'HTML 4.01';
 
@@ -23,17 +24,17 @@ class Context {
     /**
      * @var string
      */
+    private $domain;
+
+    /**
+     * @var string
+     */
     private $baseUrl;
 
     /**
      * @var string
      */
     private $locale;
-
-    /**
-     * @var string
-     */
-    private $textDomain;
 
     /**
      * @var string
@@ -50,6 +51,7 @@ class Context {
      */
     public function __construct()
     {
+        $this->domain = 'localhost';
         $this->baseUrl = '';
         $this->locale = 'en_US';
         $this->charset = 'UTF-8';
@@ -82,6 +84,26 @@ class Context {
     public static function getHtmlVersions()
     {
         return self::$htmlVersions;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDomain()
+    {
+        return $this->domain;
+    }
+
+    /**
+     * @param string $domain
+     *
+     * @return Context
+     */
+    public function setDomain($domain)
+    {
+        $this->domain = $domain;
+
+        return $this;
     }
 
     /**

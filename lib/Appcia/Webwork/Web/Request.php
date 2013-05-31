@@ -9,6 +9,8 @@ namespace Appcia\Webwork\Web;
  */
 class Request
 {
+    const LOCALHOST = '127.0.0.1';
+
     const POST = 'post';
     const GET = 'get';
 
@@ -267,6 +269,18 @@ class Request
     public function getIp()
     {
         return $this->ip;
+    }
+
+    /**
+     * Check whether source host is local machine
+     *
+     * @return bool
+     */
+    public function isLocal()
+    {
+        $flag = ($this->ip === self::LOCALHOST);
+
+        return $flag;
     }
 
     /**

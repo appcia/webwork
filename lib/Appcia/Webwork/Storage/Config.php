@@ -129,7 +129,7 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Get value
+     * Get a value
      *
      * @param string $key Key in dot notation
      *
@@ -155,7 +155,7 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Set value
+     * Set a value
      *
      * @param string $key   Key in dot notation
      * @param mixed  $value Value
@@ -193,6 +193,46 @@ class Config implements \Iterator, \ArrayAccess
         }
 
         $data = $value;
+
+        return $this;
+    }
+
+    /**
+     * Remove a value
+     *
+     * @param string $key Key in dot notation
+     *
+     * @return Config
+     * @throws \InvalidArgumentException
+     */
+    public function remove($key)
+    {
+        if (empty($key)) {
+            throw new \InvalidArgumentException('Config key cannot be empty');
+        }
+
+        $data = & $this->data;
+
+        $sections = explode('.', $key);
+        $count = count($sections);
+
+        $s = 0;
+        foreach ($sections as $section) {
+            $s++;
+
+            if (!isset($data[$section])) {
+                throw new \InvalidArgumentException(sprintf(
+                    "Config section '%s' in key '%s' does not exist", $section, $key
+                ));
+            }
+
+            if ($s === $count) {
+                unset($data[$section]);
+                break;
+            }
+
+            $data = & $data[$section];
+        }
 
         return $this;
     }
@@ -404,7 +444,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function offsetExists($offset)
     {
-        return array_key_exists($offset, $this->data);
+        return $this->has($offset);
     }
 
     /**
@@ -412,7 +452,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function offsetGet($offset)
     {
-        return $this->offsetExists($offset) ? $this->data[$offset] : null;
+        return $this->get($offset);
     }
 
     /**
@@ -420,7 +460,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function offsetSet($offset, $value)
     {
-        $this->data[$offset] = $value;
+        $this->set($offset, $value);
 
         return $this;
     }
@@ -430,7 +470,7 @@ class Config implements \Iterator, \ArrayAccess
      */
     public function offsetUnset($offset)
     {
-        unset($this->data[$offset]);
+        $this->remove($offset);
 
         return $this;
     }
