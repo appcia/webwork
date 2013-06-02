@@ -6,6 +6,30 @@ use Appcia\Webwork\Data\Validator;
 
 class Time extends Validator
 {
+    const HOURS = 'hh';
+    const MINUTES = 'mm';
+    const SECONDS = 'ss';
+
+    /**
+     * @var string
+     */
+    private $regexp;
+
+    /**
+     * Constructor
+     *
+     * @param string $format
+     */
+    public function __construct($format = 'hh:mm:ss')
+    {
+        $map = str_replace(
+            array(self::HOURS, self::MINUTES, self::SECONDS),
+            array('(0[0-9]|1[0-9]|2[0-3])', '([0-5][0-9])', '([0-5][0-9])'),
+            $format
+        );
+
+        $this->regexp = '/^' . $map . '$/';
+    }
 
     /**
      * {@inheritdoc}
@@ -20,7 +44,7 @@ class Time extends Validator
             return false;
         }
 
-        $valid = preg_match('/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/', $value);
+        $valid = preg_match($this->regexp, $value);
 
         return $valid;
     }

@@ -6,6 +6,30 @@ use Appcia\Webwork\Data\Validator;
 
 class Date extends Validator
 {
+    const YEAR = 'yyyy';
+    const MONTH = 'mm';
+    const DAY = 'dd';
+
+    /**
+     * @var string
+     */
+    private $regexp;
+
+    /**
+     * Constructor
+     *
+     * @param string $format
+     */
+    public function __construct($format = 'yyyy-mm-dd')
+    {
+        $map = str_replace(
+            array(self::YEAR, self::MONTH, self::DAY),
+            array('(\d{4})', '(\d{2})', '(\d{2})'),
+            $format
+        );
+
+        $this->regexp = '/^' . $map . '$/';
+    }
 
     /**
      * {@inheritdoc}
@@ -20,15 +44,12 @@ class Date extends Validator
             return false;
         }
 
-        $parts = explode('-', str_replace('/', '-', $value));
+        $parts = array();
 
-        if (count($parts) !== 3) {
+        if (preg_match($this->regexp, $value, $parts)) {
+            return checkdate($parts[2], $parts[3], $parts[1]);
+        } else {
             return false;
         }
-
-        list ($year, $month, $day) = $parts;
-
-        return checkdate($month, $day, $year);
     }
-
 }
