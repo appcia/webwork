@@ -485,7 +485,7 @@ class Form
      *
      * @return Form
      */
-    public function build()
+    protected function build()
     {
         return $this;
     }
@@ -496,7 +496,7 @@ class Form
      *
      * @return Form
      */
-    public function prepare()
+    protected function prepare()
     {
         foreach ($this->fields as $field) {
             foreach ($field->getComponents() as $component) {

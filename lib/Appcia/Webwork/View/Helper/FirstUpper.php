@@ -15,8 +15,12 @@ class FirstUpper extends Helper
      */
     public function firstUpper($value)
     {
-        $value = ucfirst($value);
+        $charset = $this->getContext()
+            ->getCharset();
 
-        return $value;
+        $first = mb_substr(mb_strtoupper($value, $charset), 0, 1, $charset);
+        $result = $first . mb_substr(mb_strtolower($value, $charset), 1, mb_strlen($value), $charset);
+
+        return $result;
     }
 }
