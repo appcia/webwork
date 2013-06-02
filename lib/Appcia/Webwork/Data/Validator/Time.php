@@ -20,7 +20,7 @@ class Time extends Validator
             return false;
         }
 
-        $valid = preg_match('/^(([0-1][0-9])|([2][0-3])):([0-5][0-9]):([0-5][0-9])$/', $value);
+        $valid = preg_match('/^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$/', $value);
 
         return $valid;
     }

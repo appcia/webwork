@@ -552,13 +552,31 @@ class Request
     }
 
     /**
-     * Get request parameter (skipped method type information)
+     * Get request parameter
+     *
+     * @param string $key Parameter name
+     *
+     * @return mixed
+     * @throws \InvalidArgumentException
+     */
+    public function get($key)
+    {
+        if (!$this->has($key)) {
+            throw new \InvalidArgumentException(sprintf("Request parameter '%s' is not specified.", $key));
+        }
+
+        return $this->data[$key];
+    }
+
+    /**
+     * Grab request parameter
+     * If it is not specified returns null
      *
      * @param string $key Parameter name
      *
      * @return mixed
      */
-    public function get($key)
+    public function grab($key)
     {
         if (!$this->has($key)) {
             return null;
