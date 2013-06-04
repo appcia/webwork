@@ -9,17 +9,26 @@ class FirstUpper extends Helper
     /**
      * Caller
      *
-     * @param string $value Value
+     * @param string $value     Value
+     * @param bool   $lowerRest Lowercase all except first letter
      *
      * @return string
      */
-    public function firstUpper($value)
+    public function firstUpper($value, $lowerRest = false)
     {
         $charset = $this->getContext()
             ->getCharset();
 
-        $first = mb_substr(mb_strtoupper($value, $charset), 0, 1, $charset);
-        $result = $first . mb_substr(mb_strtolower($value, $charset), 1, mb_strlen($value), $charset);
+        $first = mb_strtoupper(mb_substr($value, 0, 1, $charset), $charset);
+        $rest = null;
+
+        if ($lowerRest) {
+            $rest = mb_strtolower(mb_substr($value, 1, mb_strlen($value, $charset), $charset), $charset);
+        } else {
+            $rest = mb_substr($value, 1, mb_strlen($value, $charset), $charset);
+        }
+
+        $result = $first . $rest;
 
         return $result;
     }
