@@ -154,6 +154,27 @@ class Form
     }
 
     /**
+     * Get fields by filtering by name
+     *
+     * @param string $pattern Regular expression
+     *
+     * @return array
+     */
+    public function filterFields($pattern)
+    {
+        $fields = array();
+
+        $match = array();
+        foreach ($this->fields as $name => $field) {
+            if (preg_match($pattern, $name, $match)) {
+                $fields[] = $field;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
      * Set metadata
      *
      * @param mixed $metadata Data
@@ -319,7 +340,7 @@ class Form
     {
         foreach ($data as $name => $value) {
             if (isset($this->fields[$name])) {
-                throw new \LogicException(sprintf("Field '%s' already exists and cannot be initialized", $name));
+                throw new \LogicException(sprintf("Field '%s' already exists and cannot be initialized.", $name));
             } else {
                 $field = new Field($name);
                 $field->setValue($value);
@@ -507,4 +528,138 @@ class Form
         return $this;
     }
 
+    /**
+     * Create multiple fields at once
+     *
+     * Closure is used for single field configuration
+     * Pattern and mappings are used for name generation
+     *
+     * @param string   $pattern  Field name pattern
+     * @param array    $mappings Parameters to be used in pattern
+     * @param callable $closure  Single field configurator
+     *
+     * @return $this
+     * @throws \ErrorException
+     */
+    public function map($pattern, array $mappings, \Closure $closure)
+    {
+        foreach ($this->permuteMappings($mappings) as $mapping) {
+            $maps = array_keys($mapping);
+            $properties = array_values($mapping);
+
+            foreach ($maps as $key => $value) {
+                $maps[$key] = '{' . $value . '}';
+            }
+
+            $name = str_replace($maps, $properties, $pattern);
+
+            $field = new Field($name);
+
+            if (!is_callable($closure)) {
+                throw new \ErrorException("Form field mapping callback is not callable.");
+            }
+
+            $params = array($field, $mapping);
+            call_user_func_array($closure, $params);
+
+            $this->addField($field);
+
+        }
+
+        return $this;
+    }
+
+    /**
+     * Generate all possible fields without losing parameters order
+     *
+     * @param array $data Mapped parameters
+     * @param bool  $flag Recursion guard
+     *
+     * @return array|mixed
+     * @throws \InvalidArgumentException
+     */
+    private function permuteMappings(array $data, $flag = false)
+    {
+        if (empty($data)) {
+            throw new \InvalidArgumentException('Form field mappings requires at least one array.');
+        }
+
+        if (count($data) == 1) {
+            return array_pop($data);
+        }
+
+        $keys = array_keys($data);
+
+        $a = array_shift($data);
+        $k = array_shift($keys);
+
+        $b = $this->permuteMappings($data, true);
+
+        $return = array();
+
+        foreach ($a as $v) {
+            if ($v) {
+                foreach ($b as $v2) {
+                    if ($flag == true) {
+                        $return[] = array_merge(array($v), (array) $v2);
+                    } else {
+                        $return[] = array($k => $v) + array_combine($keys, (array) $v2);
+                    }
+                }
+            }
+        }
+
+        return $return;
+    }
+
+    /**
+     * Service values from many fields (to create many entities at once)
+     *
+     * @param string       $pattern  Field name pattern
+     * @param array|string $groupBy  Group mapped parameters (except one)
+     * @param array        $mappings Parameters mapped for field name generation
+     * @param callable     $closure  Callback used for servicing values from matched fields
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function remap($pattern, $groupBy, array $mappings, \Closure $closure)
+    {
+
+        $data = array();
+        foreach ($this->permuteMappings($mappings) as $mapping) {
+            $maps = array_keys($mapping);
+            $properties = array_values($mapping);
+
+            foreach ($maps as $key => $value) {
+                $maps[$key] = '{' . $value . '}';
+            }
+
+            $name = str_replace($maps, $properties, $pattern);
+            $field = $this->getField($name);
+            $value = $field->getValue();
+
+            $grouping = $mapping[$groupBy];
+            unset($mapping[$groupBy]);
+
+            $param = array_pop($mapping);
+
+            if (!empty($mapping)) {
+                throw new \InvalidArgumentException(
+                    "Form field remapping expects that grouping covers all mappings except one."
+                );
+            }
+
+            $data[$grouping][0] = $grouping;
+            $data[$grouping][1][$param] = $value;
+        }
+
+        $results = array();
+        foreach ($data as $args) {
+            $result = call_user_func_array($closure, $args);
+            $results[] = $result;
+        }
+
+        return $results;
+    }
 }

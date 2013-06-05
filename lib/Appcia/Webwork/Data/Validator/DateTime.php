@@ -7,20 +7,27 @@ use Appcia\Webwork\Data\Validator;
 class DateTime extends Validator
 {
     /**
+     * Common used formats
+     */
+    const DATE_TIME = 'Y-m-d H:i:s';
+    const DATE_TIME_SHORT = 'Y-m-d H:i';
+    const DATE = 'Y-m-d';
+    const TIME  = 'H:i:s';
+    const TIME_SHORT = 'H:i';
+
+    /**
      * @var string
      */
     private $format;
 
     /**
+     * Constructor
+     *
      * @param string $format
      */
-    public function __construct($format = null)
+    public function __construct($format = self::DATE_TIME)
     {
-        $this->format = 'Y-m-d H:i:s';
-
-        if ($format !== null) {
-            $this->format = $format;
-        }
+        $this->format = $format;
     }
 
     /**
@@ -36,9 +43,9 @@ class DateTime extends Validator
             return false;
         }
 
-        $date = new \DateTime($value);
-        $valid = ($date->format($this->format) == $value);
+        $date = \DateTime::createFromFormat($this->format, $value);
+        $flag = ($date !== false);
 
-        return $valid;
+        return $flag;
     }
 }
