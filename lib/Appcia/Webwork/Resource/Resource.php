@@ -110,7 +110,7 @@ class Resource extends Type
     /**
      * Create subtypes basing on original resource
      *
-     * @return Resource
+     * @return $this
      * @throws \ErrorException
      */
     public function createTypes()
@@ -225,7 +225,7 @@ class Resource extends Type
     /**
      * Shortcut for removing itself
      *
-     * @return Resource
+     * @return $this
      */
     public function remove()
     {
@@ -237,7 +237,7 @@ class Resource extends Type
     /**
      * Check existing whenever associated file exists
      *
-     * @return bool
+     * @return boolean
      */
     public function exists()
     {

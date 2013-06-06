@@ -76,7 +76,7 @@ class Dispatcher
     /**
      * Exceptions instead of PHP errors
      *
-     * @var bool
+     * @var boolean
      */
     private $exceptionOnError;
 
@@ -136,9 +136,9 @@ class Dispatcher
     /**
      * Turn on / off exceptions on error
      *
-     * @param bool $flag Flag
+     * @param boolean $flag Flag
      *
-     * @return Dispatcher
+     * @return $this
      */
     public function setExceptionOnError($flag)
     {
@@ -171,7 +171,7 @@ class Dispatcher
      *
      * @param TextCase $converter
      *
-     * @return Dispatcher
+     * @return $this
      */
     public function setTextCase($converter)
     {
@@ -266,7 +266,7 @@ class Dispatcher
      *
      * @param string $event Event
      *
-     * @return Dispatcher
+     * @return $this
      */
     private function notify($event)
     {
@@ -284,7 +284,7 @@ class Dispatcher
      *
      * @param Route|string $route Route object or name
      *
-     * @return Dispatcher
+     * @return $this
      * @throws NotFound
      */
     public function forceRoute($route)
@@ -530,12 +530,12 @@ class Dispatcher
      * Exception could be:
      * - class name for example: Appcia\Webwork\NotFound
      * - object     for example: new Appcia\Webwork\Exception\NotFound()
-     * - bool       if should always / never handle any type of exception
+     * - boolean    if should always / never handle any type of exception
      *
      * @param mixed    $exception Exception to be handled, see description!
      * @param callable $callback  Callback function
      *
-     * @return Dispatcher
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function addHandler($exception, \Closure $callback)
@@ -575,7 +575,7 @@ class Dispatcher
      *
      * @param callable $callback
      *
-     * @return Dispatcher
+     * @return $this
      */
     public function setHandler(\Closure $callback)
     {
@@ -590,7 +590,7 @@ class Dispatcher
      * @param string   $event    Event
      * @param \Closure $callback Callback
      *
-     * @return Dispatcher
+     * @return $this
      * @throws \OutOfBoundsException
      * @throws \InvalidArgumentException
      */
@@ -630,7 +630,7 @@ class Dispatcher
     /**
      * Check whether exception will be thrown on error
      *
-     * @return bool
+     * @return boolean
      */
     public function isExceptionOnError()
     {
@@ -670,7 +670,7 @@ class Dispatcher
      *
      * @param array $data
      *
-     * @return Dispatcher
+     * @return $this
      */
     private function addData(array $data)
     {

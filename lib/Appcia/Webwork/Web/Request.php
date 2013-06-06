@@ -165,7 +165,7 @@ class Request
     /**
      * Load request data from global tables
      *
-     * @return Request
+     * @return $this
      */
     public function loadGlobals()
     {
@@ -204,7 +204,7 @@ class Request
      *
      * @param string $port
      *
-     * @return Request
+     * @return $this
      */
     public function setPort($port)
     {
@@ -228,7 +228,7 @@ class Request
      *
      * @param string $server
      *
-     * @return Request
+     * @return $this
      */
     public function setServer($server)
     {
@@ -252,7 +252,7 @@ class Request
      *
      * @param $file
      *
-     * @return Request
+     * @return $this
      */
     public function setScriptFile($file)
     {
@@ -274,7 +274,7 @@ class Request
     /**
      * Check whether source host is local machine
      *
-     * @return bool
+     * @return boolean
      */
     public function isLocal()
     {
@@ -288,7 +288,7 @@ class Request
      *
      * @param string $ip
      *
-     * @return Request
+     * @return $this
      */
     public function setIp($ip)
     {
@@ -312,7 +312,7 @@ class Request
      *
      * @param $protocol
      *
-     * @return Request
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setProtocol($protocol)
@@ -361,7 +361,7 @@ class Request
      *
      * @param string $uri
      *
-     * @return Request
+     * @return $this
      */
     public function setUri($uri)
     {
@@ -398,7 +398,7 @@ class Request
      *
      * @param array $data
      *
-     * @return Request
+     * @return $this
      */
     public function setData(array $data)
     {
@@ -410,7 +410,7 @@ class Request
     /**
      * Check whether used method is 'post'
      *
-     * @return bool
+     * @return boolean
      */
     public function isPost()
     {
@@ -432,7 +432,7 @@ class Request
      *
      * @param $method
      *
-     * @return Request
+     * @return $this
      */
     public function setMethod($method)
     {
@@ -456,7 +456,7 @@ class Request
      *
      * @param array $params Parameters
      *
-     * @return Request
+     * @return $this
      */
     public function setParams(array $params)
     {
@@ -481,7 +481,7 @@ class Request
      *
      * @param array $post Data
      *
-     * @return Request
+     * @return $this
      */
     public function setPost(array $post)
     {
@@ -506,7 +506,7 @@ class Request
      *
      * @param array $get Data
      *
-     * @return Request
+     * @return $this
      */
     public function setGet(array $get)
     {
@@ -531,7 +531,7 @@ class Request
      *
      * @param array $files
      *
-     * @return Request
+     * @return $this
      */
     public function setFiles($files)
     {
@@ -544,7 +544,7 @@ class Request
     /**
      * Check whether used method is 'get'
      *
-     * @return bool
+     * @return boolean
      */
     public function isGet()
     {
@@ -590,7 +590,7 @@ class Request
      *
      * @param string $key Parameter name
      *
-     * @return bool
+     * @return boolean
      */
     public function has($key)
     {
@@ -600,7 +600,7 @@ class Request
     /**
      * Check whether used method is ajax (asynchronous)
      *
-     * @return bool
+     * @return boolean
      */
     public function isAjax()
     {
@@ -613,7 +613,7 @@ class Request
     /**
      * Parse URI and create path that could be matched to route
      *
-     * @return Request
+     * @return $this
      */
     private function parsePath()
     {

@@ -156,8 +156,8 @@ class Dir
     /**
      * Creates a directory
      *
-     * @param int  $permission Value for CHMOD
-     * @param bool $recursive  Create also parent directories
+     * @param int     $permission Value for CHMOD
+     * @param boolean $recursive  Create also parent directories
      *
      * @return Dir
      */
@@ -194,7 +194,7 @@ class Dir
     /**
      * Removes a directory
      *
-     * @param bool $recursive Deletes all subdirectories and files
+     * @param boolean $recursive Deletes all subdirectories and files
      *
      * @return Dir
      */
@@ -249,7 +249,7 @@ class Dir
      * Create a symlink pointing to this directory
      *
      * @param Dir|string $dir         Dir object or path
-     * @param bool       $createPaths Create paths (if does not exist)
+     * @param boolean    $createPaths Create paths (if does not exist)
      *
      * @return Dir
      * @throws \InvalidArgumentException
@@ -342,7 +342,7 @@ class Dir
     /**
      * Check whether it really exist
      *
-     * @return bool
+     * @return boolean
      */
     public function exists()
     {
@@ -352,7 +352,7 @@ class Dir
     /**
      * Check whether is a symbolic link
      *
-     * @return bool
+     * @return boolean
      */
     public function isLink()
     {
@@ -362,7 +362,7 @@ class Dir
     /**
      * Check whether is writable
      *
-     * @return bool
+     * @return boolean
      */
     public function isWritable()
     {
@@ -372,7 +372,7 @@ class Dir
     /**
      * Check whether is empty
      *
-     * @return bool
+     * @return boolean
      */
     public function isEmpty()
     {

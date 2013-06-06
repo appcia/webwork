@@ -40,6 +40,8 @@ class Cookie
      * Set data encoder
      *
      * @param Encoder|string $encoder
+     *
+     * @return $this
      */
     public function setEncoder($encoder)
     {
@@ -48,5 +50,7 @@ class Cookie
         }
 
         $this->encoder = $encoder;
+
+        return $this;
     }
 }

@@ -35,14 +35,14 @@ class Space implements \ArrayAccess
     /**
      * Flush when data is dirty
      *
-     * @var bool
+     * @var boolean
      */
     private $autoflush;
 
     /**
      * Data dirty flag
      *
-     * @var bool
+     * @var boolean
      */
     private $clean;
 
@@ -51,7 +51,7 @@ class Space implements \ArrayAccess
      *
      * @param Session $session   Session
      * @param string  $name      Namespace
-     * @param bool    $autoflush Flush when data is dirty
+     * @param boolean $autoflush Flush when data is dirty
      */
     public function __construct(Session $session, $name, $autoflush = true)
     {
@@ -106,7 +106,7 @@ class Space implements \ArrayAccess
     /**
      * Flush when data is dirty
      *
-     * @return bool
+     * @return boolean
      */
     public function isAutoflush()
     {
@@ -116,7 +116,7 @@ class Space implements \ArrayAccess
     /**
      * Set automatic saving / loading when data is dirty
      *
-     * @param bool $flag Automatic flush
+     * @param boolean $flag Automatic flush
      *
      * @return Space
      */
@@ -130,7 +130,7 @@ class Space implements \ArrayAccess
     /**
      * Data clean check
      *
-     * @return boolean
+     * @return booleanean
      */
     public function isClean()
     {
@@ -140,7 +140,7 @@ class Space implements \ArrayAccess
     /**
      * Force data state
      *
-     * @param bool $flag
+     * @param boolean $flag Flag
      *
      * @return Space
      */
@@ -164,7 +164,7 @@ class Space implements \ArrayAccess
      *
      * @param $key
      *
-     * @return bool
+     * @return boolean
      */
     public function has($key)
     {

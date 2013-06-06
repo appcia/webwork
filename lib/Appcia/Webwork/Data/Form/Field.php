@@ -12,6 +12,14 @@ use Appcia\Webwork\Data\Validator;
  */
 class Field
 {
+    /**
+     * Types
+     * 
+     * 1) text - for text inputs
+     * 2) set  - data from checkboxes
+     * 3) file - input type file
+     * 4) plan - unsafe, for omitting built-in CSRF protection
+     */
     const TEXT = 'text';
     const SET = 'set';
     const FILE = 'file';
@@ -19,10 +27,7 @@ class Field
 
     /**
      * Possible types:
-     * text - for text inputs
-     * set  - data from checkboxes
-     * file - input type file
-     * plan - unsafe, for omitting built-in CSRF protection
+
      *
      * @var array
      */
@@ -71,16 +76,24 @@ class Field
     /**
      * Validation result
      *
-     * @var bool
+     * @var boolean
      */
     private $valid;
 
     /**
      * Field type used for extended form behaviours
      *
-     * @var bool
+     * @var boolean
      */
     private $type;
+
+    /**
+     * Additional data useful in views
+     * KV storage
+     *
+     * @var
+     */
+    private $data;
 
     /**
      * Constructor
@@ -94,6 +107,7 @@ class Field
         $this->filters = array();
         $this->valid = true;
         $this->type = self::TEXT;
+        $this->data = array();
 
         $this->setName($name);
         $this->setType($type);
@@ -104,7 +118,7 @@ class Field
      *
      * @param string $name Name
      *
-     * @return Field
+     * @return $this
      * @throws \InvalidArgumentException
      */
     private function setName($name)
@@ -123,7 +137,7 @@ class Field
      *
      * @param string $type Type
      *
-     * @return Field
+     * @return $this
      * @throws \OutOfBoundsException
      */
     private function setType($type)
@@ -146,7 +160,7 @@ class Field
      *
      * @param Filter $filter Filter
      *
-     * @return Field
+     * @return $this
      * @throws \LogicException
      */
     public function addFilter(Filter $filter)
@@ -197,7 +211,7 @@ class Field
      *
      * @param mixed $value Value
      *
-     * @return Field
+     * @return $this
      */
     public function setValue($value)
     {
@@ -210,7 +224,7 @@ class Field
     /**
      * Check whether value is empty
      *
-     * @return bool
+     * @return boolean
      */
     public function isEmpty()
     {
@@ -220,7 +234,7 @@ class Field
     /**
      * Check how value evaluates to true or false
      *
-     * @return bool
+     * @return boolean
      */
     public function isEnabled()
     {
@@ -233,7 +247,7 @@ class Field
      *
      * @param mixed $value Value
      *
-     * @return bool
+     * @return boolean
      */
     public function contains($value)
     {
@@ -253,7 +267,7 @@ class Field
     }
 
     /**
-     * @return bool
+     * @return boolean
      */
     public function isValid()
     {
@@ -265,7 +279,7 @@ class Field
      *
      * @param string $name Filter name
      *
-     * @return bool
+     * @return boolean
      */
     public function hasFilter($name)
     {
@@ -285,7 +299,7 @@ class Field
     /**
      * @param array $filters
      *
-     * @return Field
+     * @return $this
      */
     public function setFilters($filters)
     {
@@ -303,7 +317,7 @@ class Field
      *
      * @param string $name Validator name
      *
-     * @return bool
+     * @return boolean
      */
     public function hasValidator($name)
     {
@@ -325,7 +339,7 @@ class Field
      *
      * @param array $validators
      *
-     * @return Field
+     * @return $this
      */
     public function setValidators($validators)
     {
@@ -343,7 +357,7 @@ class Field
      *
      * @param Validator $validator Validator
      *
-     * @return Field
+     * @return $this
      * @throws \LogicException
      */
     public function addValidator(Validator $validator)
@@ -375,6 +389,38 @@ class Field
     }
 
     /**
+     * Get additional data
+     *
+     * @param string $key Key
+     *
+     * @return mixed
+     * @throws \OutOfBoundsException
+     */
+    public function get($key)
+    {
+        if (!array_key_exists($key, $this->data)) {
+            throw new \OutOfBoundsException(sprintf("Field data '%s' does not exist.", $key));
+        }
+
+        return $this->data[$key];
+    }
+
+    /**
+     * Set additional data
+     *
+     * @param string $key  Key
+     * @param mixed $value Value
+     *
+     * @return $this
+     */
+    public function set($key, $value)
+    {
+        $this->data[$key] = $value;
+
+        return $this;
+    }
+
+    /**
      * Apply filters to value
      *
      * @return string
@@ -397,7 +443,7 @@ class Field
     /**
      * Validate value using chain of validators
      *
-     * @return bool
+     * @return boolean
      */
     public function validate()
     {

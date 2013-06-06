@@ -42,7 +42,7 @@ class Encoder
      *
      * @param string $encoding Encoding
      *
-     * @return Encoder
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public static function create($encoding)
@@ -77,7 +77,7 @@ class Encoder
     /**
      * @param int $encode
      *
-     * @return Encoder
+     * @return $this
      * @throws \OutOfBoundsException
      */
     public function setEncoding($encode)

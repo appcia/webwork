@@ -12,7 +12,7 @@ class Contains extends Helper
      * @param mixed $value Value
      * @param array $set   Set
      *
-     * @return bool
+     * @return boolean
      */
     public function contains($value, array $set)
     {

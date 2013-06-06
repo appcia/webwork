@@ -13,6 +13,9 @@ use Appcia\Webwork\Storage\Config;
  */
 abstract class Translator
 {
+    /**
+     * Types
+     */
     const GETTEXT = 'gettext';
 
     /**
@@ -25,7 +28,7 @@ abstract class Translator
      *
      * @param array|string $data Config data
      *
-     * @return Translator
+     * @return $this
      * @throws \InvalidArgumentException
      * @throws \OutOfBoundsException
      */
@@ -92,7 +95,7 @@ abstract class Translator
      *
      * @param Context $context
      *
-     * @return Translator
+     * @return $this
      */
     public function setContext($context)
     {

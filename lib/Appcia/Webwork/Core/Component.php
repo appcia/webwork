@@ -86,7 +86,7 @@ abstract class Component
      *
      * @param Context $context Context
      *
-     * @return Component
+     * @return $this
      */
     public function setContext($context)
     {
@@ -95,4 +95,18 @@ abstract class Component
         return $this;
     }
 
+    /**
+     * Check whether value could be casted to string
+     *
+     * @param mixed $value Value
+     *
+     * @return boolean
+     */
+    protected function isStringifyable($value)
+    {
+        $flag = !(!is_scalar($value)
+            && !(is_object($value) && method_exists($value, '__toString')));
+
+        return $flag;
+    }
 }

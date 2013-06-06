@@ -49,7 +49,7 @@ class Manager
      *
      * @param array $map Config map
      *
-     * @return Manager
+     * @return $this
      */
     public function setResources($map)
     {
@@ -73,7 +73,7 @@ class Manager
      *
      * @param Dir|string $dir Path
      *
-     * @return Manager
+     * @return $this
      */
     public function setTempDir($dir)
     {
@@ -139,7 +139,7 @@ class Manager
      * @param string $name   Resource name
      * @param array  $params Path parameters
      *
-     * @return Manager
+     * @return $this
      */
     public function remove($name, array $params)
     {

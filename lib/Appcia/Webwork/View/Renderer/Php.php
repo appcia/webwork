@@ -22,7 +22,7 @@ class Php extends Renderer
     /**
      * Output compression
      *
-     * @var bool
+     * @var boolean
      */
     private $sanitization;
 
@@ -172,7 +172,7 @@ class Php extends Renderer
     /**
      * Set sanitization enabled / disabled
      *
-     * @param bool $sanitization Flag
+     * @param boolean $sanitization Flag
      *
      * @return Php
      */
@@ -186,7 +186,7 @@ class Php extends Renderer
     /**
      * Check whether sanitization is enabled
      *
-     * @return bool
+     * @return boolean
      */
     public function isSanitization()
     {

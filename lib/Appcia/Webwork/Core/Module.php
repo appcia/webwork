@@ -86,7 +86,7 @@ abstract class Module
     /**
      * Register in autoloader
      *
-     * @return Module
+     * @return $this
      */
     public function autoload()
     {
@@ -112,7 +112,7 @@ abstract class Module
      * Initialize, do only light-weight things like adding configuration, routing etc.
      * Executed by all modules
      *
-     * @return Module
+     * @return $this
      */
     public function init()
     {
@@ -123,7 +123,7 @@ abstract class Module
      * Run, prepare heavy things
      * Executed only by target module (according to current route)
      *
-     * @return Module
+     * @return $this
      */
     public function run()
     {

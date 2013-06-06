@@ -100,8 +100,8 @@ class Ini extends Renderer
     /**
      * Generate configuration in INI format
      *
-     * @param array $data     Associative array
-     * @param bool  $sections Create sections
+     * @param array   $data     Associative array
+     * @param boolean $sections Create sections
      *
      * @return string
      */

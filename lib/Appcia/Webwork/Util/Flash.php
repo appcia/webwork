@@ -42,7 +42,7 @@ class Flash
      * @param string $message Text
      * @param string $type    Type
      *
-     * @return Flash
+     * @return $this
      */
     public function addMessage($message, $type)
     {
@@ -59,7 +59,7 @@ class Flash
      *
      * @param string $type Type
      *
-     * @return Flash
+     * @return $this
      */
     public function clearMessages($type = null)
     {
@@ -152,7 +152,7 @@ class Flash
      *
      * @param string $message Text
      *
-     * @return Flash
+     * @return $this
      */
     public function success($message)
     {
@@ -166,7 +166,7 @@ class Flash
      *
      * @param string $message Text
      *
-     * @return Flash
+     * @return $this
      */
     public function info($message)
     {
@@ -180,7 +180,7 @@ class Flash
      *
      * @param string $message Text
      *
-     * @return Flash
+     * @return $this
      */
     public function warning($message)
     {
@@ -194,7 +194,7 @@ class Flash
      *
      * @param string $message Text
      *
-     * @return Flash
+     * @return $this
      */
     public function error($message)
     {

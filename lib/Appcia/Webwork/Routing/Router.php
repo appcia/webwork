@@ -45,7 +45,7 @@ class Router
      *
      * @param array $routes Routes
      *
-     * @return Router
+     * @return $this
      */
     public function setRoutes(array $routes)
     {
@@ -60,7 +60,7 @@ class Router
      *
      * @param array $routes Routes
      *
-     * @return Router
+     * @return $this
      */
     public function addRoutes(array $routes)
     {
@@ -80,7 +80,7 @@ class Router
      *
      * @param Route|array $route Route
      *
-     * @return Router
+     * @return $this
      * @throws \LogicException
      */
     public function addRoute($route)
@@ -108,7 +108,7 @@ class Router
     /**
      * Clear current routes
      *
-     * @return Router
+     * @return $this
      */
     public function clearRoutes()
     {
@@ -141,7 +141,7 @@ class Router
      *
      * @param array $groups Data
      *
-     * @return Router
+     * @return $this
      */
     public function setGroups(array $groups)
     {
@@ -161,7 +161,7 @@ class Router
      *
      * @param array $data Data
      *
-     * @return Router
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function addGroup(array $data)
@@ -205,7 +205,7 @@ class Router
      * @param Request $request Source request
      * @param Route   $route   Route to be processed
      *
-     * @return bool
+     * @return boolean
      */
     private function process($request, $route)
     {

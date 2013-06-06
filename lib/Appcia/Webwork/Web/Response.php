@@ -44,7 +44,7 @@ class Response
      *
      * @param mixed $content Content
      *
-     * @return Response
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setContent($content)
@@ -71,7 +71,7 @@ class Response
     /**
      * Check whether content is set
      *
-     * @return bool
+     * @return boolean
      */
     public function hasContent()
     {
@@ -83,7 +83,7 @@ class Response
      *
      * @param int $status Status code
      *
-     * @return Response
+     * @return $this
      */
     public function setStatus($status)
     {
@@ -107,7 +107,7 @@ class Response
      *
      * @param string $protocol
      *
-     * @return Response
+     * @return $this
      */
     public function setProtocol($protocol)
     {
@@ -129,7 +129,7 @@ class Response
     /**
      * Send headers
      *
-     * @return Response
+     * @return $this
      */
     public function sendHeaders()
     {
@@ -151,7 +151,7 @@ class Response
     /**
      * Clean current output
      *
-     * @return Response
+     * @return $this
      */
     public function clean()
     {

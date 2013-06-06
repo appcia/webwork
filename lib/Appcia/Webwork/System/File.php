@@ -128,7 +128,7 @@ class File
     /**
      * Check whether it really exists
      *
-     * @return bool
+     * @return boolean
      */
     public function exists()
     {
@@ -138,7 +138,7 @@ class File
     /**
      * Check whether it is a symbolic link
      *
-     * @return bool
+     * @return boolean
      */
     public function isLink()
     {
@@ -172,8 +172,8 @@ class File
     /**
      * Move file to another location
      *
-     * @param string $file       Target file
-     * @param bool   $createPath Create a path to target file if does not exist
+     * @param string  $file       Target file
+     * @param boolean $createPath Create a path to target file if does not exist
      *
      * @return File
      */
@@ -199,8 +199,8 @@ class File
     /**
      * Move file to another location
      *
-     * @param string $file       Target file
-     * @param bool   $createPath Create a path to target file if does not exist
+     * @param string  $file       Target file
+     * @param boolean $createPath Create a path to target file if does not exist
      *
      * @return File
      */
@@ -276,8 +276,8 @@ class File
     /**
      * Write data to file
      *
-     * @param mixed $data      Data
-     * @param bool  $overwrite Overwrite file if it does not exist
+     * @param mixed   $data      Data
+     * @param boolean $overwrite Overwrite file if it does not exist
      *
      * @return File
      * @throws \LogicException
@@ -403,7 +403,7 @@ class File
      *
      * @param File|string $file File object or path
      *
-     * @return bool
+     * @return boolean
      */
     public function equals($file)
     {

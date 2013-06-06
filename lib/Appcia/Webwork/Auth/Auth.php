@@ -79,7 +79,7 @@ class Auth
      *
      * @param int|null $expirationTime
      *
-     * @return Auth
+     * @return $this
      */
     public function setExpirationTime($expirationTime)
     {
@@ -116,7 +116,7 @@ class Auth
     /**
      * Check whether user is authorized
      *
-     * @return bool
+     * @return boolean
      */
     public function isAuthorized()
     {
@@ -181,7 +181,7 @@ class Auth
      *
      * @param string $salt
      *
-     * @return Auth
+     * @return $this
      */
     public function setSalt($salt)
     {
@@ -193,7 +193,7 @@ class Auth
     /**
      * @param Object $user
      *
-     * @return Auth
+     * @return $this
      */
     public function authorize($user)
     {
@@ -219,7 +219,7 @@ class Auth
     /**
      * Dispose authorization data
      *
-     * @return Auth
+     * @return $this
      */
     public function unauthorize()
     {

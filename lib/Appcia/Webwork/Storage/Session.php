@@ -81,7 +81,7 @@ class Session
      *
      * @param \ArrayAccess $storage
      *
-     * @return Session
+     * @return $this
      */
     public function setStorage(\ArrayAccess $storage)
     {
@@ -119,7 +119,7 @@ class Session
      * @param string $key   Key
      * @param mixed  $value Value
      *
-     * @return Session
+     * @return $this
      */
     public function set($key, $value)
     {
@@ -137,7 +137,7 @@ class Session
      *
      * @param string $key Key
      *
-     * @return bool
+     * @return boolean
      */
     public function has($key)
     {
@@ -149,7 +149,7 @@ class Session
      *
      * @param string $key Key
      *
-     * @return Session
+     * @return $this
      */
     public function clear($key)
     {

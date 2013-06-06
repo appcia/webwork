@@ -97,7 +97,7 @@ class Encrypter
      *
      * @param string $method
      *
-     * @return Encrypter
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setMethod($method)
@@ -141,7 +141,7 @@ class Encrypter
      *
      * @param string $salt Salt
      *
-     * @return Encrypter
+     * @return $this
      */
     public function setSalt($salt)
     {

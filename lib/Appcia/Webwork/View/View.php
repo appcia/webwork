@@ -69,7 +69,7 @@ class View
      *
      * @param array $data Data
      *
-     * @return View
+     * @return $this
      */
     public function addData(array $data)
     {
@@ -93,7 +93,7 @@ class View
      *
      * @param array $data Data
      *
-     * @return View
+     * @return $this
      */
     public function setData(array $data)
     {
@@ -117,7 +117,7 @@ class View
      *
      * @param string $template Path
      *
-     * @return View
+     * @return $this
      */
     public function setTemplate($template)
     {
@@ -141,7 +141,7 @@ class View
      *
      * @param Renderer $renderer Renderer
      *
-     * @return View
+     * @return $this
      */
     public function setRenderer($renderer)
     {

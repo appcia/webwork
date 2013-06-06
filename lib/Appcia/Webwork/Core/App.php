@@ -85,14 +85,14 @@ abstract class App
     /**
      * Run
      *
-     * @return App
+     * @return $this
      */
     abstract public function run();
 
     /**
      * Bootstrap
      *
-     * @return App
+     * @return $this
      */
     abstract public function bootstrap();
 
@@ -137,7 +137,7 @@ abstract class App
     /**
      * Check whether is running via CGI interface
      *
-     * @return bool
+     * @return boolean
      */
     public function isCgi()
     {
@@ -164,7 +164,7 @@ abstract class App
     /**
      * Check whether is running in CLI mode (console)
      *
-     * @return bool
+     * @return boolean
      */
     public function isCli()
     {
@@ -179,7 +179,7 @@ abstract class App
      *
      * @param object $autoloader
      *
-     * @return App
+     * @return $this
      */
     public function setAutoloader($autoloader)
     {
@@ -213,7 +213,7 @@ abstract class App
      *
      * @param string $env Environment
      *
-     * @return App
+     * @return $this
      * @throws \OutOfBoundsException
      */
     public function setEnvironment($env)
@@ -257,7 +257,7 @@ abstract class App
     /**
      * Load all modules basing on configuration
      *
-     * @return App
+     * @return $this
      * @throws \InvalidArgumentException
      */
     protected function loadModules()
@@ -289,7 +289,7 @@ abstract class App
      * @param string $name   Keyword name
      * @param array  $config Config data
      *
-     * @return App
+     * @return $this
      * @throws \InvalidArgumentException
      * @throws \ErrorException
      */
@@ -351,7 +351,7 @@ abstract class App
      *
      * @param string $rootPath Path
      *
-     * @return App
+     * @return $this
      */
     public function setRootPath($rootPath)
     {

@@ -14,9 +14,9 @@ abstract class Validator extends Component {
     /**
      * Validate data
      *
-     * @param mixed Data to be validated
+     * @param mixed $value Data to be validated
      *
-     * @return bool
+     * @return boolean
      */
     abstract public function validate($value);
 }

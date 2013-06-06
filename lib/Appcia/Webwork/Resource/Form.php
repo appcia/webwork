@@ -27,7 +27,7 @@ class Form extends BasicForm
     /**
      * At least one resource has changed its skip status
      *
-     * @var bool
+     * @var boolean
      */
     private $skipChanged;
 
@@ -52,7 +52,7 @@ class Form extends BasicForm
      * @param string $token     Form token
      * @param array  $resources Existing resources (useful in edit forms)
      *
-     * @return Form
+     * @return $this
      */
     public function load($token, array $resources = array())
     {
@@ -95,7 +95,7 @@ class Form extends BasicForm
      *
      * @param string $token Token
      *
-     * @return Form
+     * @return $this
      */
     public function unload($token)
     {
@@ -121,10 +121,10 @@ class Form extends BasicForm
     /**
      * Mark field with resource to be skipped
      *
-     * @param string $name  Field name
-     * @param bool   $quiet Do not affect skip changed flag
+     * @param string  $name  Field name
+     * @param boolean $quiet Do not affect skip changed flag
      *
-     * @return Form
+     * @return $this
      * @throws \LogicException
      */
     public function skip($name, $quiet = false)
@@ -154,10 +154,10 @@ class Form extends BasicForm
     /**
      * Unmark field with file to be not skipped
      *
-     * @param string $name  Field name
-     * @param bool   $quiet Do not affect skip changed flag
+     * @param string  $name  Field name
+     * @param boolean $quiet Do not affect skip changed flag
      *
-     * @return Form
+     * @return $this
      * @throws \LogicException
      */
     public function unskip($name, $quiet = false)
@@ -189,7 +189,7 @@ class Form extends BasicForm
     /**
      * Check whether field with file has changed its skip status
      *
-     * @return bool
+     * @return boolean
      */
     public function skipChanged()
     {
@@ -201,7 +201,7 @@ class Form extends BasicForm
      *
      * @param string $name Field name
      *
-     * @return bool
+     * @return boolean
      */
     public function isSkipped($name)
     {

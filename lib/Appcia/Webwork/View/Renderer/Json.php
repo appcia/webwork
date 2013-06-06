@@ -44,7 +44,7 @@ class Json extends Renderer
     /**
      * @param int $options
      *
-     * @return Json
+     * @return $this
      */
     public function setOptions($options)
     {

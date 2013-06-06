@@ -53,7 +53,7 @@ class Php
      *
      * @param string $bin
      *
-     * @return Php
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setBin($bin)
@@ -82,7 +82,7 @@ class Php
      *
      * @param string $file Path
      *
-     * @return bool
+     * @return boolean
      */
     public function checkSyntax($file)
     {

@@ -65,7 +65,7 @@ class Acl extends Auth
      *
      * @param Route|string $route Route object or name
      *
-     * @return bool
+     * @return boolean
      * @throws \InvalidArgumentException
      */
     public function isAccessible($route)
@@ -107,7 +107,7 @@ class Acl extends Auth
      * @param string     $test  Route to be tested
      * @param int|string $group Access group
      *
-     * @return bool
+     * @return boolean
      */
     protected function verifyRoute($test, $group)
     {
@@ -142,7 +142,7 @@ class Acl extends Auth
      *
      * @param Route $route Route
      *
-     * @return bool
+     * @return boolean
      */
     protected function verifyUser($route)
     {

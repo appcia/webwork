@@ -33,7 +33,7 @@ class Mask
      *
      * @param int $option Integer number
      *
-     * @return bool
+     * @return boolean
      */
     public static function checkOption($option)
     {
@@ -45,7 +45,7 @@ class Mask
      *
      * @param $value
      *
-     * @return bool
+     * @return boolean
      */
     public static function checkValue($value)
     {
@@ -55,10 +55,10 @@ class Mask
     /**
      * Toggle mask option
      *
-     * @param int  $option Option value
-     * @param bool $flag   Flag
+     * @param int     $option Option value
+     * @param boolean $flag   Flag
      *
-     * @return Mask
+     * @return $this
      */
     public function toggle($option, $flag = null)
     {
@@ -76,7 +76,7 @@ class Mask
      *
      * @param int $option Option value
      *
-     * @return bool
+     * @return boolean
      */
     public function is($option)
     {
@@ -92,10 +92,10 @@ class Mask
     /**
      * Set mask option
      *
-     * @param int  $option Option value
-     * @param bool $flag   True of false
+     * @param int     $option Option value
+     * @param boolean $flag   True of false
      *
-     * @return Mask
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function set($option, $flag)
@@ -130,7 +130,7 @@ class Mask
      *
      * @param int $value Value
      *
-     * @return Mask
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setValue($value)

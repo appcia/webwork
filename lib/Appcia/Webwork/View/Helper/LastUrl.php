@@ -9,7 +9,7 @@ class LastUrl extends Helper
     /**
      * Caller
      *
-     * @param bool $different Last URL that differs to current
+     * @param boolean $different Last URL that differs to current
      *
      * @return string
      */

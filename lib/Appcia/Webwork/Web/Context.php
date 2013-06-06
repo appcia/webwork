@@ -61,7 +61,7 @@ class Context {
     }
 
     /**
-     * @return Context
+     * @return $this
      */
     private function updateLocale()
     {
@@ -97,7 +97,7 @@ class Context {
     /**
      * @param string $domain
      *
-     * @return Context
+     * @return $this
      */
     public function setDomain($domain)
     {
@@ -119,7 +119,7 @@ class Context {
      *
      * @param string $baseUrl
      *
-     * @return Context
+     * @return $this
      */
     public function setBaseUrl($baseUrl)
     {
@@ -139,7 +139,7 @@ class Context {
     /**
      * @param string $locale
      *
-     * @return Context
+     * @return $this
      */
     public function setLocale($locale)
     {
@@ -160,7 +160,7 @@ class Context {
     /**
      * @param string $charset
      *
-     * @return Context
+     * @return $this
      */
     public function setCharset($charset)
     {
@@ -181,7 +181,7 @@ class Context {
     /**
      * @param string $htmlVersion
      *
-     * @return Context
+     * @return $this
      */
     public function setHtmlVersion($htmlVersion)
     {

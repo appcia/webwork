@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Data;
 
+use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Data\Form\Field;
 
@@ -45,7 +46,7 @@ class Form
     /**
      * Validation result
      *
-     * @var bool
+     * @var boolean
      */
     private $valid;
 
@@ -65,6 +66,35 @@ class Form
     }
 
     /**
+     * Build a form fields
+     *
+     * Useful when inherited, invoked by constructor
+     *
+     * @return $this
+     */
+    protected function build()
+    {
+        return $this;
+    }
+
+    /**
+     * Prepare built field
+     * Propagate use context for components
+     *
+     * @return $this
+     */
+    protected function prepare()
+    {
+        foreach ($this->fields as $field) {
+            foreach ($field->getComponents() as $component) {
+                $component->setContext($this->context);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Get use context
      *
      * @return Context
@@ -75,11 +105,23 @@ class Form
     }
 
     /**
+     * Get all standard fields
+     *
+     * @return array
+     */
+    public function getFields()
+    {
+        $fields = $this->fields;
+
+        return $fields;
+    }
+
+    /**
      * Set fields
      *
      * @param array $fields
      *
-     * @return Form
+     * @return $this
      */
     public function setFields($fields)
     {
@@ -96,7 +138,7 @@ class Form
      *
      * @param Field $field Field
      *
-     * @return Form
+     * @return $this
      * @throws \LogicException
      */
     public function addField(Field $field)
@@ -117,7 +159,7 @@ class Form
      *
      * @param string $name Field name
      *
-     * @return bool
+     * @return boolean
      */
     public function hasField($name)
     {
@@ -125,68 +167,62 @@ class Form
     }
 
     /**
-     * Get field by name
+     * Group fields by specified pattern
+     * Creates multi-dimensional tree in which each level corresponds to pattern parameter
+     * Leafs are form fields
      *
-     * @param string $name Field name
+     * @param string $pattern Pattern
      *
-     * @return Field
-     * @throws \OutOfBoundsException
+     * @return array
+     * @throws \InvalidArgumentException
      */
-    public function getField($name)
+    public function groupFields($pattern)
     {
-        if (!isset($this->fields[$name])) {
-            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
+        $data = Config::patternize($pattern);
+        if ($data === false) {
+            throw new \InvalidArgumentException(sprintf("Form field grouping pattern '%s' is invalid.", $pattern));
         }
 
-        return $this->fields[$name];
-    }
 
-    /**
-     * Get all standard fields
-     *
-     * @return array
-     */
-    public function getFields()
-    {
-        $fields = $this->fields;
-
-        return $fields;
-    }
-
-    /**
-     * Get fields by filtering by name
-     *
-     * @param string $pattern Regular expression
-     *
-     * @return array
-     */
-    public function filterFields($pattern)
-    {
-        $fields = array();
-
-        $match = array();
+        $result = array();
         foreach ($this->fields as $name => $field) {
-            if (preg_match($pattern, $name, $match)) {
-                $fields[] = $field;
+            $match = array();
+
+            if (preg_match($data['pattern'], $name, $match)) {
+                unset($match[0]);
+                $match[] = $field;
+
+                $fields = $this->nestArray($match);
+                $result = array_merge_recursive($result, $fields);
             }
         }
 
-        return $fields;
+        return $result;
     }
 
     /**
-     * Set metadata
+     * Create nested array from flat
+     * Creates a branch, merging with another produces tree
      *
-     * @param mixed $metadata Data
+     * @param array $arr Flat 1D array
      *
-     * @return Form
+     * @return array
      */
-    public function setMetadata(array $metadata)
+    private function nestArray($arr)
     {
-        $value = $this->encoder->encode($metadata);
-        $this->metadata->setValue($value);
+        $res = array();
+        $curr = & $res;
 
-        return $this;
+        foreach ($arr as $val) {
+            if ($val === end($arr)) {
+                $curr = $val;
+            } else {
+                $curr[$val] = array();
+                $curr = & $curr[$val];
+            }
+        }
+
+        return $res;
     }
 
     /**
@@ -203,15 +239,16 @@ class Form
     }
 
     /**
-     * Set data encoder
+     * Set metadata
      *
-     * @param Encoder $encoder Encoder
+     * @param mixed $metadata Data
      *
-     * @return Form
+     * @return $this
      */
-    public function setEncoder($encoder)
+    public function setMetadata($metadata)
     {
-        $this->encoder = $encoder;
+        $value = $this->encoder->encode($metadata);
+        $this->metadata->setValue($value);
 
         return $this;
     }
@@ -224,6 +261,34 @@ class Form
     public function getEncoder()
     {
         return $this->encoder;
+    }
+
+    /**
+     * Set data encoder
+     *
+     * @param Encoder $encoder Encoder
+     *
+     * @return $this
+     */
+    public function setEncoder($encoder)
+    {
+        $this->encoder = $encoder;
+
+        return $this;
+    }
+
+    /**
+     * Is field contain not empty value
+     *
+     * @param string $name Field name
+     *
+     * @return boolean
+     */
+    public function has($name)
+    {
+        $value = $this->get($name);
+
+        return !empty($value);
     }
 
     /**
@@ -247,42 +312,12 @@ class Form
     }
 
     /**
-     * Is field contain not empty value
-     *
-     * @param string $name Field name
-     *
-     * @return bool
-     */
-    public function has($name)
-    {
-        $value = $this->get($name);
-
-        return !empty($value);
-    }
-
-    /**
-     * Get all field values
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        $values = array();
-
-        foreach ($this->fields as $field) {
-            $values[$field->getName()] = $field->getValue();
-        }
-
-        return $values;
-    }
-
-    /**
      * Set field value
      *
      * @param string $name  Field name
      * @param mixed  $value Field value
      *
-     * @return Form
+     * @return $this
      * @throws \OutOfBoundsException
      */
     public function set($name, $value)
@@ -298,7 +333,7 @@ class Form
     }
 
     /**
-     * @return bool
+     * @return boolean
      */
     public function isValid()
     {
@@ -310,7 +345,7 @@ class Form
      *
      * @param array $data Data
      *
-     * @return Form
+     * @return $this
      */
     public function populate(array $data)
     {
@@ -325,6 +360,18 @@ class Form
             $this->metadata->setValue($data[self::METADATA]);
         }
 
+        $this->service();
+
+        return $this;
+    }
+
+    /**
+     * Service populated data quietly
+     *
+     * @return $this
+     */
+    protected function service()
+    {
         return $this;
     }
 
@@ -333,7 +380,7 @@ class Form
      *
      * @param array $data Data
      *
-     * @return Form
+     * @return $this
      * @throws \LogicException
      */
     public function init(array $data)
@@ -355,7 +402,7 @@ class Form
     /**
      * Validate field values
      *
-     * @return bool
+     * @return boolean
      */
     public function validate()
     {
@@ -384,7 +431,7 @@ class Form
     /**
      * Filter and validate form at the same time
      *
-     * @return bool
+     * @return boolean
      */
     public function process()
     {
@@ -404,10 +451,10 @@ class Form
     /**
      * Inject values by object setters
      *
-     * @param Object $object    Target object
-     * @param bool   $populated Only populated values (skip nulls)
+     * @param Object  $object    Target object
+     * @param boolean $populated Only populated values (skip nulls)
      *
-     * @return Form
+     * @return $this
      */
     public function inject($object, $populated = true)
     {
@@ -430,12 +477,29 @@ class Form
     }
 
     /**
+     * Get all field values
+     *
+     * @return array
+     */
+    public function getData()
+    {
+        $values = array();
+
+        foreach ($this->fields as $field) {
+            $name = $field->getName();
+            $values[$name] = $field->getValue();
+        }
+
+        return $values;
+    }
+
+    /**
      * Suck values from object using getters
      *
-     * @param object $object  Source object
-     * @param bool   $defined Only defined values (skip nulls)
+     * @param object  $object  Source object
+     * @param boolean $defined Only defined values (skip nulls)
      *
-     * @return Form
+     * @return $this
      */
     public function suck($object, $defined = true)
     {
@@ -500,166 +564,20 @@ class Form
     }
 
     /**
-     * Build a form fields
+     * Get field by name
      *
-     * Useful when inherited, invoked by constructor
+     * @param string $name Field name
      *
-     * @return Form
+     * @return Field
+     * @throws \OutOfBoundsException
      */
-    protected function build()
+    public function getField($name)
     {
-        return $this;
+        if (!isset($this->fields[$name])) {
+            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
+        }
+
+        return $this->fields[$name];
     }
 
-    /**
-     * Prepare built field
-     * Propagate use context for components
-     *
-     * @return Form
-     */
-    protected function prepare()
-    {
-        foreach ($this->fields as $field) {
-            foreach ($field->getComponents() as $component) {
-                $component->setContext($this->context);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Create multiple fields at once
-     *
-     * Closure is used for single field configuration
-     * Pattern and mappings are used for name generation
-     *
-     * @param string   $pattern  Field name pattern
-     * @param array    $mappings Parameters to be used in pattern
-     * @param callable $closure  Single field configurator
-     *
-     * @return $this
-     * @throws \ErrorException
-     */
-    public function map($pattern, array $mappings, \Closure $closure)
-    {
-        foreach ($this->permuteMappings($mappings) as $mapping) {
-            $maps = array_keys($mapping);
-            $properties = array_values($mapping);
-
-            foreach ($maps as $key => $value) {
-                $maps[$key] = '{' . $value . '}';
-            }
-
-            $name = str_replace($maps, $properties, $pattern);
-
-            $field = new Field($name);
-
-            if (!is_callable($closure)) {
-                throw new \ErrorException("Form field mapping callback is not callable.");
-            }
-
-            $params = array($field, $mapping);
-            call_user_func_array($closure, $params);
-
-            $this->addField($field);
-
-        }
-
-        return $this;
-    }
-
-    /**
-     * Generate all possible fields without losing parameters order
-     *
-     * @param array $data Mapped parameters
-     * @param bool  $flag Recursion guard
-     *
-     * @return array|mixed
-     * @throws \InvalidArgumentException
-     */
-    private function permuteMappings(array $data, $flag = false)
-    {
-        if (empty($data)) {
-            throw new \InvalidArgumentException('Form field mappings requires at least one array.');
-        }
-
-        if (count($data) == 1) {
-            return array_pop($data);
-        }
-
-        $keys = array_keys($data);
-
-        $a = array_shift($data);
-        $k = array_shift($keys);
-
-        $b = $this->permuteMappings($data, true);
-
-        $return = array();
-
-        foreach ($a as $v) {
-            if ($v) {
-                foreach ($b as $v2) {
-                    if ($flag == true) {
-                        $return[] = array_merge(array($v), (array) $v2);
-                    } else {
-                        $return[] = array($k => $v) + array_combine($keys, (array) $v2);
-                    }
-                }
-            }
-        }
-
-        return $return;
-    }
-
-    /**
-     * Service values from many fields (to create many entities at once)
-     *
-     * @param string       $pattern  Field name pattern
-     * @param array|string $groupBy  Group mapped parameters (except one)
-     * @param array        $mappings Parameters mapped for field name generation
-     * @param callable     $closure  Callback used for servicing values from matched fields
-     *
-     * @return array
-     * @throws \InvalidArgumentException
-     */
-    public function remap($pattern, $groupBy, array $mappings, \Closure $closure)
-    {
-
-        $data = array();
-        foreach ($this->permuteMappings($mappings) as $mapping) {
-            $maps = array_keys($mapping);
-            $properties = array_values($mapping);
-
-            foreach ($maps as $key => $value) {
-                $maps[$key] = '{' . $value . '}';
-            }
-
-            $name = str_replace($maps, $properties, $pattern);
-            $field = $this->getField($name);
-            $value = $field->getValue();
-
-            $grouping = $mapping[$groupBy];
-            unset($mapping[$groupBy]);
-
-            $param = array_pop($mapping);
-
-            if (!empty($mapping)) {
-                throw new \InvalidArgumentException(
-                    "Form field remapping expects that grouping covers all mappings except one."
-                );
-            }
-
-            $data[$grouping][0] = $grouping;
-            $data[$grouping][1][$param] = $value;
-        }
-
-        $results = array();
-        foreach ($data as $args) {
-            $result = call_user_func_array($closure, $args);
-            $results[] = $result;
-        }
-
-        return $results;
-    }
 }

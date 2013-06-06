@@ -88,7 +88,7 @@ class Type
     /**
      * Get lazy loaded file
      *
-     * @return File|null
+     * @return $this|null
      * @throws \ErrorException
      */
     public function getFile()
@@ -112,7 +112,7 @@ class Type
      * @param string $path   Path pattern
      * @param array  $params Parameters for path
      *
-     * @return File|null
+     * @return $this|null
      */
     private function determineFile($path, array $params)
     {

@@ -12,8 +12,8 @@ class TextCase
     /**
      * Convert camel cased text to dashed
      *
-     * @param string $value      Text
-     * @param bool   $firstUpper Uppercase first letter
+     * @param string  $value      Text
+     * @param boolean $firstUpper Uppercase first letter
      *
      * @return string
      */
@@ -28,8 +28,8 @@ class TextCase
     /**
      * Convert dashed text to camel cased
      *
-     * @param string $value      Text
-     * @param bool   $firstUpper Uppercase first letter
+     * @param string  $value      Text
+     * @param boolean $firstUpper Uppercase first letter
      *
      * @return string
      */

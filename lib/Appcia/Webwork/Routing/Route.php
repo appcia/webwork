@@ -12,9 +12,6 @@ use Appcia\Webwork\Storage\Config;
  */
 class Route
 {
-    const PARAM_CLASS = '[A-Za-z0-9-]+';
-    const PARAM_SUBSTITUTION = '___param___';
-
     /**
      * Name
      *
@@ -93,7 +90,7 @@ class Route
      * @param array    $data      Route data
      * @param TextCase $converter Text case converter
      *
-     * @return Route
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public static function create(array $data, TextCase $converter = null)
@@ -151,7 +148,7 @@ class Route
      *
      * @param string $name
      *
-     * @return Route
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setName($name)
@@ -180,7 +177,7 @@ class Route
      *
      * @param string $path
      *
-     * @return Route
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setPath($path)
@@ -210,18 +207,16 @@ class Route
             $location = rtrim($location, '/');
         }
 
-        $match = array();
-        if (preg_match_all('/\{(' . self::PARAM_CLASS . ')\}/', $location, $match)) {
-            $pattern = '/^' . preg_quote(preg_replace('/\{(' . self::PARAM_CLASS . ')\}/', self::PARAM_SUBSTITUTION, $location), '/') . '\/?$/';
-            $pattern = str_replace(self::PARAM_SUBSTITUTION, '(' . self::PARAM_CLASS . ')', $pattern);
+        $data = Config::patternize($location, $params);
 
-            foreach ($match[1] as $param) {
+        if ($data !== false) {
+            foreach ($data['params'] as $param) {
                 if (!isset($params[$param])) {
                     $params[$param] = array();
                 }
             }
 
-            $this->pattern = $pattern;
+            $this->pattern = $data['pattern'];
         }
 
         $this->path = $location;
@@ -264,7 +259,7 @@ class Route
     /**
      * Check whether route has any parameters in path
      *
-     * @return bool
+     * @return boolean
      */
     public function hasParams()
     {
@@ -276,7 +271,7 @@ class Route
      *
      * @param $action
      *
-     * @return Route
+     * @return $this
      */
     public function setAction($action)
     {
@@ -300,7 +295,7 @@ class Route
      *
      * @param $controller
      *
-     * @return Route
+     * @return $this
      */
     public function setController($controller)
     {
@@ -324,7 +319,7 @@ class Route
      *
      * @param $module
      *
-     * @return Route
+     * @return $this
      */
     public function setModule($module)
     {
@@ -348,7 +343,7 @@ class Route
      *
      * @param string $template
      *
-     * @return Route
+     * @return $this
      */
     public function setTemplate($template)
     {

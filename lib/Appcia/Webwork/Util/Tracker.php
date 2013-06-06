@@ -50,7 +50,7 @@ class Tracker
     /**
      * Track current URL
      *
-     * @return Tracker
+     * @return $this
      */
     public function track()
     {
@@ -185,7 +185,7 @@ class Tracker
     /**
      * Clear stored data
      *
-     * @return Tracker
+     * @return $this
      */
     public function clearData()
     {
@@ -229,7 +229,7 @@ class Tracker
      *
      * @param int $count Count
      *
-     * @return Tracker
+     * @return $this
      */
     public function setStepCount($count)
     {

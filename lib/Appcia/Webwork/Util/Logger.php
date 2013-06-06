@@ -49,7 +49,7 @@ class Logger
      * Set date format
      *
      * @param string $format PHP date function format
-     * @return Logger
+     * @return $this
      */
     public function setDateFormat($format)
     {
@@ -74,7 +74,7 @@ class Logger
      *
      * @param string $messageFormat
      *
-     * @return Logger
+     * @return $this
      */
     public function setMessageFormat($messageFormat)
     {

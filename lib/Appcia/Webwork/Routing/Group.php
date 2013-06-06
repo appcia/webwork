@@ -50,7 +50,7 @@ class Group
      *
      * @param string $module
      *
-     * @return Group
+     * @return $this
      */
     public function setModule($module)
     {
@@ -74,7 +74,7 @@ class Group
      *
      * @param string $prefix Prefix
      *
-     * @return Group
+     * @return $this
      */
     public function setPrefix($prefix)
     {
@@ -96,7 +96,7 @@ class Group
      *
      * @param string $suffix Suffix
      *
-     * @return Group
+     * @return $this
      */
     public function setSuffix($suffix)
     {
@@ -120,7 +120,7 @@ class Group
      *
      * @param array $routes Routes data
      *
-     * @return Group
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setRoutes(array $routes)

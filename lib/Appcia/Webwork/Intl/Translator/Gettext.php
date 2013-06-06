@@ -53,7 +53,7 @@ class Gettext extends Translator
     /**
      * @param array $domain
      *
-     * @return Translator
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setDomain(array $domain)

@@ -9,8 +9,8 @@ class FirstUpper extends Helper
     /**
      * Caller
      *
-     * @param string $value     Value
-     * @param bool   $lowerRest Lowercase all except first letter
+     * @param string  $value     Value
+     * @param boolean $lowerRest Lowercase all except first letter
      *
      * @return string
      */

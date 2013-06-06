@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork\Resource;
 
+use Appcia\Webwork\Resource\Resource;
+
 /**
  * Base for resource processor (for thumbnails, format derivatives)
  *
@@ -20,10 +22,14 @@ abstract class Processor {
      * Set manager
      *
      * @param Manager $manager
+     *
+     * @return $this
      */
     public function setManager(Manager $manager)
     {
         $this->manager = $manager;
+
+        return $this;
     }
 
     /**

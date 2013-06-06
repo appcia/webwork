@@ -55,7 +55,7 @@ abstract class Renderer
      *
      * @param string|array $data Data
      *
-     * @return Renderer
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public static function create($data)
@@ -125,7 +125,7 @@ abstract class Renderer
      *
      * @param View $view
      *
-     * @return Renderer
+     * @return $this
      */
     public function setView($view)
     {

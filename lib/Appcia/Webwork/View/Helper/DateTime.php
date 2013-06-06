@@ -13,18 +13,27 @@ class DateTime extends Helper
      * @param string          $format Date format, default is 'Y-m-d, H:i:s'
      *
      * @return string
+     * @throws \InvalidArgumentException
      */
     public function dateTime($value = null, $format = 'Y-m-d, H:i:s')
     {
-        $date = null;
-
-        try {
-            $date = new \DateTime($value);
-        } catch (\Exception $e) {
+        if (empty($value)) {
             return null;
+        } elseif (!$value instanceof \DateTime) {
+            if ($this->isStringifyable($value)) {
+                $value = (string) $value;
+            } else {
+                return null;
+            }
+
+            try {
+                $value = new \DateTime($value);
+            } catch (\Exception $e) {
+                return null;
+            }
         }
 
-        $result = $date->format($format);
+        $result = $value->format($format);
 
         return $result;
     }

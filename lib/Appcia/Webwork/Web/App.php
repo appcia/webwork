@@ -53,9 +53,10 @@ class App extends BaseApp
     /**
      * Initialize whole application
      *
-     * @return App
+     * @return $this
      */
-    public function bootstrap() {
+    public function bootstrap()
+    {
         $this->loadModules();
         $this->applyConfig();
 
@@ -65,7 +66,7 @@ class App extends BaseApp
     /**
      * Apply configuration
      *
-     * @return App
+     * @return $this
      */
     private function applyConfig()
     {
@@ -113,7 +114,7 @@ class App extends BaseApp
     /**
      * @param Request $request
      *
-     * @return App
+     * @return $this
      */
     public function setRequest(Request $request)
     {
@@ -133,7 +134,7 @@ class App extends BaseApp
     /**
      * @param Context $context
      *
-     * @return App
+     * @return $this
      */
     public function setContext(Context $context)
     {
@@ -153,7 +154,7 @@ class App extends BaseApp
     /**
      * @param Dispatcher $dispatcher
      *
-     * @return App
+     * @return $this
      */
     public function setDispatcher(Dispatcher $dispatcher)
     {
@@ -171,9 +172,9 @@ class App extends BaseApp
     }
 
     /**
-     * @param  Router $router
+     * @param Router $router
      *
-     * @return App
+     * @return $this
      */
     public function setRouter(Router $router)
     {

@@ -89,7 +89,7 @@ class Container
     /**
      * Get instance
      *
-     * @return Container
+     * @return $this
      */
     public static function instance()
     {
@@ -111,7 +111,7 @@ class Container
      *
      * @param string $key Key
      *
-     * @return bool
+     * @return boolean
      */
     public function has($key)
     {
@@ -123,7 +123,7 @@ class Container
      *
      * @param string $key Key
      *
-     * @return Container
+     * @return $this
      */
     public function remove($key)
     {
@@ -198,7 +198,7 @@ class Container
      * @param string   $key      Key
      * @param callable $callable Closure
      *
-     * @return Container
+     * @return $this
      */
     public function single($key, \Closure $callable)
     {
@@ -213,7 +213,7 @@ class Container
      * @param string $key   Key
      * @param mixed  $value Parameter value or object as closure
      *
-     * @return Container
+     * @return $this
      */
     public function set($key, $value)
     {

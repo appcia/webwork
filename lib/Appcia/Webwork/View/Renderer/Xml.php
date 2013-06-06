@@ -50,7 +50,7 @@ class Xml extends Renderer
      * @param array            $data Data
      * @param SimpleXMLElement $xml  Node
      *
-     * @return void
+     * @return $this
      */
     private function generateXml($data, &$xml)
     {
@@ -66,6 +66,8 @@ class Xml extends Renderer
                 $xml->addChild("$key", "$value");
             }
         }
+
+        return $this;
     }
 
     /**
@@ -73,7 +75,7 @@ class Xml extends Renderer
      *
      * @param string $root Root node tag name
      *
-     * @return Xml
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function setRoot($root)

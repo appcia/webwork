@@ -16,7 +16,7 @@ abstract class Filter extends Component {
      *
      * @param mixed $value Data to be filtered
      *
-     * @return bool
+     * @return boolean
      */
     abstract public function filter($value);
 
