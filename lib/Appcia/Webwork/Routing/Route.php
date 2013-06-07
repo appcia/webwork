@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Routing;
 
 use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Model\Pattern;
 use Appcia\Webwork\Storage\Config;
 
 /**
@@ -207,18 +208,14 @@ class Route
             $location = rtrim($location, '/');
         }
 
-        $data = Config::patternize($location, $params);
-
-        if ($data !== false) {
-            foreach ($data['params'] as $param) {
-                if (!isset($params[$param])) {
-                    $params[$param] = array();
-                }
+        $pattern = new Pattern($location);
+        foreach ($pattern->getParams() as $param) {
+            if (!isset($params[$param])) {
+                $params[$param] = array();
             }
-
-            $this->pattern = $data['pattern'];
         }
 
+        $this->pattern = $pattern->getRegExp();
         $this->path = $location;
         $this->params = $params;
 

@@ -12,10 +12,6 @@ namespace Appcia\Webwork\Storage;
  */
 class Config implements \Iterator, \ArrayAccess
 {
-    const PARAM_CLASS = '[A-Za-z0-9-]+';
-
-    const PARAM_SUBSTITUTION = '___param___';
-
     /**
      * Data container
      *
@@ -31,31 +27,6 @@ class Config implements \Iterator, \ArrayAccess
     public function __construct(array $data = array())
     {
         $this->data = $data;
-    }
-
-    /**
-     * Extract parameters and regular expression from pattern
-     *
-     * @param string $pattern Pattern
-     *
-     * @return array|false
-     */
-    public static function patternize($pattern)
-    {
-        $match = array();
-        if (preg_match_all('/\{(' . self::PARAM_CLASS . ')\}/', $pattern, $match)) {
-            $params = $match[1];
-
-            $pattern = '/^' . preg_quote(preg_replace('/\{(' . self::PARAM_CLASS . ')\}/', self::PARAM_SUBSTITUTION, $pattern), '/') . '\/?$/';
-            $pattern = str_replace(self::PARAM_SUBSTITUTION, '(' . self::PARAM_CLASS . ')', $pattern);
-
-            return array(
-                'params' => $params,
-                'pattern' => $pattern
-            );
-        }
-
-        return false;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Data;
 
+use Appcia\Webwork\Model\Pattern;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Data\Form\Field;
@@ -178,17 +179,13 @@ class Form
      */
     public function groupFields($pattern)
     {
-        $data = Config::patternize($pattern);
-        if ($data === false) {
-            throw new \InvalidArgumentException(sprintf("Form field grouping pattern '%s' is invalid.", $pattern));
-        }
-
-
+        $pattern = new Pattern($pattern);
         $result = array();
+
         foreach ($this->fields as $name => $field) {
             $match = array();
 
-            if (preg_match($data['pattern'], $name, $match)) {
+            if (preg_match($pattern->getRegExp(), $name, $match)) {
                 unset($match[0]);
                 $match[] = $field;
 
