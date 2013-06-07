@@ -96,17 +96,62 @@ abstract class Component
     }
 
     /**
-     * Check whether value could be casted to string
+     * Check whether value seems to be empty
+     *
+     * @param $value
+     *
+     * @return bool
+     */
+    protected function isEmptyValue($value)
+    {
+        $flag = ($value === '')
+            || ($value === null);
+
+        return $flag;
+    }
+
+    /**
+     * Get value treated as string
      *
      * @param mixed $value Value
      *
-     * @return boolean
+     * @return string|null
      */
-    protected function isStringifyable($value)
+    protected function getStringValue($value)
     {
         $flag = !(!is_scalar($value)
             && !(is_object($value) && method_exists($value, '__toString')));
 
-        return $flag;
+        if ($flag) {
+            $value = (string) $value;
+        } else {
+            $value = null;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get value treated as date time object
+     *
+     * @param mixed $value
+     *
+     * @return \DateTime|null
+     */
+    protected function getDateValue($value)
+    {
+        if ($value instanceof \DateTime) {
+            return $value;
+        }
+
+        $value = $this->getStringValue($value);
+
+        try {
+            $value = new \DateTime($value);
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        return $value;
     }
 }

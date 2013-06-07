@@ -4,7 +4,7 @@ namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
 
-class DateTime extends Validator
+class Date extends Validator
 {
     /**
      * Common used formats
@@ -35,11 +35,12 @@ class DateTime extends Validator
      */
     public function validate($value)
     {
-        if ($value === '' || $value === null) {
+        if ($this->isEmptyValue($value)) {
             return true;
         }
 
-        if (!is_string($value)) {
+        $value = $this->getStringValue($value);
+        if ($value === null) {
             return false;
         }
 

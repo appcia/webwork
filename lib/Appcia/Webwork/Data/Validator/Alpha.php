@@ -12,7 +12,7 @@ class Alpha extends Validator
      */
     public function validate($value)
     {
-        if ($value === '' || $value === null) {
+        if ($this->isEmptyValue($value)) {
             return true;
         }
 

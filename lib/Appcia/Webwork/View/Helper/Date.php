@@ -4,7 +4,7 @@ namespace Appcia\Webwork\View\Helper;
 
 use Appcia\Webwork\View\Helper;
 
-class DateTime extends Helper
+class Date extends Helper
 {
     /**
      * Caller
@@ -15,22 +15,16 @@ class DateTime extends Helper
      * @return string
      * @throws \InvalidArgumentException
      */
-    public function dateTime($value = null, $format = 'Y-m-d, H:i:s')
+    public function date($value = null, $format = 'Y-m-d, H:i:s')
     {
         if (empty($value)) {
             return null;
-        } elseif (!$value instanceof \DateTime) {
-            if ($this->isStringifyable($value)) {
-                $value = (string) $value;
-            } else {
-                return null;
-            }
+        }
 
-            try {
-                $value = new \DateTime($value);
-            } catch (\Exception $e) {
-                return null;
-            }
+        $value = $this->getDateValue($value);
+
+        if ($value === null) {
+            return null;
         }
 
         $result = $value->format($format);

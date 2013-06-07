@@ -4,16 +4,15 @@ namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
 
-class Email extends Validator
+class Required extends Validator
 {
-
     /**
      * {@inheritdoc}
      */
     public function validate($value)
     {
         if ($this->isEmptyValue($value)) {
-            return true;
+            return false;
         }
 
         $value = $this->getStringValue($value);
@@ -21,9 +20,9 @@ class Email extends Validator
             return false;
         }
 
-        $result = filter_var($value, FILTER_VALIDATE_EMAIL);
+        $flag = !empty($value);
 
-        return $result;
+        return $flag;
     }
 
 }

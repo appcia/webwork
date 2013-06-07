@@ -25,19 +25,24 @@ class Length extends Validator
     /**
      * Constructor
      *
-     * @param int $max Maximum
-     * @param int $min Minimum
-     *
      * @throws \InvalidArgumentException
      */
-    public function __construct($min = 0, $max = INF)
+    public function __construct()
     {
-        if ($min < 0 || $max < 0) {
-            throw new \InvalidArgumentException('String length must be greater than zero');
-        }
+        $args = func_get_args();
 
-        $this->min = $min;
-        $this->max = $max;
+        switch (count($args)) {
+            case 1:
+                $this->min = $args[0];
+                $this->max = $args[0];
+                break;
+            case 2:
+                $this->min = $args[0];
+                $this->max = $args[1];
+                break;
+            default:
+                throw new \InvalidArgumentException('Length validator parameter count should be 1 or 2.');
+        }
     }
 
     /**
@@ -45,17 +50,21 @@ class Length extends Validator
      */
     public function validate($value)
     {
-        if ($value === '' || $value === null) {
+        if ($this->isEmptyValue($value)) {
             return true;
         }
 
-        if (!is_scalar($value)) {
+        $value = $this->getStringValue($value);
+        if ($value === null) {
             return false;
         }
 
         $length = mb_strlen($value);
 
-        return ($length >= $this->min && $length <= $this->max);
+        $flag = ($length >= $this->min)
+            && ($length <= $this->max);
+
+        return $flag;
     }
 
 }
