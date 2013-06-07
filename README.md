@@ -21,6 +21,9 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.8**
+* validator improvements + new: DateBetween, DateOverlap, Not, Callback
+
 **0.7.7**
 * request tracker
 * view extending improved for nesting
