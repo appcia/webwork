@@ -7,6 +7,7 @@ use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\View\View;
 use Appcia\Webwork\Web\Context;
+use Appcia\Webwork\Web\Dispatcher;
 use Appcia\Webwork\Web\Request;
 use Appcia\Webwork\Web\Response;
 
@@ -26,6 +27,15 @@ abstract class Fat extends Lite
     {
         return $this->getApp()
             ->getRequest();
+    }
+
+    /**
+     * @return Dispatcher
+     */
+    protected function getDispatcher()
+    {
+        return $this->getApp()
+            ->getDispatcher();
     }
 
     /**

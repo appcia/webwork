@@ -62,7 +62,7 @@ abstract class App
     /**
      * Registered modules
      *
-     * @var array
+     * @var Module[]
      */
     private $modules;
 
@@ -230,7 +230,7 @@ abstract class App
     /**
      * Get all loaded modules
      *
-     * @return array
+     * @return Module[]
      */
     public function getModules()
     {

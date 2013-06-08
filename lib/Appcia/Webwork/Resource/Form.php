@@ -57,7 +57,7 @@ class Form extends BasicForm
     public function load($token, array $resources = array())
     {
         foreach ($this->getFields() as $name => $field) {
-            if ($field->getType() !== Field::FILE) {
+            if (!$field instanceof Field\File) {
                 continue;
             }
 
@@ -100,7 +100,7 @@ class Form extends BasicForm
     public function unload($token)
     {
         foreach ($this->getFields() as $name => $field) {
-            if ($field->getType() !== Field::FILE) {
+            if (!$field instanceof Field\File) {
                 continue;
             }
 
@@ -134,7 +134,7 @@ class Form extends BasicForm
         }
 
         $field = $this->getField($name);
-        if ($field->getType() !== Field::FILE) {
+        if (!$field instanceof Field\File) {
             throw new \LogicException(sprintf("Field '%s' cannot be skipped in resource loading.", $name));
         }
 
@@ -167,7 +167,7 @@ class Form extends BasicForm
         }
 
         $field = $this->getField($name);
-        if ($field->getType() !== Field::FILE) {
+        if (!$field instanceof Field\File) {
             throw new \LogicException(sprintf("Field '%s' cannot be unskipped in resource loading.", $name));
         }
 

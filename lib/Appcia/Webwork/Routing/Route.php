@@ -88,18 +88,13 @@ class Route
     /**
      * Creator
      *
-     * @param array    $data      Route data
-     * @param TextCase $converter Text case converter
+     * @param array $data Route data
      *
      * @return $this
      * @throws \InvalidArgumentException
      */
-    public static function create(array $data, TextCase $converter = null)
+    public static function create(array $data)
     {
-        if ($converter === null) {
-            $converter = new TextCase();
-        }
-
         if (!is_array($data)) {
             throw new \InvalidArgumentException('Route data should be an array');
         }
@@ -121,19 +116,11 @@ class Route
         }
 
         if (!isset($data['name'])) {
-            $parts = array_merge(
-                explode('/', $data['module']),
-                explode('/', $data['controller']),
-                array($data['action'])
+            $data['name'] = self::generateName(
+                $data['module'],
+                $data['controller'],
+                $data['action']
             );
-
-            foreach ($parts as $key => $value) {
-                $parts[$key] = $converter->camelToDashed($value);
-            }
-
-            $name = implode('-', $parts);
-
-            $data['name'] = $name;
         }
 
         $route = new Route();
@@ -142,6 +129,49 @@ class Route
         $config->inject($route);
 
         return $route;
+    }
+
+    /**
+     * Generate unique name
+     *
+     * @param string      $module     Module name
+     * @param string      $controller Controller path (or null for only module name)
+     * @param string|null $action     Action name (or null for only controller name)
+     *
+     * @return string
+     */
+    public static function generateName($module, $controller = null, $action = null)
+    {
+        $parts = array_merge(
+            explode('/', $module)
+        );
+
+        if ($controller !== null) {
+            $parts = array_merge($parts, explode('/', $controller));
+        }
+
+        if ($action !== null) {
+            $parts = array_merge($parts, array($action));
+        }
+
+        $converter = new TextCase();
+        foreach ($parts as $key => $value) {
+            $parts[$key] = $converter->camelToDashed($value);
+        }
+
+        $name = implode('-', $parts);
+
+        return $name;
+    }
+
+    /**
+     * Get name
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**
@@ -164,13 +194,13 @@ class Route
     }
 
     /**
-     * Get name
+     * Get path
      *
      * @return string
      */
-    public function getName()
+    public function getPath()
     {
-        return $this->name;
+        return $this->path;
     }
 
     /**
@@ -223,16 +253,6 @@ class Route
     }
 
     /**
-     * Get path
-     *
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->path;
-    }
-
-    /**
      * Pattern for retrieving params from request
      * Used by router if route has any params
      *
@@ -264,6 +284,16 @@ class Route
     }
 
     /**
+     * Get action name
+     *
+     * @return mixed
+     */
+    public function getAction()
+    {
+        return $this->action;
+    }
+
+    /**
      * Set action name
      *
      * @param $action
@@ -278,13 +308,25 @@ class Route
     }
 
     /**
-     * Get action name
+     * Get unique action name
+     *
+     * @return string
+     */
+    public function getActionName()
+    {
+        $name = $this->generateName($this->module, $this->controller, $this->action);
+
+        return $name;
+    }
+
+    /**
+     * Get controller name
      *
      * @return mixed
      */
-    public function getAction()
+    public function getController()
     {
-        return $this->action;
+        return $this->controller;
     }
 
     /**
@@ -302,13 +344,25 @@ class Route
     }
 
     /**
-     * Get controller name
+     * Generate unique controller name
+     *
+     * @return string
+     */
+    public function getControllerName()
+    {
+        $name = $this->generateName($this->module, $this->controller);
+
+        return $name;
+    }
+
+    /**
+     * Get module name
      *
      * @return mixed
      */
-    public function getController()
+    public function getModule()
     {
-        return $this->controller;
+        return $this->module;
     }
 
     /**
@@ -325,14 +379,22 @@ class Route
         return $this;
     }
 
-    /**
-     * Get module name
-     *
-     * @return mixed
+    /***
+     * @return string
      */
-    public function getModule()
+    public function getModuleName()
     {
-        return $this->module;
+        return $this->generateName($this->module);
+    }
+
+    /**
+     * Get template file to be rendered
+     *
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return $this->template;
     }
 
     /**
@@ -350,13 +412,13 @@ class Route
     }
 
     /**
-     * Get template file to be rendered
+     * Get name alias
      *
-     * @return string
+     * @return null|string
      */
-    public function getTemplate()
+    public function getAlias()
     {
-        return $this->template;
+        return $this->alias;
     }
 
     /**
@@ -376,15 +438,5 @@ class Route
         $this->alias = $alias;
 
         return $this;
-    }
-
-    /**
-     * Get name alias
-     *
-     * @return null|string
-     */
-    public function getAlias()
-    {
-        return $this->alias;
     }
 }

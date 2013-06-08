@@ -33,7 +33,7 @@ class Form
     /**
      * Fields
      *
-     * @var array
+     * @var Field[]
      */
     private $fields;
 
@@ -60,7 +60,7 @@ class Form
         $this->fields = array();
         $this->valid = true;
         $this->encoder = new Encoder(Encoder::BASE64);
-        $this->metadata = new Field(self::METADATA);
+        $this->metadata = new Field\Plain(self::METADATA);
 
         $this->build();
         $this->prepare();
@@ -386,7 +386,7 @@ class Form
             if (isset($this->fields[$name])) {
                 throw new \LogicException(sprintf("Field '%s' already exists and cannot be initialized.", $name));
             } else {
-                $field = new Field($name);
+                $field = new Field\Text($name);
                 $field->setValue($value);
 
                 $this->fields[$name] = $field;

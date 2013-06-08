@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Data\Form;
 
+use Appcia\Webwork\Core\Component;
 use Appcia\Webwork\Data\Filter;
 use Appcia\Webwork\Data\Validator;
 
@@ -10,15 +11,15 @@ use Appcia\Webwork\Data\Validator;
  *
  * @package Appcia\Webwork\Data\Form
  */
-class Field
+abstract class Field
 {
     /**
      * Types
-     * 
-     * 1) text - for text inputs
-     * 2) set  - data from checkboxes
-     * 3) file - input type file
-     * 4) plan - unsafe, for omitting built-in CSRF protection
+     *
+     * Text  - for text inputs with CSRF protection
+     * Set   - for servicing set of values (arrays)
+     * File  - input type file
+     * Plain - plain data (unsafe)
      */
     const TEXT = 'text';
     const SET = 'set';
@@ -27,7 +28,6 @@ class Field
 
     /**
      * Possible types:
-
      *
      * @var array
      */
@@ -39,6 +39,34 @@ class Field
     );
 
     /**
+     * Filtered value which is tested by validation
+     *
+     * @var mixed
+     */
+    protected $value;
+
+    /**
+     * Registered validators
+     *
+     * @var Validator[]
+     */
+    protected $validators;
+
+    /**
+     * Registered filters
+     *
+     * @var Filter[]
+     */
+    protected $filters;
+
+    /**
+     * Validation result
+     *
+     * @var boolean
+     */
+    protected $valid;
+
+    /**
      * Name
      *
      * @var string
@@ -46,46 +74,11 @@ class Field
     private $name;
 
     /**
-     * Filtered value which is tested by validation
-     *
-     * @var mixed
-     */
-    private $value;
-
-    /**
      * Unfiltered value
      *
      * @var mixed
      */
     private $rawValue;
-
-    /**
-     * Registered validators
-     *
-     * @var array
-     */
-    private $validators;
-
-    /**
-     * Registered filters
-     *
-     * @var array
-     */
-    private $filters;
-
-    /**
-     * Validation result
-     *
-     * @var boolean
-     */
-    private $valid;
-
-    /**
-     * Field type used for extended form behaviours
-     *
-     * @var boolean
-     */
-    private $type;
 
     /**
      * Additional data useful in views
@@ -99,18 +92,15 @@ class Field
      * Constructor
      *
      * @param string $name Name
-     * @param string $type Type
      */
-    public function __construct($name, $type = self::TEXT)
+    public function __construct($name)
     {
         $this->validators = array();
         $this->filters = array();
         $this->valid = true;
-        $this->type = self::TEXT;
         $this->data = array();
 
         $this->setName($name);
-        $this->setType($type);
     }
 
     /**
@@ -128,50 +118,6 @@ class Field
         }
 
         $this->name = (string) $name;
-
-        return $this;
-    }
-
-    /**
-     * Treat value as file that can be uploaded
-     *
-     * @param string $type Type
-     *
-     * @return $this
-     * @throws \OutOfBoundsException
-     */
-    private function setType($type)
-    {
-        if (!in_array($type, self::$types)) {
-            throw new \OutOfBoundsException(sprintf("Field type '%s' is invalid or unsupported", $type));
-        }
-
-        if ($type === self::TEXT) {
-            $this->addFilter(new Filter\StripTags());
-        }
-
-        $this->type = $type;
-
-        return $this;
-    }
-
-    /**
-     * Register filter
-     *
-     * @param Filter $filter Filter
-     *
-     * @return $this
-     * @throws \LogicException
-     */
-    public function addFilter(Filter $filter)
-    {
-        $name = $filter->getName();
-
-        if (isset($this->filters[$name])) {
-            throw new \LogicException(sprintf("Filter '%s' already exist", $name));
-        }
-
-        $this->filters[$name] = $filter;
 
         return $this;
     }
@@ -313,6 +259,27 @@ class Field
     }
 
     /**
+     * Register filter
+     *
+     * @param Filter $filter Filter
+     *
+     * @return $this
+     * @throws \LogicException
+     */
+    public function addFilter(Filter $filter)
+    {
+        $name = $filter->getName();
+
+        if (isset($this->filters[$name])) {
+            throw new \LogicException(sprintf("Filter '%s' already exist", $name));
+        }
+
+        $this->filters[$name] = $filter;
+
+        return $this;
+    }
+
+    /**
      * Check whether validator is registered
      *
      * @param string $name Validator name
@@ -376,7 +343,7 @@ class Field
     /**
      * Get all components
      *
-     * @return array
+     * @return Component[]
      */
     public function getComponents()
     {
@@ -408,8 +375,8 @@ class Field
     /**
      * Set additional data
      *
-     * @param string $key  Key
-     * @param mixed $value Value
+     * @param string $key   Key
+     * @param mixed  $value Value
      *
      * @return $this
      */
@@ -428,13 +395,7 @@ class Field
     public function filter()
     {
         foreach ($this->filters as $filter) {
-            if ($this->type == self::SET && is_array($this->value)) {
-                foreach ($this->value as $key => $value) {
-                    $this->value[$key] = $filter->filter($value);
-                }
-            } else {
-                $this->value = $filter->filter($this->value);
-            }
+            $this->value = $filter->filter($this->value);
         }
 
         return $this->value;
@@ -450,39 +411,13 @@ class Field
         $this->valid = true;
 
         foreach ($this->validators as $validator) {
-            if ($this->type == self::SET && is_array($this->value)) {
-                $valid = true;
-
-                foreach ($this->value as $value) {
-                    if (!$validator->validate($value)) {
-                        $valid = false;
-                        break;
-                    }
-                }
-
-                if (!$valid) {
-                    $this->valid = false;
-                    break;
-                }
-            } else {
-                if (!$validator->validate($this->value)) {
-                    $this->valid = false;
-                    break;
-                }
+            if (!$validator->validate($this->value)) {
+                $this->valid = false;
+                break;
             }
         }
 
         return $this->valid;
-    }
-
-    /**
-     * Get type
-     *
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->type;
     }
 
     /**
