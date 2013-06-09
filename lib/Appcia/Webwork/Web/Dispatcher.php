@@ -226,20 +226,20 @@ class Dispatcher
             $this->response = $response;
             $this->notify(self::CREATE_RESPONSE);
 
-            $template = $this->getTemplatePath();
-            $data = $this->invokeAction();
-            $this->notify(self::INVOKE_ACTION);
-
             $view = new View($this->app);
             $this->app->getConfig()
                 ->grab('view')
                 ->inject($view);
 
-            $view->setTemplate($template)
-                ->addData($data);
+            $template = $this->getTemplatePath();
+            $view->setTemplate($template);
 
             $this->view = $view;
             $this->notify(self::CREATE_VIEW);
+
+            $data = $this->invokeAction();
+            $view->addData($data);
+            $this->notify(self::INVOKE_ACTION);
 
             if (!$response->hasContent()) {
                 $content = $view->render();
