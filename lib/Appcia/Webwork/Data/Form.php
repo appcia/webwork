@@ -491,29 +491,42 @@ class Form
     }
 
     /**
-     * Suck values from object using getters
+     * Suck values from object using getters or direct from array
      *
-     * @param object  $object  Source object
-     * @param boolean $defined Only defined values (skip nulls)
+     * @param object|array $source  Source object or array
+     * @param boolean      $defined Only defined values (skip nulls)
      *
+     * @throws \InvalidArgumentException
      * @return $this
      */
-    public function suck($object, $defined = true)
+    public function suck($source, $defined = true)
     {
         foreach ($this->fields as $property => $field) {
-            foreach (array('get', 'is') as $prefix) {
-                $method = $prefix . ucfirst($property);
-                $callback = array($object, $method);
+            if (is_object($source)) {
+                foreach (array('get', 'is') as $prefix) {
+                    $method = $prefix . ucfirst($property);
+                    $callback = array($source, $method);
 
-                if (method_exists($object, $method) && is_callable($callback)) {
-                    $value = call_user_func($callback);
+                    if (method_exists($source, $method) && is_callable($callback)) {
+                        $value = call_user_func($callback);
+
+                        if ($value !== null || !$defined) {
+                            $field->setValue($value);
+                        }
+
+                        break;
+                    }
+                }
+            } elseif (is_array($source)) {
+                if (array_key_exists($property, $source)) {
+                    $value = $source[$property];
 
                     if ($value !== null || !$defined) {
                         $field->setValue($value);
                     }
-
-                    break;
                 }
+            } else {
+                throw new \InvalidArgumentException("Form sucking expected object or array as source.");
             }
         }
 

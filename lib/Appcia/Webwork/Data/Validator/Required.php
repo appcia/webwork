@@ -15,12 +15,12 @@ class Required extends Validator
             return false;
         }
 
-        $value = $this->getStringValue($value);
-        if ($value === null) {
-            return false;
+        if (is_array($value)) {
+            $flag = !empty($value);
+        } else {
+            $value = $this->getStringValue($value);
+            $flag = !empty($value);
         }
-
-        $flag = !empty($value);
 
         return $flag;
     }

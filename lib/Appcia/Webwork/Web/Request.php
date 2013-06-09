@@ -9,18 +9,25 @@ namespace Appcia\Webwork\Web;
  */
 class Request
 {
+    /**
+     * Predefined hostname
+     */
     const LOCALHOST = '127.0.0.1';
 
+    /**
+     * Methods
+     */
     const POST = 'post';
     const GET = 'get';
 
+    /**
+     * Protocols
+     */
     const HTTP_10 = 'HTTP/1.0';
     const HTTP_11 = 'HTTP/1.1';
     const HTTPS = 'HTTPS';
 
     /**
-     * Valid method list
-     *
      * @var array
      */
     private static $methods = array(
@@ -333,7 +340,7 @@ class Request
      */
     public function getProtocolPrefix()
     {
-        return  self::$protocols[$this->protocol];
+        return self::$protocols[$this->protocol];
     }
 
     /**
@@ -572,14 +579,15 @@ class Request
      * Grab request parameter
      * If it is not specified returns null
      *
-     * @param string $key Parameter name
+     * @param string $key     Parameter name
+     * @param mixed  $default Default value
      *
      * @return mixed
      */
-    public function grab($key)
+    public function grab($key, $default = null)
     {
         if (!$this->has($key)) {
-            return null;
+            return $default;
         }
 
         return $this->data[$key];
@@ -628,7 +636,6 @@ class Request
         }
 
         $path = parse_url($path, PHP_URL_PATH);
-
         $this->path = $path;
 
         return $this;

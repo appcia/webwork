@@ -36,7 +36,7 @@ abstract class Helper extends Component
     /**
      * Get attached view
      *
-     * @return $this
+     * @return View
      */
     public function getView()
     {
@@ -48,7 +48,7 @@ abstract class Helper extends Component
      *
      * @param string $name
      *
-     * @return $this
+     * @return Helper
      */
     public function getHelper($name)
     {

@@ -300,6 +300,22 @@ class Space implements \ArrayAccess
     }
 
     /**
+     * Clear all data
+     *
+     * @return $this
+     */
+    public function clear()
+    {
+        $this->data = array();
+
+        if ($this->autoflush) {
+            $this->save();
+        }
+
+        return $this;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function valid()

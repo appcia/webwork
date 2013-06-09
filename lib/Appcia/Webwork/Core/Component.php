@@ -100,12 +100,27 @@ abstract class Component
      *
      * @param $value
      *
-     * @return bool
+     * @return boolean
      */
     protected function isEmptyValue($value)
     {
         $flag = ($value === '')
             || ($value === null);
+
+        return $flag;
+    }
+
+    /**
+     * Check whether values could be iterated with foreach loop
+     *
+     * @param mixed $value Value
+     *
+     * @return boolean
+     */
+    protected function isTraversableValue($value)
+    {
+        $flag =  is_array($value)
+            || $value instanceof \Traversable;
 
         return $flag;
     }
