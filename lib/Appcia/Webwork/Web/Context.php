@@ -39,6 +39,11 @@ class Context {
     /**
      * @var string
      */
+    private $timezone;
+
+    /**
+     * @var string
+     */
     private $charset;
 
     /**
@@ -57,6 +62,7 @@ class Context {
         $this->charset = 'UTF-8';
         $this->htmlVersion = self::HTML_5;
 
+        $this->setTimezone('Europe/Warsaw');
         $this->updateLocale();
     }
 
@@ -142,6 +148,32 @@ class Context {
         $this->updateLocale();
 
         return $this;
+    }
+
+    /**
+     * @param string $timezone
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function setTimezone($timezone)
+    {
+        $flag = date_default_timezone_set($timezone);
+        if (!$flag) {
+            throw new \InvalidArgumentException(sprintf("Timezone '%s' is invalid or unsupported.", $timezone));
+        }
+
+        $this->timezone = $timezone;
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTimezone()
+    {
+        return $this->timezone;
     }
 
     /**
