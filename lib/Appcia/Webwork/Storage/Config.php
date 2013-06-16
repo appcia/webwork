@@ -279,6 +279,45 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
+     * Get flattened data
+     * Keys are concatenated using '.'
+     *
+     * @param string $glue Multidimensional key glue
+     *
+     * @return array
+     */
+    public function flatten($glue = '.')
+    {
+        $data = $this->flattenRecursive($this->data, '', $glue);
+
+        return $data;
+    }
+
+    /**
+     * Recursive helper for data flattening
+     *
+     * @param array  $array
+     * @param string $prefix
+     * @param string $glue
+     *
+     * @return array
+     */
+    private function flattenRecursive($array, $prefix, $glue)
+    {
+        $result = array();
+
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $prefix = $prefix . $key . $glue;
+                $result = $result + $this->flattenRecursive($value, $prefix, $glue);
+            } else {
+                $result[$prefix . $key] = $value;
+            }
+        }
+        return $result;
+    }
+
+    /**
      * Get data
      *
      * @return array
