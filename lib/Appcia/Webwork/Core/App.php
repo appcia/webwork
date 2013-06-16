@@ -270,7 +270,7 @@ abstract class App
 
         $this->loadModule('app', $config);
 
-        $modules = $this->config->get('modules');
+        $modules = $this->config->get('app.modules');
         if (empty($modules)) {
             throw new \InvalidArgumentException("Configuration for modules is empty."
             . " Check whether key 'modules' has at least one module specified.");
