@@ -215,18 +215,12 @@ class Php extends Renderer
      *
      * @param string      $name     Block name
      * @param string      $template Template to be extended
-     * @param string|null $module   Module in which template exists
      *
      * @throws \LogicException
      */
-    public function beginBlock($name, $template = null, $module = null)
+    public function beginBlock($name, $template = null)
     {
         if ($template !== null) {
-            if ($module !== null) {
-                $path = $this->getView()
-                    ->getModulePath($module);
-                $template = $path . '/' . $template;
-            }
 
             if (isset($this->extends[$name])) {
                 throw new \LogicException(sprintf("Block name that will be extended is already used: '%s'.", $name));
@@ -234,7 +228,7 @@ class Php extends Renderer
 
             // Associate block with extending
             $this->extends[$name] = $template;
-            $this->pushTemplate($template);
+            $this->push($template);
         }
 
         // Stop and save current output capturing
@@ -254,9 +248,9 @@ class Php extends Renderer
      *
      * @return Php
      */
-    protected function pushTemplate($template)
+    protected function push($template)
     {
-        $path = dirname($template);
+        $path = dirname($this->getView()->getTemplatePath($template, $this->paths));
         $current = in_array($path, array('', '.'));
 
         if (!$current) {
@@ -302,7 +296,7 @@ class Php extends Renderer
         // Check that block must be extended
         if (isset($this->extends[$name])) {
             $template = $this->extends[$name];
-            $this->popTemplate($template);
+            $this->pop($template);
 
             unset($this->extends[$name]);
             echo $this->render($template);
@@ -319,9 +313,9 @@ class Php extends Renderer
      *
      * @return Php
      */
-    protected function popTemplate($template)
+    protected function pop($template)
     {
-        $path = dirname($template);
+        $path = dirname($this->getView()->getTemplatePath($template, $this->paths));
         $current = in_array($path, array('', '.'));
 
         if (!$current) {
@@ -336,9 +330,9 @@ class Php extends Renderer
      */
     public function render($template = null)
     {
-        $this->pushTemplate($template);
+        $this->push($template);
         $content = $this->capture($template);
-        $this->popTemplate($template);
+        $this->pop($template);
 
         if ($this->sanitization) {
             $content = $this->sanitize($content);

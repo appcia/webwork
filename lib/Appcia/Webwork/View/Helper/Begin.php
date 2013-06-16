@@ -11,14 +11,13 @@ class Begin extends Helper
      *
      * @param string $name    Block name
      * @param string $file    View to be extended
-     * @param string $module  Module name which in file belongs to
      *
      * @return void
      */
-    public function begin($name, $file = null, $module = null)
+    public function begin($name, $file = null)
     {
         $this->getView()
             ->getRenderer()
-            ->beginBlock($name, $file, $module);
+            ->beginBlock($name, $file);
     }
 }

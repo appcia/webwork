@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Auth;
 
-use App\Entity\Auth\User;
+use Cms\Entity\Auth\User;
 use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Session\Space;

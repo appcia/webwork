@@ -13,6 +13,8 @@ use Appcia\Webwork\Web\App;
  */
 class View
 {
+    const MODULE_DELIMITER = ':';
+
     /**
      * Application
      *
@@ -170,8 +172,22 @@ class View
             $template = $this->template;
         }
 
-        if (empty($paths)) {
-            $paths[] = $this->getModulePath();
+        $paths[] = $this->getModulePath();
+
+        if (strpos($template, self::MODULE_DELIMITER) !== false) {
+            $parts = explode(self::MODULE_DELIMITER, $template);
+
+            if (count($parts) !== 2) {
+                throw new \InvalidArgumentException(sprintf(
+                    "Template file '%s' cannot has more than one module delimiter.",
+                    $template
+                ));
+            }
+
+            list ($module, $template) = $parts;
+            $path = $this->getModulePath($module);
+
+            array_unshift($paths, $path);
         }
 
         if (!file_exists($template)) {

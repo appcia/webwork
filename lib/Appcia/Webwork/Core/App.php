@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Core;
 
 use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\System\Dir;
 
 /**
  * Base for modular application
@@ -12,7 +13,9 @@ use Appcia\Webwork\Storage\Config;
 abstract class App
 {
     const DEVELOPMENT = 'dev';
+
     const TEST = 'test';
+
     const PRODUCTION = 'prod';
 
     /**
@@ -359,5 +362,44 @@ abstract class App
         $this->rootPath = $rootPath;
 
         return $this;
+    }
+
+    /**
+     * Find existing sub-paths in all modules
+     *
+     * @param string  $subPath   Sub path
+     * @param boolean $namespace Use namespace as path prefix
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function findPaths($subPath, $namespace = true)
+    {
+        if (empty($subPath)) {
+            throw new \InvalidArgumentException("Module sub path cannot be empty.");
+        }
+
+        $paths = array();
+
+        foreach ($this->modules as $module) {
+            $path = $module->getPath();
+
+            if ($namespace) {
+                if (empty($path)) {
+                    $path = 'lib/' . $module->getNamespace();
+                } else {
+                    $path .= '/lib/' . $module->getNamespace();
+                }
+            }
+
+            $path .= '/' .$subPath;
+            $dir = new Dir($path);
+
+            if ($dir->exists()) {
+                $paths[] = $path;
+            }
+        }
+
+        return $paths;
     }
 }
