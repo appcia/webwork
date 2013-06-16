@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Data\CaseConverter;
 use Appcia\Webwork\Model\Pattern;
 use Appcia\Webwork\Storage\Config;
 
@@ -154,7 +154,7 @@ class Route
             $parts = array_merge($parts, array($action));
         }
 
-        $converter = new TextCase();
+        $converter = new CaseConverter();
         foreach ($parts as $key => $value) {
             $parts[$key] = $converter->camelToDashed($value);
         }

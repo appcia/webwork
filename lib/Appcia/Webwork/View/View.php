@@ -190,14 +190,17 @@ class View
     }
 
     /**
-     * Get path for views in current module
+     * Get path for views in specified module
+     * If not specified, path is for current module
+     *
+     * @param null $module
      *
      * @return string
      */
-    public function getModulePath()
+    public function getModulePath($module = null)
     {
         $dispatcher = $this->app->getDispatcher();
-        $path = $dispatcher->getModulePath() . '/view';
+        $path = $dispatcher->getModulePath($module) . '/view';
 
         return $path;
     }

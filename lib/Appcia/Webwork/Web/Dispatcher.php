@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Data\CaseConverter;
 use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\View\View;
@@ -15,6 +15,9 @@ use Appcia\Webwork\Web\Response;
  */
 class Dispatcher
 {
+    /**
+     * Events
+     */
     const START = 'dispatchStart';
     const CREATE_RESPONSE = 'createResponse';
     const FIND_ROUTE = 'findRoute';
@@ -109,14 +112,6 @@ class Dispatcher
     );
 
     /**
-     * Text case converter
-     * Used for file names determining
-     *
-     * @var TextCase
-     */
-    private $textCase;
-
-    /**
      * Constructor
      *
      * @param App $app
@@ -130,7 +125,6 @@ class Dispatcher
         $this->listeners = array();
         $this->exceptionOnError = false;
         $this->setExceptionOnError(true);
-        $this->textCase = new TextCase();
     }
 
     /**
@@ -151,31 +145,6 @@ class Dispatcher
         }
 
         $this->exceptionOnError = $flag;
-
-        return $this;
-    }
-
-    /**
-     * Get text case converter
-     *
-     * @return TextCase
-     */
-    public function getTextCase()
-    {
-        return $this->textCase;
-    }
-
-    /**
-     * Set text case converter
-     * Used for file names determining
-     *
-     * @param TextCase $converter
-     *
-     * @return $this
-     */
-    public function setTextCase($converter)
-    {
-        $this->textCase = $converter;
 
         return $this;
     }
@@ -306,24 +275,35 @@ class Dispatcher
     /**
      * Get template path
      *
+     * @param string|null $module     Module name
+     * @param string|null $controller Controller name
+     * @param string|null $action     Action name
+     *
      * @return string
      */
-    public function getTemplatePath()
+    public function getTemplatePath($module = null, $controller = null, $action = null)
     {
-        $template = $this->getModulePath() . '/view/' . $this->getControllerPath() . '/' . $this->getTemplateFilename();
+        $template = $this->getModulePath($module) . '/view/' . $this->getControllerPath($controller)
+            . '/' . $this->getTemplateFilename($action);
 
         return $template;
     }
 
     /**
-     * Get module path basing on current route
+     * Get module path by name
+     * If not specified, dispatched module name is used
+     *
+     * @param string|null $module Module name
      *
      * @return string
      */
-    public function getModulePath()
+    public function getModulePath($module = null)
     {
-        $moduleName = $this->route->getModule();
-        $path = $this->app->getModule($moduleName)
+        if ($module === null) {
+            $module = $this->route->getModule();
+        }
+
+        $path = $this->app->getModule($module)
             ->getPath();
 
         return $path;
@@ -331,15 +311,41 @@ class Dispatcher
 
     /**
      * Get controller path basing on current route
+     * If not specified, dispatched controller name is used
+     *
+     * @param null $controller Controller name
      *
      * @return string
      */
-    public function getControllerPath()
+    public function getControllerPath($controller = null)
     {
-        $controllerName = $this->route->getController();
-        $path = $this->getPath($controllerName);
+        if ($controller === null) {
+            $controller = $this->route->getController();
+        }
+
+        $path = $this->getPath($controller);
 
         return $path;
+    }
+
+    /**
+     * Get view template filename basing on current route
+     * If template name contains '*' it will be replaced by route action
+     * If action not specified, dispatched controller name is used
+     *
+     * @param string|null $action Action name
+     *
+     * @return string
+     */
+    public function getTemplateFilename($action = null)
+    {
+        if ($action === null) {
+            $action = $this->getPath($this->route->getAction());
+        }
+
+        $template = mb_strtolower(str_replace('*', $action, $this->route->getTemplate()));
+
+        return $template;
     }
 
     /**
@@ -351,29 +357,16 @@ class Dispatcher
      */
     private function getPath($class)
     {
+        $converter = new CaseConverter();
         $parts = explode('\\', rtrim($class, '\\'));
 
         foreach ($parts as $key => $part) {
-            $parts[$key] = $this->textCase->camelToDashed($part);
+            $parts[$key] = $converter->camelToDashed($part);
         }
 
         $path = implode('/', $parts);
 
         return $path;
-    }
-
-    /**
-     * Get view template filename basing on current route
-     * If template name contains '*' it will be replaced by route action
-     *
-     * @return string
-     */
-    public function getTemplateFilename()
-    {
-        $action = $this->getPath($this->route->getAction());
-        $template = mb_strtolower(str_replace('*', $action, $this->route->getTemplate()));
-
-        return $template;
     }
 
     /**

@@ -7,7 +7,7 @@ namespace Appcia\Webwork\Data;
  *
  * @package Appcia\Webwork\Data
  */
-class TextCase
+class CaseConverter
 {
     /**
      * Convert camel cased text to dashed

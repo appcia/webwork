@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Data\TextCase;
+use Appcia\Webwork\Data\CaseConverter;
 use Appcia\Webwork\Routing\Group;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Config;

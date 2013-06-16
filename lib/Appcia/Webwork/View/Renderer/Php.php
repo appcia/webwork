@@ -213,14 +213,21 @@ class Php extends Renderer
     /**
      * Start block capturing
      *
-     * @param string $name     Block name
-     * @param string $template Template to be extended
+     * @param string      $name     Block name
+     * @param string      $template Template to be extended
+     * @param string|null $module   Module in which template exists
      *
      * @throws \LogicException
      */
-    public function beginBlock($name, $template = null)
+    public function beginBlock($name, $template = null, $module = null)
     {
         if ($template !== null) {
+            if ($module !== null) {
+                $path = $this->getView()
+                    ->getModulePath($module);
+                $template = $path . '/' . $template;
+            }
+
             if (isset($this->extends[$name])) {
                 throw new \LogicException(sprintf("Block name that will be extended is already used: '%s'.", $name));
             }
