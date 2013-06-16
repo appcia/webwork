@@ -15,7 +15,8 @@ class Trim extends Helper
      */
     public function trim($data)
     {
-        if (!is_scalar($data)) {
+        $data = $this->getStringValue($data);
+        if ($data === null) {
             return null;
         }
 

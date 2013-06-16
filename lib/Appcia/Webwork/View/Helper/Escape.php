@@ -15,9 +15,16 @@ class Escape extends Helper
      */
     public function escape($value)
     {
+        $value = $this->getStringValue($value);
+        if ($value === null) {
+            return null;
+        }
+
         $charset = $this->getContext()
             ->getCharset();
 
-        return htmlentities($value, ENT_QUOTES, $charset);
+        $value = htmlentities($value, ENT_QUOTES, $charset);
+
+        return $value;
     }
 }

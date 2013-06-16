@@ -70,11 +70,6 @@ class Context {
         putenv('LC_ALL=' . $locale);
         setlocale(LC_ALL, $locale);
 
-        $domain = "messages";
-        bindtextdomain($domain, "./locale");
-        bind_textdomain_codeset($domain, 'UTF-8');
-        textdomain($domain);
-
         return $this;
     }
 

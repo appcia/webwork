@@ -15,6 +15,11 @@ class Lower extends Helper
      */
     public function lower($value)
     {
+        $value = $this->getStringValue($value);
+        if ($value === null) {
+            return null;
+        }
+
         $charset = $this->getContext()
             ->getCharset();
 

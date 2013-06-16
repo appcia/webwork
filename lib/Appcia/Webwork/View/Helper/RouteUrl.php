@@ -16,6 +16,7 @@ class RouteUrl extends Helper
      */
     public function routeUrl($name = null, $params = null)
     {
+        $name = $this->getStringValue($name);
         if ($name === null) {
             return null;
         }

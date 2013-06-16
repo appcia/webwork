@@ -17,6 +17,11 @@ class Replace extends Helper
      */
     public function replace($subject, $search, $replace)
     {
+        $subject = $this->getStringValue($subject);
+        if ($subject === null) {
+            return null;
+        }
+
         $value = str_replace($search, $replace, $subject);
 
         return $value;

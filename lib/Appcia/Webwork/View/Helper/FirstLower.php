@@ -16,6 +16,11 @@ class FirstLower extends Helper
      */
     public function firstLower($value, $upperRest = false)
     {
+        $value = $this->getStringValue($value);
+        if ($value === null) {
+            return null;
+        }
+
         $charset = $this->getContext()
             ->getCharset();
 

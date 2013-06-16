@@ -16,7 +16,7 @@ class Each extends Helper
      */
     public function each($values, \Closure $callback)
     {
-        if (!$this->isTraversableValue($values) || !is_callable($callback)) {
+        if (!$this->isArrayValue($values) || !is_callable($callback)) {
             return array();
         }
 

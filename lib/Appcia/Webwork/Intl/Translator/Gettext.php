@@ -22,6 +22,8 @@ class Gettext extends Translator
      */
     public function __construct()
     {
+        parent::__construct();
+
         if (function_exists('gettext') === false) {
             throw new \RuntimeException("Translator cannot be instantiated. Gettext is not installed.");
         }

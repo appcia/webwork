@@ -18,6 +18,8 @@ class Asset extends Helper
      */
     public function __construct()
     {
+        parent::__construct();
+
         $this->assets = array();
     }
 
@@ -30,6 +32,10 @@ class Asset extends Helper
      */
     public function asset($file)
     {
+        if ($this->isEmptyValue($file)) {
+            return null;
+        }
+
         // Register
         $file = trim($file, '/');
         if (!array_search($file, $this->assets)) {

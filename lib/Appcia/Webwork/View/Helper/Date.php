@@ -17,7 +17,7 @@ class Date extends Helper
      */
     public function date($value = null, $format = 'Y-m-d, H:i:s')
     {
-        if (empty($value)) {
+        if ($this->isEmptyValue($value)) {
             return null;
         }
 

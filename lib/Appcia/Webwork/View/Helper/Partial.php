@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\View\Helper;
 
 use Appcia\Webwork\View\Helper;
-use Appcia\WebworkView;
+use Appcia\Webwork\View\View;
 
 class Partial extends Helper
 {
@@ -17,16 +17,15 @@ class Partial extends Helper
      */
     public function partial($file, array $data = array())
     {
-        $container = $this
-            ->getView()
+        $app = $this->getView()
             ->getApp();
 
-        $view = new View($container);
-        $view->setFile($file)
-            ->setData($data);
+        $view = new View($app);
 
-        $result = $view->render();
+        $content = $view->setTemplate($file)
+            ->setData($data)
+            ->render();
 
-        return $result;
+        return $content;
     }
 }

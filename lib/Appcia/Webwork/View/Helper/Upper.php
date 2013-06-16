@@ -15,6 +15,11 @@ class Upper extends Helper
      */
     public function upper($value)
     {
+        $value = $this->getStringValue($value);
+        if ($value === null) {
+            return null;
+        }
+
         $charset = $this->getContext()
             ->getCharset();
 

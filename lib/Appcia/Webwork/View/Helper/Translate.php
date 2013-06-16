@@ -15,6 +15,11 @@ class Translate extends Helper
      */
     public function translate($id)
     {
+        $id = $this->getStringValue($id);
+        if ($id === null) {
+            return null;
+        }
+
         $translator = $this->getView()
             ->getApp()
             ->get('translator');

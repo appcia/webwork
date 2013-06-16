@@ -15,12 +15,15 @@ class Age extends Helper
      */
     public function age($date)
     {
-        if (!$date instanceof \DateTime) {
-            $date = new \DateTime($date);
+        if ($this->isEmptyValue($date)) {
+            return null;
         }
 
+        $date = $this->getDateValue($date);
         $now = new \DateTime('now');
 
-        return $now->diff($date)->y;
+        $age = $now->diff($date)->y;
+
+        return $age;
     }
 }

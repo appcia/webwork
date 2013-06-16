@@ -15,7 +15,7 @@ class Required extends Validator
             return false;
         }
 
-        if (is_array($value)) {
+        if ($this->isArrayValue($value)) {
             $flag = !empty($value);
         } else {
             $value = $this->getStringValue($value);

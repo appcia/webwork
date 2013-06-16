@@ -5,23 +5,19 @@ namespace Appcia\Webwork\Intl;
 use Appcia\Webwork\Intl\Translator\Gettext;
 use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Core\Component;
 
 /**
  * Translating texts between languages
  *
  * @package Appcia\Webwork\Intl
  */
-abstract class Translator
+abstract class Translator extends Component
 {
     /**
      * Types
      */
     const GETTEXT = 'gettext';
-
-    /**
-     * @var Context
-     */
-    private $context;
 
     /**
      * Creator
@@ -79,28 +75,4 @@ abstract class Translator
      * @return mixed
      */
     abstract public function translate($id);
-
-    /**
-     * Get context
-     *
-     * @return Context
-     */
-    public function getContext()
-    {
-        return $this->context;
-    }
-
-    /**
-     * Set context
-     *
-     * @param Context $context
-     *
-     * @return $this
-     */
-    public function setContext($context)
-    {
-        $this->context = $context;
-
-        return $this;
-    }
 }

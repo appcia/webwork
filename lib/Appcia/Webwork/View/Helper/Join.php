@@ -16,7 +16,7 @@ class Join extends Helper
      */
     public function join($data, $separator = ', ')
     {
-        if ($data instanceof \Traversable) {
+        if ($this->isArrayValue($data)) {
             $values = array();
 
             foreach ($data as $value) {
@@ -28,7 +28,7 @@ class Join extends Helper
             }
 
             $data = $values;
-        } elseif (!is_array($data)) {
+        } else {
             $data = array();
         }
 

@@ -16,6 +16,11 @@ class FirstUpper extends Helper
      */
     public function firstUpper($value, $lowerRest = false)
     {
+        $value = $this->getStringValue($value);
+        if ($value === null) {
+            return null;
+        }
+
         $charset = $this->getContext()
             ->getCharset();
 

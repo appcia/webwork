@@ -16,9 +16,10 @@ class Map extends Helper
      */
     public function map($data, \Closure $callback)
     {
-        if (!is_callable($callback)
-            || !is_array($data) && !($data instanceof \Traversable && $data instanceof \ArrayAccess)) {
+        if (!$this->isArrayValue($data)) {
             return array();
+        } elseif (!is_callable($callback)) {
+            return $data;
         }
 
         foreach ($data as $key => $value) {

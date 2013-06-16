@@ -15,8 +15,10 @@ class Block extends Helper
      */
     public function block($name)
     {
-        echo $this->getView()
+        $content = $this->getView()
             ->getRenderer()
             ->getBlock($name);
+
+        echo $content;
     }
 }

@@ -111,16 +111,16 @@ abstract class Component
     }
 
     /**
-     * Check whether values could be iterated with foreach loop
+     * Check whether values could be iterated with foreach loop, accessed like an array
      *
      * @param mixed $value Value
      *
      * @return boolean
      */
-    protected function isTraversableValue($value)
+    protected function isArrayValue($value)
     {
         $flag =  is_array($value)
-            || $value instanceof \Traversable;
+            || (($value instanceof \Traversable) && ($value instanceof \ArrayAccess));
 
         return $flag;
     }
