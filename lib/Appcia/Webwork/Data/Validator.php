@@ -12,6 +12,22 @@ use Appcia\Webwork\Core\Component;
 abstract class Validator extends Component {
 
     /**
+     * Messages
+     *
+     * @var array
+     */
+    private $messages;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->messages = array();
+    }
+
+    /**
      * Validate data
      *
      * @param mixed $value Data to be validated

@@ -491,6 +491,31 @@ class Form
     }
 
     /**
+     * Get validation messages
+     *
+     * @param bool $group Group by fields
+     *
+     * @return array
+     */
+    public function getMessages($group = false)
+    {
+        $results = array();
+
+        foreach ($this->fields as $field) {
+            $name = $field->getName();
+            $messages = $field->getMessages();
+
+            if ($group) {
+                $results[$name] = $messages;
+            } else {
+                $results = array_merge($results, $messages);
+            }
+        }
+
+        return $results;
+    }
+
+    /**
      * Suck values from object using getters or direct from array
      *
      * @param object|array $source  Source object or array

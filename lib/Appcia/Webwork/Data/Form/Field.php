@@ -46,13 +46,6 @@ abstract class Field
     protected $value;
 
     /**
-     * Registered validators
-     *
-     * @var Validator[]
-     */
-    protected $validators;
-
-    /**
      * Registered filters
      *
      * @var Filter[]
@@ -60,11 +53,25 @@ abstract class Field
     protected $filters;
 
     /**
+     * Registered validators
+     *
+     * @var Validator[]
+     */
+    protected $validators;
+
+    /**
      * Validation result
      *
      * @var boolean
      */
     protected $valid;
+
+    /**
+     * Validation messages
+     *
+     * @var array
+     */
+    private $messages;
 
     /**
      * Name
@@ -99,6 +106,7 @@ abstract class Field
         $this->filters = array();
         $this->valid = true;
         $this->data = array();
+        $this->messages = array();
 
         $this->setName($name);
     }
@@ -399,6 +407,28 @@ abstract class Field
         }
 
         return $this->value;
+    }
+
+    /**
+     * @param array $messages
+     *
+     * @return $this
+     */
+    public function setMessages($messages)
+    {
+        $this->messages = $messages;
+
+        return $this;
+    }
+
+    /**
+     * Get validation messages
+     *
+     * @return mixed
+     */
+    public function getMessages()
+    {
+        return $this->messages;
     }
 
     /**
