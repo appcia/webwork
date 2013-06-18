@@ -296,9 +296,9 @@ class Config implements \Iterator, \ArrayAccess
     /**
      * Recursive helper for data flattening
      *
-     * @param array  $array
-     * @param string $prefix
-     * @param string $glue
+     * @param array  $array  Data
+     * @param string $prefix Key prefix
+     * @param string $glue   Key glue
      *
      * @return array
      */
@@ -307,13 +307,12 @@ class Config implements \Iterator, \ArrayAccess
         $result = array();
 
         foreach ($array as $key => $value) {
-            if (is_array($value)) {
-                $prefix = $prefix . $key . $glue;
-                $result = $result + $this->flattenRecursive($value, $prefix, $glue);
-            } else {
+            if (is_array($value))
+                $result = array_merge($result, $this->flattenRecursive($value, $prefix . $key . $glue, $glue));
+            else
                 $result[$prefix . $key] = $value;
-            }
         }
+
         return $result;
     }
 
