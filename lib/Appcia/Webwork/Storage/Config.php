@@ -1,6 +1,9 @@
 <?
 
 namespace Appcia\Webwork\Storage;
+use Appcia\Webwork\Storage\Config\Reader;
+use Appcia\Webwork\Storage\Config\Writer;
+use Appcia\Webwork\System\File;
 
 /**
  * Aggregator for related data
@@ -30,53 +33,6 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Get properties from object collection or array
-     *
-     * @param array|\Traversable $objects
-     * @param string|array       $properties
-     * @param boolean            $defined
-     *
-     * @return array
-     * @throws \InvalidArgumentException
-     */
-    public static function specify($objects, $properties, $defined = false)
-    {
-        if (!is_array($objects) && (!$objects instanceof \Traversable)) {
-            throw new \InvalidArgumentException(
-                "Config can only specify properties from traversable object collection or array."
-            );
-        }
-
-        if (!is_array($properties)) {
-            $properties = array($properties);
-        }
-
-        $result = array();
-
-        foreach ($objects as $object) {
-            foreach ($properties as $property) {
-                foreach (array('get', 'is') as $prefix) {
-                    $method = $prefix . ucfirst($property);
-                    $callback = array($object, $method);
-
-                    if (method_exists($object, $method) && is_callable($callback)) {
-                        $value = call_user_func($callback);
-
-                        if ($value !== null || !$defined) {
-                            $result[$property][] = $value;
-                        }
-
-                        break;
-                    }
-                }
-            }
-
-        }
-
-        return $result;
-    }
-
-    /**
      * Get keys
      *
      * @return array
@@ -87,41 +43,50 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Load data from file
+     * Load data from supported source
+     * Reader is determined automatically
      *
-     * @param string $path Path
+     * @param string $source Source
      *
      * @return $this
      * @throws \ErrorException
      */
-    public function loadFile($path)
+    public function load($source)
     {
-        if (!file_exists($path)) {
-            throw new \ErrorException(sprintf("Config file not exists: '%s'", $path));
-        }
+        $reader = Reader::create($source);
+        $config = $reader->read($source);
 
-        // Possible syntax errors, do not handle them / expensive!
-        $data = include($path);
-
-        if (!is_array($data)) {
-            throw new \ErrorException("Config file should return array: '%s'", $path);
-        }
-
-        $this->addData($data);
+        $this->extend($config);
 
         return $this;
     }
 
     /**
-     * Add data
+     * Save data to supported target
+     * Writer is determined automatically
      *
-     * @param array $data
+     * @param mixed $target
      *
      * @return $this
      */
-    public function addData(array $data)
+    public function save($target)
     {
-        $this->data = $this->merge($this->data, $data);
+        $writer = Writer::create($target);
+        $writer->write($this, $target);
+
+        return $this;
+    }
+
+    /**
+     * Merge with another config
+     *
+     * @param Config $config
+     *
+     * @return $this
+     */
+    public function extend(Config $config)
+    {
+        $this->data = $this->merge($this->data, $config->getData());
 
         return $this;
     }
@@ -138,7 +103,7 @@ class Config implements \Iterator, \ArrayAccess
      *
      * @return array
      */
-    public static function merge(array $arr1, array $arr2)
+    private function merge(array $arr1, array $arr2)
     {
         if (empty($arr1)) {
             return $arr2;
@@ -168,6 +133,83 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
+     * Get data
+     *
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
+     * Set data
+     *
+     * @param array $data Data
+     *
+     * @return $this
+     */
+    public function setData(array $data)
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    /**
+     * Add data
+     *
+     * @param array $data
+     *
+     * @return $this
+     */
+    public function addData(array $data)
+    {
+        $this->data = $this->merge($this->data, $data);
+
+        return $this;
+    }
+
+    /**
+     * Get flattened data
+     * Keys are concatenated using '.'
+     *
+     * @param string $glue Multidimensional key glue
+     *
+     * @return array
+     */
+    public function flatten($glue = '.')
+    {
+        $data = $this->flattenRecursive($this->data, '', $glue);
+
+        return $data;
+    }
+
+    /**
+     * Recursive helper for data flattening
+     *
+     * @param array  $array  Data
+     * @param string $prefix Key prefix
+     * @param string $glue   Key glue
+     *
+     * @return array
+     */
+    private function flattenRecursive($array, $prefix, $glue)
+    {
+        $result = array();
+
+        foreach ($array as $key => $value) {
+            if (is_array($value)) {
+                $result = array_merge($result, $this->flattenRecursive($value, $prefix . $key . $glue, $glue));
+            } else {
+                $result[$prefix . $key] = $value;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * Get section data even it does not exist
      * Useful for injecting when values are not specified in config file
      *
@@ -180,7 +222,7 @@ class Config implements \Iterator, \ArrayAccess
     public function grab($key)
     {
         if (empty($key)) {
-            throw new \InvalidArgumentException('Config key cannot be empty');
+            throw new \InvalidArgumentException('Config key cannot be empty.');
         }
 
         $data = & $this->data;
@@ -194,7 +236,7 @@ class Config implements \Iterator, \ArrayAccess
 
         if (!is_array($data)) {
             throw new \LogicException(sprintf(
-                "Config key '%s' indicates a value but not a section as expected", $key
+                "Config key '%s' indicates a value but not a section as expected.", $key
             ));
         }
 
@@ -241,7 +283,7 @@ class Config implements \Iterator, \ArrayAccess
         if ($properties === null) {
             $properties = get_object_vars($object);
         } elseif (!is_array($properties)) {
-            throw new \InvalidArgumentException('Config property names should be passed as an array');
+            throw new \InvalidArgumentException('Config property names should be passed as an array.');
         }
 
         foreach ($properties as $property) {
@@ -260,82 +302,6 @@ class Config implements \Iterator, \ArrayAccess
                 }
             }
         }
-
-        return $this;
-    }
-
-    /**
-     * Merge with another config
-     *
-     * @param Config $config
-     *
-     * @return $this
-     */
-    public function extend(Config $config)
-    {
-        $this->data = $this->merge($this->data, $config->getData());
-
-        return $this;
-    }
-
-    /**
-     * Get flattened data
-     * Keys are concatenated using '.'
-     *
-     * @param string $glue Multidimensional key glue
-     *
-     * @return array
-     */
-    public function flatten($glue = '.')
-    {
-        $data = $this->flattenRecursive($this->data, '', $glue);
-
-        return $data;
-    }
-
-    /**
-     * Recursive helper for data flattening
-     *
-     * @param array  $array  Data
-     * @param string $prefix Key prefix
-     * @param string $glue   Key glue
-     *
-     * @return array
-     */
-    private function flattenRecursive($array, $prefix, $glue)
-    {
-        $result = array();
-
-        foreach ($array as $key => $value) {
-            if (is_array($value))
-                $result = array_merge($result, $this->flattenRecursive($value, $prefix . $key . $glue, $glue));
-            else
-                $result[$prefix . $key] = $value;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get data
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
-     * Set data
-     *
-     * @param array $data Data
-     *
-     * @return $this
-     */
-    public function setData(array $data)
-    {
-        $this->data = $data;
 
         return $this;
     }
@@ -442,13 +408,13 @@ class Config implements \Iterator, \ArrayAccess
     public function get($key)
     {
         if (empty($key)) {
-            throw new \InvalidArgumentException('Config key cannot be empty');
+            throw new \InvalidArgumentException('Config key cannot be empty.');
         }
 
         $data = & $this->data;
         foreach (explode('.', $key) as $section) {
             if (!is_array($data) || !array_key_exists($section, $data)) {
-                throw new \InvalidArgumentException(sprintf("Config key '%s' does not exist", $key));
+                throw new \InvalidArgumentException(sprintf("Config key '%s' does not exist.", $key));
             }
 
             $data = & $data[$section];
@@ -480,7 +446,7 @@ class Config implements \Iterator, \ArrayAccess
     public function set($key, $value)
     {
         if (empty($key)) {
-            throw new \InvalidArgumentException('Config key cannot be empty');
+            throw new \InvalidArgumentException('Config key cannot be empty.');
         }
 
         $data = & $this->data;
@@ -496,7 +462,7 @@ class Config implements \Iterator, \ArrayAccess
                 $data[$section] = array();
             } else if ($s < $count && !is_array($data[$section])) {
                 throw new \LogicException(sprintf(
-                    "Config section '%s' in key '%s' indicates a value",
+                    "Config section '%s' in key '%s' indicates a value.",
                     $section,
                     $key
                 ));
@@ -531,7 +497,7 @@ class Config implements \Iterator, \ArrayAccess
     public function remove($key)
     {
         if (empty($key)) {
-            throw new \InvalidArgumentException('Config key cannot be empty');
+            throw new \InvalidArgumentException('Config key cannot be empty.');
         }
 
         $data = & $this->data;
@@ -545,7 +511,7 @@ class Config implements \Iterator, \ArrayAccess
 
             if (!isset($data[$section])) {
                 throw new \InvalidArgumentException(sprintf(
-                    "Config section '%s' in key '%s' does not exist", $section, $key
+                    "Config section '%s' in key '%s' does not exist.", $section, $key
                 ));
             }
 
