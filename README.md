@@ -3,13 +3,13 @@ Appcia Webwork
 PHP Framework, codename 'Webwork'
 
 #### Main ideas
-
-* very lightweight and clean MVC - 'simplicity as solution'
+* lightweight and clean MVC - 'simplicity as solution'
+* highly configurable
+* scalable by independent modules
+* simple, native view mechanism with block extending
+* easy for unit test implementing, mock injecting
 * modern code using namespaces, dependency injection, closures (PHP >= 5.3)
 * standarized code via PSR-0, composer
-* easy for unit test implementing, mock injecting / free from static methods etc
-* scalable by modules
-* views with block extending
 
 #### Quickstart
 
@@ -21,6 +21,9 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.8.1**
+* config reader / writer interface (easy to implement your own)
+
 **0.8**
 * validator improvements + new: DateBetween, DateOverlap, Not, Callback
 
