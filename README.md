@@ -11,6 +11,13 @@ PHP Framework, codename 'Webwork'
 * modern code using namespaces, dependency injection, closures (PHP >= 5.3)
 * standarized code via PSR-0, composer
 
+#### Roadmap
+* release 1.0
+* website with documentation, http://appcia.pl , available soon
+* updated quickstart
+
+Planned release date: 13-09-01
+
 #### Quickstart
 
 Use application skeleton: https://github.com/appcia/webwork/blob/skeleton/README.md
