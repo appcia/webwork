@@ -3,33 +3,31 @@ Appcia Webwork
 PHP Framework, codename 'Webwork'
 
 #### Main ideas
-* lightweight and clean MVC - 'simplicity as solution'
+* lightweight and clean MVC 'simplicity as solution'
+* vendor independent 'use what you want' - mailer, db orm, whatever
 * highly configurable
-* scalable by independent modules
+* scalable by modules
+
 * simple, native view mechanism with block extending
 * easy for unit test implementing, mock injecting
 * modern code using namespaces, dependency injection, closures (PHP >= 5.3)
-* standarized code via PSR-0, composer
+* standarized code via PSR-1, composer
 
 #### Roadmap
 * release 1.0
-* website with documentation, http://appcia.pl , available soon
+* website with documentation, http://appcia.pl/webwork , available soon
 * updated quickstart
 
-Planned release date: 13-09-01
+Planned release date: september 2013
 
-#### Quickstart
-
-Use application skeleton: https://github.com/appcia/webwork/blob/skeleton/README.md
-
-#### Questions, cooperation?
+#### Contact, cooperation
 
 Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
 **0.8.1**
-* config reader / writer interface (easy to implement your own)
+* config reader / writer interface
 
 **0.8**
 * validator improvements + new: DateBetween, DateOverlap, Not, Callback
@@ -95,5 +93,9 @@ Also it would be great, if you like this project and wanna cooperate.
 **0.1**
 * working framework skeleton
 
-#### Live example (old)
+#### Live example (outdated)
 http://webwork.appcia.linuxpl.info/
+
+#### Quickstart (outdated)
+
+Use application skeleton: https://github.com/appcia/webwork/blob/skeleton/README.md
