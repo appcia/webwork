@@ -7,7 +7,6 @@ PHP Framework, codename 'Webwork'
 * vendor independent 'use what you want' - mailer, db orm, whatever
 * highly configurable
 * scalable by modules
-
 * simple, native view mechanism with block extending
 * easy for unit test implementing, mock injecting
 * modern code using namespaces, dependency injection, closures (PHP >= 5.3)
