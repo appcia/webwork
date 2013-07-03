@@ -18,14 +18,15 @@ class Dispatcher
     /**
      * Available events for listening
      */
-    const START = 'dispatchStart';
-    const CREATE_RESPONSE = 'createResponse';
-    const FIND_ROUTE = 'findRoute';
-    const CREATE_VIEW = 'createView';
-    const INVOKE_ACTION = 'invokeAction';
-    const PROCESS_RESPONSE = 'processResponse';
-    const HANDLE_EXCEPTION = 'handleException';
-    const END = 'dispatchEnd';
+    const STARTED = 'dispatchStarted';
+    const RESPONSE_CREATED = 'responseCreated';
+    const ROUTE_FOUND = 'routeFound';
+    const VIEW_CREATED = 'viewCreated';
+    const ACTION_INVOKED = 'actionInvoked';
+    const RESPONSE_PROCESSED = 'responseProcessed';
+    const EXCEPTION_CAUGHT = 'exceptionCaught';
+    const EXCEPTION_HANDLED = 'exceptionHandled';
+    const ENDED = 'dispatchEnded';
 
     /**
      * Application
@@ -101,14 +102,14 @@ class Dispatcher
      * @var array
      */
     protected $events = array(
-        self::START,
-        self::CREATE_RESPONSE,
-        self::FIND_ROUTE,
-        self::CREATE_VIEW,
-        self::INVOKE_ACTION,
-        self::PROCESS_RESPONSE,
-        self::HANDLE_EXCEPTION,
-        self::END
+        self::STARTED,
+        self::RESPONSE_CREATED,
+        self::ROUTE_FOUND,
+        self::VIEW_CREATED,
+        self::ACTION_INVOKED,
+        self::RESPONSE_PROCESSED,
+        self::EXCEPTION_HANDLED,
+        self::ENDED
     );
 
     /**
@@ -178,14 +179,14 @@ class Dispatcher
      */
     public function dispatch($route)
     {
-        $this->notify(self::START);
+        $this->notify(self::STARTED);
 
         $response = null;
         $view = null;
 
         try {
             $this->forceRoute($route);
-            $this->notify(self::FIND_ROUTE);
+            $this->notify(self::ROUTE_FOUND);
 
             $response = new Response();
             $this->app->getConfig()
@@ -193,7 +194,7 @@ class Dispatcher
                 ->inject($response);
 
             $this->response = $response;
-            $this->notify(self::CREATE_RESPONSE);
+            $this->notify(self::RESPONSE_CREATED);
 
             $view = new View($this->app);
             $this->app->getConfig()
@@ -204,28 +205,29 @@ class Dispatcher
             $view->setTemplate($template);
 
             $this->view = $view;
-            $this->notify(self::CREATE_VIEW);
+            $this->notify(self::VIEW_CREATED);
 
             $data = $this->invokeAction();
             $view->addData($data);
-            $this->notify(self::INVOKE_ACTION);
+            $this->notify(self::ACTION_INVOKED);
 
             if (!$response->hasContent()) {
                 $content = $view->render();
                 $response->setContent($content);
             }
-            $this->notify(self::PROCESS_RESPONSE);
+            $this->notify(self::RESPONSE_PROCESSED);
         } catch (\Exception $e) {
-            $this->notify(self::HANDLE_EXCEPTION);
+            $this->notify(self::EXCEPTION_CAUGHT);
 
             if ($response !== null) {
                 $response->clean();
             }
 
             $response = $this->react($e);
+            $this->notify(self::EXCEPTION_HANDLED);
         }
 
-        $this->notify(self::END);
+        $this->notify(self::ENDED);
 
         return $response;
     }
@@ -241,7 +243,7 @@ class Dispatcher
     {
         foreach ($this->listeners as $listener) {
             if ($listener['event'] === $event) {
-                call_user_func_array($listener['callback'], array($this));
+                call_user_func($listener['callback'], $this);
             }
         }
 

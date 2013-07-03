@@ -304,7 +304,7 @@ class Php extends Renderer
             unset($this->extends[$name]);
             echo $this->render($template);
         } else {
-            $this->block($name);
+            echo $this->getBlock($name);
         }
     }
 
