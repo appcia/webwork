@@ -20,7 +20,7 @@ class Config implements \Iterator, \ArrayAccess
      *
      * @var array
      */
-    private $data;
+    protected $data;
 
     /**
      * Constructor
@@ -103,7 +103,7 @@ class Config implements \Iterator, \ArrayAccess
      *
      * @return array
      */
-    private function merge(array $arr1, array $arr2)
+    protected function merge(array $arr1, array $arr2)
     {
         if (empty($arr1)) {
             return $arr2;
@@ -194,7 +194,7 @@ class Config implements \Iterator, \ArrayAccess
      *
      * @return array
      */
-    private function flattenRecursive($array, $prefix, $glue)
+    protected function flattenRecursive($array, $prefix, $glue)
     {
         $result = array();
 

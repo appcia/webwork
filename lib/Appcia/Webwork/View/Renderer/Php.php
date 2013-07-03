@@ -17,14 +17,14 @@ class Php extends Renderer
      *
      * @var array
      */
-    private $helpers;
+    protected $helpers;
 
     /**
      * Output compression
      *
      * @var boolean
      */
-    private $sanitization;
+    protected $sanitization;
 
     /**
      * Template extending map
@@ -32,14 +32,14 @@ class Php extends Renderer
      *
      * @var array
      */
-    private $extends;
+    protected $extends;
 
     /**
      * Block output buffers
      *
      * @var array
      */
-    private $buffer;
+    protected $buffer;
 
     /**
      * Stack for block names
@@ -47,21 +47,21 @@ class Php extends Renderer
      *
      * @var array
      */
-    private $stack;
+    protected $stack;
 
     /**
      * Captured block contents
      *
      * @var array
      */
-    private $blocks;
+    protected $blocks;
 
     /**
      * Template path stack
      *
      * @var array
      */
-    private $paths;
+    protected $paths;
 
     /**
      * Constructor
@@ -133,10 +133,10 @@ class Php extends Renderer
      *
      * @param string $name Name
      *
-     * @return mixed
+     * @return Helper
      * @throws \InvalidArgumentException
      */
-    private function createHelper($name)
+    protected function createHelper($name)
     {
         $class = 'Appcia\\Webwork\\View\\Helper\\' . ucfirst($name);
 
@@ -156,7 +156,10 @@ class Php extends Renderer
             }
         }
 
-        throw new \InvalidArgumentException(sprintf("View helper '%s' cannot be found. There is no valid class in any module", $class));
+        throw new \InvalidArgumentException(sprintf(
+            "View helper '%s' cannot be found. There is no valid class in any module",
+            $class
+        ));
     }
 
     /**
@@ -213,8 +216,8 @@ class Php extends Renderer
     /**
      * Start block capturing
      *
-     * @param string      $name     Block name
-     * @param string      $template Template to be extended
+     * @param string $name     Block name
+     * @param string $template Template to be extended
      *
      * @throws \LogicException
      */
@@ -326,6 +329,36 @@ class Php extends Renderer
     }
 
     /**
+     * Capture included file
+     *
+     * @param string $template Template
+     *
+     * @return string
+     * @throws \Exception
+     */
+    protected function capture($template)
+    {
+        $file = $this->getView()
+            ->getTemplatePath($template, $this->paths);
+        $data = $this->getView()
+            ->getData();
+
+        try {
+            extract($data, EXTR_OVERWRITE);
+            ob_start();
+
+            include $file;
+
+            $content = ob_get_clean();
+        } catch (\Exception $e) {
+            ob_clean();
+            throw $e;
+        }
+
+        return $content;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function render($template = null)
@@ -342,36 +375,7 @@ class Php extends Renderer
     }
 
     /**
-     * Capture included file
-     *
-     * @param string $template Template
-     *
-     * @return string
-     * @throws \InvalidArgumentException
-     */
-    protected function capture($template)
-    {
-        $file = $this->getView()
-            ->getTemplatePath($template, $this->paths);
-        $data = $this->getView()
-            ->getData();
-
-        extract($data);
-        ob_start();
-
-        if (!is_file($file)) {
-            throw new \InvalidArgumentException(sprintf("Template file does not exist: '%s'.", $file));
-        }
-
-        include $file;
-
-        $content = ob_get_clean();
-
-        return $content;
-    }
-
-    /**
-     * Sanitize content (remove white characters)
+     * Sanitize content (remove white space characters)
      *
      * @param string $content
      *

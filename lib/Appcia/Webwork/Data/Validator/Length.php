@@ -13,14 +13,14 @@ class Length extends Validator
      *
      * @var int
      */
-    private $min;
+    protected $min;
 
     /**
      * Maximum
      *
      * @var int
      */
-    private $max;
+    protected $max;
 
     /**
      * Constructor

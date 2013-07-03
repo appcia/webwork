@@ -16,7 +16,7 @@ abstract class Processor {
      *
      * @var Manager
      */
-    private $manager;
+    protected $manager;
 
     /**
      * Set manager

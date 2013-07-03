@@ -17,7 +17,7 @@ abstract class Helper extends Component
      *
      * @var View
      */
-    private $view;
+    protected $view;
 
     /**
      * Set attached view

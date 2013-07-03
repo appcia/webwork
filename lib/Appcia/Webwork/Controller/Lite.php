@@ -45,7 +45,8 @@ abstract class Lite
      */
     protected function get($key)
     {
-        return $this->getApp()
-            ->get($key);
+        $service = $this->app->get($key);
+
+        return $service;
     }
 }

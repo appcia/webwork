@@ -12,7 +12,7 @@ class Callback extends Validator
      *
      * @var \Closure
      */
-    private $callback;
+    protected $callback;
 
     /**
      * Constructor

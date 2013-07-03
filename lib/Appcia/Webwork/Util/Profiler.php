@@ -7,12 +7,12 @@ class Profiler
     /**
      * @var float
      */
-    private $startTime;
+    protected $startTime;
 
     /**
      * @var int
      */
-    private $startMemory;
+    protected $startMemory;
 
     /**
      * Start measuring

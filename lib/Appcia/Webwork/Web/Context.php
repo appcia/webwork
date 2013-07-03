@@ -16,7 +16,7 @@ class Context {
     /**
      * @var array
      */
-    private static $htmlVersions = array(
+    protected static $htmlVersions = array(
         self::HTML_5,
         self::HTML_401
     );
@@ -24,32 +24,32 @@ class Context {
     /**
      * @var string
      */
-    private $domain;
+    protected $domain;
 
     /**
      * @var string
      */
-    private $baseUrl;
+    protected $baseUrl;
 
     /**
      * @var string
      */
-    private $locale;
+    protected $locale;
 
     /**
      * @var string
      */
-    private $timezone;
+    protected $timezone;
 
     /**
      * @var string
      */
-    private $charset;
+    protected $charset;
 
     /**
      * @var string
      */
-    private $htmlVersion;
+    protected $htmlVersion;
 
     /**
      * Constructor
@@ -69,7 +69,7 @@ class Context {
     /**
      * @return $this
      */
-    private function updateLocale()
+    protected function updateLocale()
     {
         $locale =  $this->locale . '.' . strtoupper($this->charset);
 

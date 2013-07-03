@@ -19,22 +19,22 @@ class App extends BaseApp
     /**
      * @var Request
      */
-    private $request;
+    protected $request;
 
     /**
      * @var Dispatcher
      */
-    private $dispatcher;
+    protected $dispatcher;
 
     /**
      * @var Router
      */
-    private $router;
+    protected $router;
 
     /**
      * @var Context
      */
-    private $context;
+    protected $context;
 
     /**
      * Constructor
@@ -68,7 +68,7 @@ class App extends BaseApp
      *
      * @return $this
      */
-    private function applyConfig()
+    protected function applyConfig()
     {
         $this->config->grab('request')
             ->inject($this->request);

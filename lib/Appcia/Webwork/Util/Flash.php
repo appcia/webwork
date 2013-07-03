@@ -23,7 +23,7 @@ class Flash
      *
      * @var Space
      */
-    private $messages;
+    protected $messages;
 
     /**
      * Constructor
@@ -77,7 +77,7 @@ class Flash
      *
      * @return array
      */
-    private function flattenMessages()
+    protected function flattenMessages()
     {
         $messages = array();
         foreach ($this->messages as $type) {

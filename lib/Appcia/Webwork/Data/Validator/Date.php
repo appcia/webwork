@@ -18,7 +18,7 @@ class Date extends Validator
     /**
      * @var string
      */
-    private $format;
+    protected $format;
 
     /**
      * Constructor

@@ -14,28 +14,28 @@ class Group
      *
      * @var array
      */
-    private $routes;
+    protected $routes;
 
     /**
      * Path prefix
      *
      * @var string
      */
-    private $prefix;
+    protected $prefix;
 
     /**
      * Path suffix
      *
      * @var string
      */
-    private $suffix;
+    protected $suffix;
 
     /**
      * Default module
      *
      * @var string
      */
-    private $module;
+    protected $module;
 
     /**
      * Constructor
@@ -170,7 +170,7 @@ class Group
      *
      * @return string
      */
-    private function processPath($path)
+    protected function processPath($path)
     {
         if ($this->prefix !== null) {
             $path = $this->prefix . $path;

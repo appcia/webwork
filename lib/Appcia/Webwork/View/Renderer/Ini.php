@@ -6,25 +6,12 @@ use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
 /**
- * INI configuration format view renderer
+ * INI view renderer
  *
  * @package Appcia\Webwork\View\Renderer
  */
 class Ini extends Renderer
 {
-    /**
-     * @var string
-     */
-    private $newLine;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-        $this->newLine = PHP_EOL;
-    }
-
     /**
      * {@inheritdoc}
      */
@@ -48,7 +35,7 @@ class Ini extends Renderer
      * @return int
      * @throws \InvalidArgumentException
      */
-    private function processData(array &$data)
+    protected function processData(array &$data)
     {
         $max = null;
         foreach ($data as $value) {
@@ -57,14 +44,16 @@ class Ini extends Renderer
             if ($max === null) {
                 $max = $depth;
             } elseif ($depth !== $max) {
-                throw new \InvalidArgumentException('Rendering INI format requires array all elements with same complexity');
+                throw new \InvalidArgumentException(
+                    'Rendering INI format requires array in which all elements have with same complexity.'
+                );
             }
 
         }
 
         $max = (int) $max;
         if ($max > 2) {
-            throw new \InvalidArgumentException('Rendering INI format expects only 1 or 2 dimensional array');
+            throw new \InvalidArgumentException('Rendering INI format expects only 1 or 2 dimensional array.');
         }
 
         return $max;
@@ -77,7 +66,7 @@ class Ini extends Renderer
      *
      * @return int
      */
-    private function calculateDepth($data)
+    protected function calculateDepth($data)
     {
         if (!is_array($data)) {
             return 0;
@@ -105,24 +94,23 @@ class Ini extends Renderer
      *
      * @return string
      */
-    private function generateIni($data, $sections = false)
+    protected function generateIni($data, $sections = false)
     {
-        $content = "";
-        $nl = PHP_EOL;
+        $content = '';
 
         if ($sections) {
             foreach ($data as $key => $elem) {
-                $content .= "[" . $key . "]" . $nl;
+                $content .= "[" . $key . "]" . PHP_EOL;
 
                 foreach ($elem as $key2 => $elem2) {
                     if (is_array($elem2)) {
                         for ($i = 0; $i < count($elem2); $i++) {
-                            $content .= $key2 . "[] = \"" . $elem2[$i] . "\"" . $nl;
+                            $content .= $key2 . "[] = \"" . $elem2[$i] . "\"" . PHP_EOL;
                         }
                     } elseif ($elem2 == "") {
-                        $content .= $key2 . " = " . $nl;
+                        $content .= $key2 . " = " . PHP_EOL;
                     } else {
-                        $content .= $key2 . " = \"" . $elem2 . "\"" . $nl;
+                        $content .= $key2 . " = \"" . $elem2 . "\"" . PHP_EOL;
                     }
                 }
             }
@@ -130,40 +118,16 @@ class Ini extends Renderer
             foreach ($data as $key => $elem) {
                 if (is_array($elem)) {
                     foreach ($elem as $val) {
-                        $content .= $key . "[] = \"" . $val . "\"" . $nl;
+                        $content .= $key . "[] = \"" . $val . "\"" . PHP_EOL;
                     }
                 } elseif ($elem == "") {
-                    $content .= $key . " = " . $nl;
+                    $content .= $key . " = " . PHP_EOL;
                 } else {
-                    $content .= $key . " = \"" . $elem . "\"" . $nl;
+                    $content .= $key . " = \"" . $elem . "\"" . PHP_EOL;
                 }
             }
         }
 
         return $content;
-    }
-
-    /**
-     * Set new line character
-     *
-     * @param string $newLine
-     *
-     * @return Ini
-     */
-    public function setNewLine($newLine)
-    {
-        $this->newLine = $newLine;
-
-        return $this;
-    }
-
-    /**
-     * Get new line character
-     *
-     * @return string
-     */
-    public function getNewLine()
-    {
-        return $this->newLine;
     }
 }

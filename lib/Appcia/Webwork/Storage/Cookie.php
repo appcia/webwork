@@ -16,7 +16,7 @@ class Cookie
     /**
      * Data serializer
      */
-    private $encoder;
+    protected $encoder;
 
     /**
      * Constructor

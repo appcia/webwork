@@ -18,28 +18,28 @@ class Type
      *
      * @var Resource
      */
-    private $resource;
+    protected $resource;
 
     /**
      * Path pattern
      *
      * @var string
      */
-    private $path;
+    protected $path;
 
     /**
      * Parameters for path generation
      *
      * @var array
      */
-    private $params;
+    protected $params;
 
     /**
      * Lazy located file
      *
      * @var File
      */
-    private $file;
+    protected $file;
 
     /**
      * Constructor
@@ -114,7 +114,7 @@ class Type
      *
      * @return $this|null
      */
-    private function determineFile($path, array $params)
+    protected function determineFile($path, array $params)
     {
         // Extension usually is unknown so use wildcard (except case when saving resource)
         if (!isset($params['ext'])) {

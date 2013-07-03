@@ -16,35 +16,35 @@ class Space implements \ArrayAccess
      *
      * @var Session
      */
-    private $session;
+    protected $session;
 
     /**
      * Name (session key)
      *
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * Stored data
      *
      * @var array
      */
-    private $data;
+    protected $data;
 
     /**
      * Flush when data is dirty
      *
      * @var boolean
      */
-    private $autoflush;
+    protected $autoflush;
 
     /**
      * Data dirty flag
      *
      * @var boolean
      */
-    private $clean;
+    protected $clean;
 
     /**
      * Constructor

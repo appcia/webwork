@@ -14,14 +14,14 @@ class Session
     /**
      * Data serializer
      */
-    private $encoder;
+    protected $encoder;
 
     /**
      * Storage container
      *
      * @var \ArrayAccess
      */
-    private $storage;
+    protected $storage;
 
     /**
      * Constructor

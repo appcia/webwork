@@ -15,7 +15,7 @@ class Gettext extends Translator
     /**
      * @var array
      */
-    private $domain;
+    protected $domain;
 
     /**
      * Constructor

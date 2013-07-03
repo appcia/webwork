@@ -2,9 +2,8 @@
 
 namespace Appcia\Webwork\Auth;
 
-use Cms\Entity\Auth\User;
-use Appcia\Webwork\Exception\Exception;
-use Appcia\Webwork\Routing\Route;
+use Appcia\Webwork\Data\Encoder;
+use Appcia\Webwork\Data\Encrypter;
 use Appcia\Webwork\Storage\Session\Space;
 
 /**
@@ -20,28 +19,42 @@ class Auth
      *
      * @var Space
      */
-    private $data;
+    protected $data;
 
     /**
      * Authorized user
      *
      * @var object
      */
-    private $user;
+    protected $user;
 
     /**
      * Token salt
      *
      * @var string
      */
-    private $salt;
+    protected $salt;
 
     /**
      * Expiration time
      *
      * @var int|null
      */
-    private $expirationTime;
+    protected $expirationTime;
+
+    /**
+     * Data encoder
+     *
+     * @var Encoder
+     */
+    protected $encoder;
+
+    /**
+     * Token encrypter
+     *
+     * @var Encrypter
+     */
+    protected $encrypter;
 
     /**
      * Constructor
@@ -52,6 +65,9 @@ class Auth
     {
         $space->setAutoflush(true);
         $this->data = $space;
+
+        $this->encoder = new Encoder();
+        $this->encrypter = new Encrypter();
     }
 
     /**
@@ -89,6 +105,46 @@ class Auth
     }
 
     /**
+     * @return Encoder
+     */
+    public function getEncoder()
+    {
+        return $this->encoder;
+    }
+
+    /**
+     * @param Encoder $encoder
+     *
+     * @return $this
+     */
+    public function setEncoder($encoder)
+    {
+        $this->encoder = $encoder;
+
+        return $this;
+    }
+
+    /**
+     * @return Encrypter
+     */
+    public function getEncrypter()
+    {
+        return $this->encrypter;
+    }
+
+    /**
+     * @param Encrypter $encrypter
+     *
+     * @return $this
+     */
+    public function setEncrypter($encrypter)
+    {
+        $this->encrypter = $encrypter;
+
+        return $this;
+    }
+
+    /**
      * Get authorized user
      *
      * @return object
@@ -102,7 +158,8 @@ class Auth
         }
 
         if ($this->user === null) {
-            $user = $this->wakeupUser($this->data['userData']);
+            $user = $this->wakeupUser($this->data['user']);
+
             if ($user === null) {
                 throw new \ErrorException('Auth failed. User is not available.');
             }
@@ -120,26 +177,63 @@ class Auth
      */
     public function isAuthorized()
     {
-        if (empty($this->data['userData'])) {
+        if (!$this->isUserData() || !$this->isTokenValid() || $this->isExpired()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check whether user data exists
+     *
+     * @return bool
+     */
+    public function isUserData()
+    {
+        $exists = !empty($this->data['user']);
+
+        return $exists;
+    }
+
+    /**
+     * Check whether authorization data is touched
+     *
+     * @return bool
+     */
+    public function isTokenValid()
+    {
+        if (empty($this->data['token'])) {
             return false;
         }
 
         $token = $this->generateToken();
+        $valid = ($this->data['token'] == $token);
 
-        if ($this->data['token'] != $token) {
-            return false;
-        }
+        return $valid;
+    }
 
+    /**
+     * CHeck whether expiration time exceeded
+     *
+     * @return bool
+     */
+    public function isExpired()
+    {
         if ($this->expirationTime !== null) {
+            if (empty($this->data['time'])) {
+                return true;
+            }
+
             $time = time();
-            $delayTime = $time - $this->data['time'];
+            $delayTime = ($time - $this->data['time']);
 
             if ($delayTime > $this->expirationTime) {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -149,7 +243,8 @@ class Auth
      */
     public function generateToken()
     {
-        $token = sha1(md5($this->salt . $this->data['userData']));
+        $token = $this->encrypter->setSalt($this->salt)
+            ->crypt($this->data['user']);
 
         return $token;
     }
@@ -163,6 +258,8 @@ class Auth
      */
     protected function wakeupUser($user)
     {
+        $user = $this->encoder->decode($user);
+
         return $user;
     }
 
@@ -191,13 +288,13 @@ class Auth
     }
 
     /**
-     * @param Object $user
+     * @param mixed $user
      *
      * @return $this
      */
     public function authorize($user)
     {
-        $this->data['userData'] = $this->sleepUser($user);
+        $this->data['user'] = $this->sleepUser($user);
         $this->data['token'] = $this->generateToken();
         $this->data['time'] = time();
 
@@ -207,13 +304,15 @@ class Auth
     /**
      * Encode user value to be stored in session
      *
-     * @param string $user User
+     * @param mixed $user
      *
-     * @return object
+     * @return string
      */
     protected function sleepUser($user)
     {
-        return $user;
+        $data = $this->encoder->encode($user);
+
+        return $data;
     }
 
     /**
@@ -223,8 +322,9 @@ class Auth
      */
     public function unauthorize()
     {
-        $this->data['userData'] = null;
-        $this->data['token'] = null;
+        unset($this->data['user']);
+        unset($this->data['token']);
+        unset($this->data['time']);
 
         $this->user = null;
 

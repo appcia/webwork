@@ -14,28 +14,28 @@ class Resource extends Type
      *
      * @var Manager
      */
-    private $manager;
+    protected $manager;
 
     /**
      * Name
      *
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * Loaded types
      *
      * @var array
      */
-    private $types;
+    protected $types;
 
     /**
      * Registered processors
      *
      * @var array
      */
-    private $processors;
+    protected $processors;
 
     /**
      * Constructor
@@ -194,7 +194,7 @@ class Resource extends Type
      * @throws \InvalidArgumentException
      * @throws \ErrorException
      */
-    private function getProcessor($type, array $config)
+    protected function getProcessor($type, array $config)
     {
         if (empty($config['processor'])) {
             throw new \InvalidArgumentException(sprintf("Processor configuration for resource type '%s' not found", $type));

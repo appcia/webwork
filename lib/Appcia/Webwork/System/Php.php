@@ -16,7 +16,7 @@ class Php
      *
      * @var File
      */
-    private $bin;
+    protected $bin;
 
     /**
      * Constructor

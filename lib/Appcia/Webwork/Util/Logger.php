@@ -2,41 +2,65 @@
 
 namespace Appcia\Webwork\Util;
 
+use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\System\File;
-use Appcia\Webwork\Exception\Exception;
 
 class Logger
 {
+    const DEBUG = 'debug';
+    const INFO = 'info';
+    const NOTICE = 'notice';
+    const WARNING = 'warning';
+    const ERROR = 'error';
+    const CRITICAL = 'critical';
+    const ALERT = 'alert';
+    const EMERGENCY = 'emergency';
+
+    /**
+     * Available levels
+     *
+     * @var array
+     */
+    protected static $levels = array(
+        self::DEBUG,
+        self::INFO,
+        self::NOTICE,
+        self::WARNING,
+        self::ERROR,
+        self::CRITICAL,
+        self::ALERT,
+        self::EMERGENCY
+    );
+
     /**
      * Storage file
      *
      * @var File
      */
-    private $file;
+    protected $file;
 
     /**
-     * Date format
-     * Like in PHP date function
+     * Write callback
+     * Useful for delivering variable parameters (like date) to template
      *
-     * @var string
+     * @var \Closure
      */
-    private $dateFormat;
+    protected $callback;
 
     /**
-     * Message format
-     * Available variables: {date} {message} {level}
+     * Message template
+     * Auto filled params: date, message, level
      *
-     * @var string
+     * @var Template
      */
-    private $messageFormat;
+    protected $template;
 
     /**
      * Constructor
      */
     public function __construct($file)
     {
-        $this->dateFormat = 'Y-m-d H:i:s';
-        $this->messageFormat = '{level}: {date} {message}';
+        $this->template = new Template('[{level}] {date} {message}');
 
         if (!$file instanceof File) {
             $file = new File($file);
@@ -46,74 +70,48 @@ class Logger
     }
 
     /**
-     * Set date format
+     * @return array
+     */
+    public static function getLevels()
+    {
+        return self::$levels;
+    }
+
+    /**
+     * @return File
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    /**
+     * Get message template
      *
-     * @param string $format PHP date function format
+     * @return Template
+     */
+    public function getTemplate()
+    {
+        return $this->template;
+    }
+
+    /**
+     * Set template
+     * Auto filled params: date, message, level
+     *
+     * @param Template|string $template
+     *
      * @return $this
      */
-    public function setDateFormat($format)
+    public function setTemplate($template)
     {
-        $this->dateFormat = (string) $format;
+        if (!$template instanceof Template) {
+            $template = new Template($template);
+        }
+
+        $this->template = $template;
 
         return $this;
-    }
-
-    /**
-     * Get date format
-     *
-     * @return string
-     */
-    public function getDateFormat()
-    {
-        return $this->dateFormat;
-    }
-
-    /**
-     * Set date format
-     * Available variables: {date} {message} {level}
-     *
-     * @param string $messageFormat
-     *
-     * @return $this
-     */
-    public function setMessageFormat($messageFormat)
-    {
-        $this->messageFormat = (string) $messageFormat;
-
-        return $this;
-    }
-
-    /**
-     * Get message format
-     *
-     * @return string
-     */
-    public function getMessageFormat()
-    {
-        return $this->messageFormat;
-    }
-
-    /**
-     * Write log message
-     *
-     * @param string $message Message
-     * @param string $level   Level
-     *
-     * @return void
-     * @throws Exception
-     */
-    public function write($message, $level)
-    {
-        $date = date($this->dateFormat);
-        $message = trim($message);
-
-        $message = str_replace(
-            array('{level}', '{date}', '{message}'),
-            array(mb_strtoupper($level), $date, $message),
-            $this->messageFormat
-        ) . PHP_EOL;
-
-        $this->file->append($message);
     }
 
     /**
@@ -138,13 +136,50 @@ class Logger
     /**
      * Write debug message
      *
-     * @param $message
+     * @param string $message
      *
-     * @return void
+     * @return $this
      */
     public function debug($message)
     {
-        $this->write($message, 'debug');
+        $this->write($message, self::DEBUG);
+
+        return $this;
+    }
+
+    /**
+     * Write log message
+     *
+     * @param string $message Message
+     * @param string $level   Level
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function write($message, $level)
+    {
+        if (empty($message)) {
+            throw new \InvalidArgumentException(sprintf("Logger write error. Message cannot be empty."));
+        }
+
+        if (!in_array($level, self::$levels)) {
+            throw new \InvalidArgumentException(sprintf("Logger write error. Invalid level '%s'", $level));
+        }
+
+        $date = new \DateTime('now');
+
+        $this->template->set('level', mb_strtoupper($level))
+            ->set('message', trim($message))
+            ->set('date', $date->format('Y-m-d H:i:s.u'));
+
+        if ($this->callback !== null && is_callable($this->callback)) {
+            call_user_func($this->callback, $this->template);
+        }
+
+        $text = $this->template->render();
+        $this->file->append($text);
+
+        return $this;
     }
 
     /**
@@ -152,11 +187,27 @@ class Logger
      *
      * @param $message
      *
-     * @return void
+     * @return $this
      */
     public function info($message)
     {
-        $this->write($message, 'info');
+        $this->write($message, self::INFO);
+
+        return $this;
+    }
+
+    /**
+     * Write notice message
+     *
+     * @param $message
+     *
+     * @return $this
+     */
+    public function notice($message)
+    {
+        $this->write($message, self::NOTICE);
+
+        return $this;
     }
 
     /**
@@ -164,11 +215,13 @@ class Logger
      *
      * @param $message
      *
-     * @return void
+     * @return $this
      */
-    public function warn($message)
+    public function warning($message)
     {
-        $this->write($message, 'warn');
+        $this->write($message, self::WARNING);
+
+        return $this;
     }
 
     /**
@@ -176,10 +229,50 @@ class Logger
      *
      * @param $message
      *
-     * @return void
+     * @return $this
      */
     public function error($message)
     {
-        $this->write($message, 'error');
+        $this->write($message, self::ERROR);
+
+        return $this;
+    }
+
+    /**
+     * Write warning message
+     *
+     * @param $message
+     *
+     * @return $this
+     */
+    public function critical($message)
+    {
+        $this->write($message, self::CRITICAL);
+    }
+
+    /**
+     * Write alert message
+     *
+     * @param $message
+     *
+     * @return $this
+     */
+    public function alert($message)
+    {
+        $this->write($message, self::ALERT);
+
+        return $this;
+    }
+
+    /**
+     * Write emergency message
+     *
+     * @param $message
+     *
+     * @return $this
+     */
+    public function emergency($message)
+    {
+        $this->write($message, self::EMERGENCY);
     }
 }

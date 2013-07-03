@@ -21,7 +21,7 @@ class Encrypter
     /**
      * @var array
      */
-    private static $methods = array(
+    protected static $methods = array(
         self::SHA1,
         self::SHA256,
         self::MD5,
@@ -34,14 +34,14 @@ class Encrypter
      *
      * @var string
      */
-    private $method;
+    protected $method;
 
     /**
      * Salt
      *
      * @var string
      */
-    private $salt;
+    protected $salt;
 
     /**
      * Constructor
@@ -49,7 +49,7 @@ class Encrypter
      * @param string      $method
      * @param string|null $salt
      */
-    public function __construct($method, $salt = null)
+    public function __construct($method = self::SHA256, $salt = null)
     {
         if ($salt === null) {
             $salt = $this->generateSalt();

@@ -16,10 +16,10 @@ abstract class Field
     /**
      * Types
      *
-     * Text  - for text inputs with CSRF protection
-     * Set   - for servicing set of values (arrays)
-     * File  - input type file
-     * Plain - plain data (unsafe)
+     * Text     for text inputs with CSRF protection
+     * Set      for servicing set of values (arrays)
+     * File     input type file
+     * Plain    plain data (unsafe)
      */
     const TEXT = 'text';
     const SET = 'set';
@@ -31,7 +31,7 @@ abstract class Field
      *
      * @var array
      */
-    private static $types = array(
+    protected static $types = array(
         self::TEXT,
         self::SET,
         self::FILE,
@@ -71,14 +71,14 @@ abstract class Field
      *
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * Unfiltered value
      *
      * @var mixed
      */
-    private $rawValue;
+    protected $rawValue;
 
     /**
      * Additional data useful in views
@@ -86,7 +86,7 @@ abstract class Field
      *
      * @var
      */
-    private $data;
+    protected $data;
 
     /**
      * Constructor
@@ -104,21 +104,13 @@ abstract class Field
     }
 
     /**
-     * Set name
-     *
-     * @param string $name Name
+     * Prepare field to before using
+     * Called by form when built
      *
      * @return $this
-     * @throws \InvalidArgumentException
      */
-    private function setName($name)
+    public function prepare()
     {
-        if (empty($name)) {
-            throw new \InvalidArgumentException('Field name cannot be empty');
-        }
-
-        $this->name = (string) $name;
-
         return $this;
     }
 
@@ -140,6 +132,25 @@ abstract class Field
     public function getName()
     {
         return $this->name;
+    }
+
+    /**
+     * Set name
+     *
+     * @param string $name Name
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    protected function setName($name)
+    {
+        if (empty($name)) {
+            throw new \InvalidArgumentException('Field name cannot be empty');
+        }
+
+        $this->name = (string) $name;
+
+        return $this;
     }
 
     /**
@@ -243,7 +254,9 @@ abstract class Field
     }
 
     /**
-     * @param array $filters
+     * Set filters
+     *
+     * @param Filter[] $filters
      *
      * @return $this
      */
@@ -304,7 +317,7 @@ abstract class Field
     /**
      * Set validators
      *
-     * @param array $validators
+     * @param Validator[] $validators
      *
      * @return $this
      */
@@ -341,7 +354,7 @@ abstract class Field
     }
 
     /**
-     * Get all components
+     * Get all components (filters and validators)
      *
      * @return Component[]
      */

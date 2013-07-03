@@ -14,21 +14,21 @@ class Response
      *
      * @var string
      */
-    private $content;
+    protected $content;
 
     /**
      * Status code
      *
      * @var int
      */
-    private $status;
+    protected $status;
 
     /**
      * Protocol
      *
      * @var string
      */
-    private $protocol;
+    protected $protocol;
 
     /**
      * Constructor

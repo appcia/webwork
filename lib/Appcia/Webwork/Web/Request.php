@@ -30,7 +30,7 @@ class Request
     /**
      * @var array
      */
-    private static $methods = array(
+    protected static $methods = array(
         self::POST,
         self::GET
     );
@@ -40,7 +40,7 @@ class Request
      *
      * @var array
      */
-    private static $protocols = array(
+    protected static $protocols = array(
         self::HTTP_10 => 'http://',
         self::HTTP_11 => 'http://',
         self::HTTPS => 'https://'
@@ -51,91 +51,91 @@ class Request
      *
      * @var string
      */
-    private $uri;
+    protected $uri;
 
     /**
      * Path parsed from URI
      *
      * @var string
      */
-    private $path;
+    protected $path;
 
     /**
      * Protocol name
      *
      * @var string
      */
-    private $protocol;
+    protected $protocol;
 
     /**
      * Script file name
      *
      * @var string
      */
-    private $scriptFile;
+    protected $scriptFile;
 
     /**
      * Server name
      *
      * @var string
      */
-    private $server;
+    protected $server;
 
     /**
      * Port number
      *
      * @var string
      */
-    private $port;
+    protected $port;
 
     /**
      * Method
      *
      * @var string
      */
-    private $method;
+    protected $method;
 
     /**
      * Cumulative data from all methods
      *
      * @var array
      */
-    private $data;
+    protected $data;
 
     /**
      * Data passed by route parameters
      *
      * @var [type]
      */
-    private $params;
+    protected $params;
 
     /**
      * Data passed by POST method
      *
      * @var array
      */
-    private $post;
+    protected $post;
 
     /**
      * Uploaded files data
      *
      * @var array
      */
-    private $files;
+    protected $files;
 
     /**
      * Data passed by GET method
      *
      * @var array
      */
-    private $get;
+    protected $get;
 
     /**
      * Client IP address
      *
      * @var string
      */
-    private $ip;
+    protected $ip;
 
     /**
      * Constructor
@@ -623,7 +623,7 @@ class Request
      *
      * @return $this
      */
-    private function parsePath()
+    protected function parsePath()
     {
         $path = $this->uri;
 

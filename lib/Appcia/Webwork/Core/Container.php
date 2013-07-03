@@ -16,14 +16,14 @@ class Container
      *
      * @var Container
      */
-    private static $instance;
+    protected static $instance;
 
     /**
      * Services and parameters
      *
      * @var Config
      */
-    private $values;
+    protected $values;
 
     /**
      * Constructor

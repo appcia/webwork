@@ -14,28 +14,28 @@ abstract class Module
      *
      * @var App
      */
-    private $app;
+    protected $app;
 
     /**
      * Name
      *
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * Namespace
      *
      * @var string
      */
-    private $namespace;
+    protected $namespace;
 
     /**
      * Relative path
      *
      * @var string
      */
-    private $path;
+    protected $path;
 
     /**
      * Constructor

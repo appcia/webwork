@@ -9,7 +9,7 @@ class StripTags extends Filter
     /**
      * @var string
      */
-    private $allowedTags;
+    protected $allowedTags;
 
     /**
      * Constructor
@@ -26,7 +26,7 @@ class StripTags extends Filter
      *
      * @return string
      */
-    private function mergeTags(array $tags)
+    protected function mergeTags(array $tags)
     {
         $value = '';
         foreach ($tags as $tag) {

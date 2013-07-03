@@ -17,19 +17,19 @@ class Tracker
      *
      * @var Space
      */
-    private $data;
+    protected $data;
 
     /**
      * Maximum tracked steps count
      *
      * @var int
      */
-    private $stepCount;
+    protected $stepCount;
 
     /**
      * @var Request
      */
-    private $request;
+    protected $request;
 
     /**
      * Constructor

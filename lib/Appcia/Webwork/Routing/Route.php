@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\Routing;
 
 use Appcia\Webwork\Data\CaseConverter;
-use Appcia\Webwork\Model\Pattern;
+use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\Storage\Config;
 
 /**
@@ -18,63 +18,63 @@ class Route
      *
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * Path for router
      *
      * @var string
      */
-    private $path;
+    protected $path;
 
     /**
      * Module name
      *
      * @var string
      */
-    private $module;
+    protected $module;
 
     /**
      * Controller name
      *
      * @var string
      */
-    private $controller;
+    protected $controller;
 
     /**
      * Action name
      *
      * @var string
      */
-    private $action;
+    protected $action;
 
     /**
      * Template file to be rendered
      *
      * @var string
      */
-    private $template;
+    protected $template;
 
     /**
      * Parameter names
      *
      * @var array
      */
-    private $params;
+    protected $params;
 
     /**
      * Pattern for retrieving parameters
      *
      * @var string
      */
-    private $pattern;
+    protected $pattern;
 
     /**
      * Alias for name
      *
      * @var string|null
      */
-    private $alias;
+    protected $alias;
 
     /**
      * Constructor
@@ -142,9 +142,7 @@ class Route
      */
     public static function generateName($module, $controller = null, $action = null)
     {
-        $parts = array_merge(
-            explode('/', $module)
-        );
+        $parts = explode('/', $module);
 
         if ($controller !== null) {
             $parts = array_merge($parts, explode('/', $controller));
@@ -185,7 +183,7 @@ class Route
     public function setName($name)
     {
         if (empty($name)) {
-            throw new \InvalidArgumentException('Route name cannot be empty');
+            throw new \InvalidArgumentException('Route name cannot be empty.');
         }
 
         $this->name = (string) $name;
@@ -220,14 +218,14 @@ class Route
             $location = $path;
         } else if (is_array($path)) {
             if (!isset($path['location'])) {
-                throw new \InvalidArgumentException('Route location is not specified');
+                throw new \InvalidArgumentException('Route location is not specified.');
             }
 
             $location = $path['location'];
 
             if (isset($path['params'])) {
                 if (!is_array($params)) {
-                    throw new \InvalidArgumentException('Route parameters should be an array');
+                    throw new \InvalidArgumentException('Route parameters should be an array.');
                 }
 
                 $params = $path['params'];
@@ -238,14 +236,14 @@ class Route
             $location = rtrim($location, '/');
         }
 
-        $pattern = new Pattern($location);
-        foreach ($pattern->getParams() as $param) {
+        $template = new Template($location);
+        foreach ($template->getParams() as $param) {
             if (!isset($params[$param])) {
                 $params[$param] = array();
             }
         }
 
-        $this->pattern = $pattern->getRegExp();
+        $this->pattern = $template->getRegExp();
         $this->path = $location;
         $this->params = $params;
 
@@ -432,7 +430,7 @@ class Route
     public function setAlias($alias)
     {
         if (empty($alias)) {
-            throw new \InvalidArgumentException('Route alias cannot be empty');
+            throw new \InvalidArgumentException('Route alias cannot be empty.');
         }
 
         $this->alias = $alias;

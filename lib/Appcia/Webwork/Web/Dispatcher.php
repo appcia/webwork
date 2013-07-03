@@ -9,14 +9,14 @@ use Appcia\Webwork\View\View;
 use Appcia\Webwork\Web\Response;
 
 /**
- * Unit which is processing a route and producing a response
+ * Unit which is processing a route from request and producing a response
  *
  * @package Appcia\Webwork\Web
  */
 class Dispatcher
 {
     /**
-     * Events
+     * Available events for listening
      */
     const START = 'dispatchStart';
     const CREATE_RESPONSE = 'createResponse';
@@ -32,75 +32,75 @@ class Dispatcher
      *
      * @var App
      */
-    private $app;
+    protected $app;
 
     /**
      * Current route
      *
      * @var Route
      */
-    private $route;
+    protected $route;
 
     /**
      * Current View
      *
      * @var View
      */
-    private $view;
+    protected $view;
 
     /**
      * Current response
      *
      * @var Response
      */
-    private $response;
+    protected $response;
 
     /**
      * Event listeners
      *
      * @var array
      */
-    private $listeners;
+    protected $listeners;
 
     /**
      * Exception handlers
      *
      * @var array
      */
-    private $handlers;
+    protected $handlers;
 
     /**
      * Caught exception
      *
      * @var array
      */
-    private $exception;
+    protected $exception;
 
     /**
      * Exceptions instead of PHP errors
      *
      * @var boolean
      */
-    private $exceptionOnError;
+    protected $exceptionOnError;
 
     /**
      * Handler for all exceptions
      *
      * @var \Closure
      */
-    private $handler;
+    protected $handler;
 
     /**
      * @var array
      */
-    private $data;
+    protected $data;
 
     /**
-     * Event collection
+     * Events for listening
      *
      * @var array
      */
-    private $events = array(
+    protected $events = array(
         self::START,
         self::CREATE_RESPONSE,
         self::FIND_ROUTE,
@@ -222,7 +222,7 @@ class Dispatcher
                 $response->clean();
             }
 
-            $response = $this->handle($e);
+            $response = $this->react($e);
         }
 
         $this->notify(self::END);
@@ -237,7 +237,7 @@ class Dispatcher
      *
      * @return $this
      */
-    private function notify($event)
+    protected function notify($event)
     {
         foreach ($this->listeners as $listener) {
             if ($listener['event'] === $event) {
@@ -329,6 +329,27 @@ class Dispatcher
     }
 
     /**
+     * Convert class with namespace to path
+     *
+     * @param string $class Class
+     *
+     * @return string
+     */
+    protected function getPath($class)
+    {
+        $converter = new CaseConverter();
+        $parts = explode('\\', rtrim($class, '\\'));
+
+        foreach ($parts as $key => $part) {
+            $parts[$key] = $converter->camelToDashed($part);
+        }
+
+        $path = implode('/', $parts);
+
+        return $path;
+    }
+
+    /**
      * Get view template filename basing on current route
      * If template name contains '*' it will be replaced by route action
      * If action not specified, dispatched controller name is used
@@ -349,33 +370,12 @@ class Dispatcher
     }
 
     /**
-     * Convert class with namespace to path
-     *
-     * @param string $class Class
-     *
-     * @return string
-     */
-    private function getPath($class)
-    {
-        $converter = new CaseConverter();
-        $parts = explode('\\', rtrim($class, '\\'));
-
-        foreach ($parts as $key => $part) {
-            $parts[$key] = $converter->camelToDashed($part);
-        }
-
-        $path = implode('/', $parts);
-
-        return $path;
-    }
-
-    /**
      * Invoke controller action
      *
      * @return array
      * @throws \ErrorException
      */
-    private function invokeAction()
+    protected function invokeAction()
     {
         $className = $this->getControllerClass();
         $methodName = $this->getControllerMethod();
@@ -412,7 +412,7 @@ class Dispatcher
      *
      * @return string
      */
-    private function getControllerClass()
+    protected function getControllerClass()
     {
         $parts = explode('/', $this->route->getController());
         foreach ($parts as $key => $part) {
@@ -431,7 +431,7 @@ class Dispatcher
      *
      * @return string
      */
-    private function getControllerMethod()
+    protected function getControllerMethod()
     {
         $method = lcfirst($this->route->getAction()) . 'Action';
 
@@ -443,7 +443,7 @@ class Dispatcher
      *
      * @return Module
      */
-    private function runModule()
+    protected function runModule()
     {
         $moduleName = $this->getRoute()
             ->getModule();
@@ -468,14 +468,14 @@ class Dispatcher
     }
 
     /**
-     * Call handler on exception
+     * React when exception occurred
      *
      * @param \Exception $e Exception
      *
      * @return Response
      * @throws \Exception
      */
-    private function handle($e)
+    protected function react($e)
     {
         // Prevent nested exceptions
         if ($this->exception !== null) {
@@ -508,7 +508,7 @@ class Dispatcher
             throw $e;
         }
 
-        $response = call_user_func_array($handler['callback'], array($this));
+        $response = call_user_func($handler['callback'], $this);
 
         if (!$response instanceof Response) {
             throw new \ErrorException('Dispatch error handler should return response object');
@@ -531,7 +531,7 @@ class Dispatcher
      * @return $this
      * @throws \InvalidArgumentException
      */
-    public function addHandler($exception, \Closure $callback)
+    public function handle($exception, \Closure $callback)
     {
         if (!is_callable($callback)) {
             throw new \InvalidArgumentException('Handler callback is invalid');
@@ -587,7 +587,7 @@ class Dispatcher
      * @throws \OutOfBoundsException
      * @throws \InvalidArgumentException
      */
-    public function addListener($event, \Closure $callback)
+    public function listen($event, \Closure $callback)
     {
         if (!in_array($event, $this->events, true)) {
             throw new \OutOfBoundsException(sprintf("Invalid event to be listened: '%s'", $event));
@@ -665,7 +665,7 @@ class Dispatcher
      *
      * @return $this
      */
-    private function addData(array $data)
+    protected function addData(array $data)
     {
         $this->data = array_merge($this->data, $data);
 

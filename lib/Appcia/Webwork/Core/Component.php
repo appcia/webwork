@@ -17,14 +17,14 @@ abstract class Component
      *
      * @var string
      */
-    private $name;
+    protected $name;
 
     /**
      * Use context
      *
      * @var Context
      */
-    private $context;
+    protected $context;
 
     /**
      * Constructor
@@ -39,7 +39,7 @@ abstract class Component
      *
      * @return string
      */
-    private function extractName()
+    protected function extractName()
     {
         $class = get_class($this);
         $name = null;

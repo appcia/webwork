@@ -20,28 +20,28 @@ class View
      *
      * @var App
      */
-    private $app;
+    protected $app;
 
     /**
      * Data
      *
      * @var array
      */
-    private $data;
+    protected $data;
 
     /**
      * Associated template
      *
      * @var string
      */
-    private $template;
+    protected $template;
 
     /**
      * Content renderer
      *
      * @var Renderer
      */
-    private $renderer;
+    protected $renderer;
 
     /**
      * Constructor

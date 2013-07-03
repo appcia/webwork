@@ -26,7 +26,7 @@ abstract class Renderer
      *
      * @var array
      */
-    private static $types = array(
+    protected static $types = array(
         self::PHP,
         self::JSON,
         self::XML,
@@ -38,7 +38,7 @@ abstract class Renderer
      *
      * @var View
      */
-    private $view;
+    protected $view;
 
     /**
      * Get available types

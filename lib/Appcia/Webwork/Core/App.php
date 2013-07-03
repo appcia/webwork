@@ -13,9 +13,7 @@ use Appcia\Webwork\System\Dir;
 abstract class App
 {
     const DEVELOPMENT = 'dev';
-
     const TEST = 'test';
-
     const PRODUCTION = 'prod';
 
     /**
@@ -23,7 +21,7 @@ abstract class App
      *
      * @var array
      */
-    private static $environments = array(
+    protected static $environments = array(
         self::DEVELOPMENT,
         self::TEST,
         self::PRODUCTION
@@ -46,28 +44,28 @@ abstract class App
      *
      * @var string
      */
-    private $rootPath;
+    protected $rootPath;
 
     /**
      * PSR autoloader
      *
      * @var object
      */
-    private $autoloader;
+    protected $autoloader;
 
     /**
      * Current environment
      *
      * @var string
      */
-    private $environment;
+    protected $environment;
 
     /**
      * Registered modules
      *
      * @var Module[]
      */
-    private $modules;
+    protected $modules;
 
     /**
      * Constructor

@@ -11,7 +11,7 @@ class Not extends Validator
      *
      * @var Validator
      */
-    private $validator;
+    protected $validator;
 
     /**
      * Constructor

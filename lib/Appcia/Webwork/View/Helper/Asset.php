@@ -11,7 +11,7 @@ class Asset extends Helper
      *
      * @var array
      */
-    private $assets;
+    protected $assets;
 
     /**
      * Constructor

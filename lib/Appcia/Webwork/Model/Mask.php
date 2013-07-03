@@ -16,7 +16,7 @@ class Mask
      *
      * @var int
      */
-    private $value;
+    protected $value;
 
     /**
      * Constructor

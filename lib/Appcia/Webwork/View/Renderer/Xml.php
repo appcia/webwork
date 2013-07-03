@@ -4,7 +4,6 @@ namespace Appcia\Webwork\View\Renderer;
 
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
-use SimpleXMLElement;
 
 /**
  * XML renderer
@@ -18,7 +17,7 @@ class Xml extends Renderer
      *
      * @var string
      */
-    private $root;
+    protected $root;
 
     /**
      * Constructor
@@ -36,7 +35,7 @@ class Xml extends Renderer
         $data = $this->getView()
             ->getData();
 
-        $xml = new SimpleXMLElement('<' . $this->root . '/>');
+        $xml = new \SimpleXMLElement('<' . $this->root . '/>');
         $this->generateXml($data, $xml);
 
         $content = $xml->asXML();
@@ -48,11 +47,11 @@ class Xml extends Renderer
      * Recursive helper for XML generation
      *
      * @param array            $data Data
-     * @param SimpleXMLElement $xml  Node
+     * @param \SimpleXMLElement $xml  Node
      *
      * @return $this
      */
-    private function generateXml($data, &$xml)
+    protected function generateXml($data, &$xml)
     {
         foreach ($data as $key => $value) {
             if (is_array($value)) {
@@ -81,7 +80,7 @@ class Xml extends Renderer
     public function setRoot($root)
     {
         if (empty($root)) {
-            throw new \InvalidArgumentException('Root node cannot be empty');
+            throw new \InvalidArgumentException('Root node cannot be empty.');
         }
 
         $this->root = $root;

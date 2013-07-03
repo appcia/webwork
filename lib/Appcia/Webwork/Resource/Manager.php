@@ -19,12 +19,12 @@ class Manager
      *
      * @var array
      */
-    private $resources;
+    protected $resources;
 
     /**
      * @var Dir
      */
-    private $tempDir;
+    protected $tempDir;
 
     /**
      * Constructor
@@ -184,7 +184,7 @@ class Manager
      *
      * @return $this
      */
-    private function removeFile($file)
+    protected function removeFile($file)
     {
         if ($file->exists()) {
             $file->remove();

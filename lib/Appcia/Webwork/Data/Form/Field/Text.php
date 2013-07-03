@@ -18,6 +18,7 @@ class Text extends Field
     public function __construct($name)
     {
         parent::__construct($name);
+
         $this->addFilter(new Filter\StripTags());
     }
 }

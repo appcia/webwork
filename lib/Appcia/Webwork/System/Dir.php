@@ -16,7 +16,7 @@ class Dir
      *
      * @var string
      */
-    private $path;
+    protected $path;
 
     /**
      * Constructor
@@ -216,7 +216,7 @@ class Dir
      *
      * @return void
      */
-    private function removeRecursive($path)
+    protected function removeRecursive($path)
     {
         if (!is_dir($path)) {
             return;

@@ -11,22 +11,22 @@ class Php extends Writer
     /**
      * @var string
      */
-    private $title;
+    protected $title;
 
     /**
      * @var string
      */
-    private $author;
+    protected $author;
 
     /**
      * @var bool|string
      */
-    private $since;
+    protected $since;
 
     /**
      * @var string
      */
-    private $template;
+    protected $template;
 
     /**
      * Constructor

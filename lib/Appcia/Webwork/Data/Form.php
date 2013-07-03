@@ -2,10 +2,10 @@
 
 namespace Appcia\Webwork\Data;
 
-use Appcia\Webwork\Model\Pattern;
+use Appcia\Webwork\Data\Form\Field;
+use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Context;
-use Appcia\Webwork\Data\Form\Field;
 
 /**
  * General utility for servicing web forms (data manipulation)
@@ -21,35 +21,40 @@ class Form
      *
      * @var Context
      */
-    private $context;
+    protected $context;
 
     /**
      * Data encoder
      *
      * @var Encoder
      */
-    private $encoder;
+    protected $encoder;
+
+    /**
+     * @var Encrypter
+     */
+    protected $encryter;
 
     /**
      * Fields
      *
      * @var Field[]
      */
-    private $fields;
+    protected $fields;
 
     /**
      * Metadata field
      *
      * @var Field
      */
-    private $metadata;
+    protected $metadata;
 
     /**
      * Validation result
      *
      * @var boolean
      */
-    private $valid;
+    protected $valid;
 
     /**
      * Constructor
@@ -59,7 +64,8 @@ class Form
         $this->context = $context;
         $this->fields = array();
         $this->valid = true;
-        $this->encoder = new Encoder(Encoder::BASE64);
+        $this->encoder = new Encoder();
+        $this->encryter = new Encrypter();
         $this->metadata = new Field\Plain(self::METADATA);
 
         $this->build();
@@ -90,6 +96,8 @@ class Form
             foreach ($field->getComponents() as $component) {
                 $component->setContext($this->context);
             }
+
+            $field->prepare();
         }
 
         return $this;
@@ -147,7 +155,7 @@ class Form
         $name = $field->getName();
 
         if ($this->hasField($name)) {
-            throw new \LogicException(sprintf("Field '%s' already exist", $name));
+            throw new \LogicException(sprintf("Field '%s' already exist.", $name));
         }
 
         $this->fields[$name] = $field;
@@ -172,20 +180,20 @@ class Form
      * Creates multi-dimensional tree in which each level corresponds to pattern parameter
      * Leafs are form fields
      *
-     * @param string $pattern Pattern
+     * @param string $template Field name template
      *
      * @return array
      * @throws \InvalidArgumentException
      */
-    public function groupFields($pattern)
+    public function groupFields($template)
     {
-        $pattern = new Pattern($pattern);
+        $template = new Template($template);
         $result = array();
 
         foreach ($this->fields as $name => $field) {
             $match = array();
 
-            if (preg_match($pattern->getRegExp(), $name, $match)) {
+            if (preg_match($template->getRegExp(), $name, $match)) {
                 unset($match[0]);
                 $match[] = $field;
 
@@ -205,7 +213,7 @@ class Form
      *
      * @return array
      */
-    private function nestArray($arr)
+    protected function nestArray($arr)
     {
         $res = array();
         $curr = & $res;
@@ -275,6 +283,30 @@ class Form
     }
 
     /**
+     * Set token encrypter
+     *
+     * @param Encrypter $encryter
+     *
+     * @return $this
+     */
+    public function setEncryter($encryter)
+    {
+        $this->encryter = $encryter;
+
+        return $this;
+    }
+
+    /**
+     * Get token encrypter
+     *
+     * @return Encrypter
+     */
+    public function getEncryter()
+    {
+        return $this->encryter;
+    }
+
+    /**
      * Is field contain not empty value
      *
      * @param string $name Field name
@@ -284,8 +316,9 @@ class Form
     public function has($name)
     {
         $value = $this->get($name);
+        $has = !empty($value);
 
-        return !empty($value);
+        return $has;
     }
 
     /**
@@ -299,7 +332,7 @@ class Form
     public function get($name)
     {
         if (!isset($this->fields[$name])) {
-            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist.", $name));
         }
 
         $field = $this->fields[$name];
@@ -320,7 +353,7 @@ class Form
     public function set($name, $value)
     {
         if (!isset($this->fields[$name])) {
-            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist.", $name));
         }
 
         $field = $this->fields[$name];
@@ -544,11 +577,12 @@ class Form
     public function tokenize($salt = null)
     {
         if ($salt !== null && !is_string($salt) && !is_numeric($salt)) {
-            throw new \InvalidArgumentException('Form token key should be a number or a string');
+            throw new \InvalidArgumentException('Form token key should be a number or a string.');
         }
 
-        $salt = (string) $salt . implode('', array_keys($this->fields));
-        $token = sha1(md5($salt));
+        $value = implode('', array_keys($this->fields));
+        $token = $this->encryter->setSalt($salt)
+            ->crypt($value);
 
         return $token;
     }
@@ -563,12 +597,7 @@ class Form
      */
     public function __get($name)
     {
-        $field = null;
-        if ($name === self::METADATA) {
-            $field = $this->metadata;
-        } else {
-            $field = $this->getField($name);
-        }
+        $field = $this->getField($name);
 
         return $field;
     }
@@ -583,11 +612,17 @@ class Form
      */
     public function getField($name)
     {
-        if (!isset($this->fields[$name])) {
-            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist", $name));
+        $field = null;
+
+        if ($name === self::METADATA) {
+            $field = $this->metadata;
+        } elseif (isset($this->fields[$name])) {
+            $field = $this->fields[$name];
+        } else {
+            throw new \OutOfBoundsException(sprintf("Field '%s' does not exist.", $name));
         }
 
-        return $this->fields[$name];
+        return $field;
     }
 
 }

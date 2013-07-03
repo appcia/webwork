@@ -25,7 +25,7 @@ class Acl extends Auth
      *
      * @var array
      */
-    private static $groups = array(
+    protected static $groups = array(
         self::ALL,
         self::GUEST,
         self::USER
@@ -36,7 +36,7 @@ class Acl extends Auth
      *
      * @var array
      */
-    private $acl;
+    protected $acl;
 
     /**
      * Constructor
@@ -93,7 +93,7 @@ class Acl extends Auth
                 return true;
             }
 
-            if ($this->verifyUser($route)) {
+            if ($this->verifyCustom($route)) {
                 return true;
             }
         }
@@ -144,7 +144,7 @@ class Acl extends Auth
      *
      * @return boolean
      */
-    protected function verifyUser($route)
+    protected function verifyCustom($route)
     {
         return false;
     }

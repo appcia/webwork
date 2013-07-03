@@ -13,7 +13,7 @@ abstract class Reader
     /**
      * @var array
      */
-    private static $types = array(
+    protected static $types = array(
         self::PHP
     );
 

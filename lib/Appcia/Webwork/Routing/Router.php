@@ -20,7 +20,7 @@ class Router
      *
      * @var array
      */
-    private $routes;
+    protected $routes;
 
     /**
      * Constructor
@@ -207,7 +207,7 @@ class Router
      *
      * @return boolean
      */
-    private function process($request, $route)
+    protected function process($request, $route)
     {
         if ($request->getPath() == $route->getPath()) {
             return true;
@@ -237,7 +237,7 @@ class Router
      * @return array
      * @throws \InvalidArgumentException
      */
-    private function retrieveParams(Route $route, array $values)
+    protected function retrieveParams(Route $route, array $values)
     {
         $config = $route->getParams();
         $names = array_keys($config);
@@ -307,6 +307,7 @@ class Router
 
         // Prepare parameters, map and set defaults
         $params = array();
+
         foreach ($route->getParams() as $name => $config) {
             $value = null;
 

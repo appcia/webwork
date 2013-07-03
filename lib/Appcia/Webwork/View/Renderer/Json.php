@@ -18,7 +18,7 @@ class Json extends Renderer
      *
      * @var int
      */
-    private $options;
+    protected $options;
 
     /**
      * Constructor

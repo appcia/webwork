@@ -15,21 +15,21 @@ use Appcia\Webwork\System\File;
  */
 class Form extends BasicForm
 {
-    const METADATA_SKIPPED_RESOURCE = 'skippedResource';
+    const RESOURCE_SKIPPED = 'resourceSkipped';
 
     /**
      * Resource manager
      *
      * @var Manager
      */
-    private $manager;
+    protected $manager;
 
     /**
      * At least one resource has changed its skip status
      *
      * @var boolean
      */
-    private $skipChanged;
+    protected $skipChanged;
 
     /**
      * Constructor
@@ -216,7 +216,7 @@ class Form extends BasicForm
     }
 
     /**
-     * Get fields with file which are marked as skipped
+     * Get fields with resources that are skipped
      *
      * @return array
      */
@@ -224,16 +224,23 @@ class Form extends BasicForm
     {
         $metadata = $this->getMetadata();
         $skipped = array();
-        if (isset($metadata[self::METADATA_SKIPPED_RESOURCE])) {
-            $skipped = $metadata[self::METADATA_SKIPPED_RESOURCE];
+        if (isset($metadata[self::RESOURCE_SKIPPED])) {
+            $skipped = $metadata[self::RESOURCE_SKIPPED];
         }
 
         return $skipped;
     }
 
-    private function setSkipped(array $names)
+    /**
+     * Mark fields with resources to be skipped
+     *
+     * @param array $names
+     *
+     * @return $this
+     */
+    protected function setSkipped(array $names)
     {
-        $metadata[self::METADATA_SKIPPED_RESOURCE] = $names;
+        $metadata[self::RESOURCE_SKIPPED] = $names;
         $this->setMetadata($metadata);
 
         return $this;
@@ -253,7 +260,7 @@ class Form extends BasicForm
     public function upload($token, $key, $data)
     {
         if (empty($data)) {
-            throw new \InvalidArgumentException('Invalid uploaded file data');
+            throw new \InvalidArgumentException('Invalid uploaded file data.');
         }
 
         $path = $data['name'];
@@ -314,7 +321,7 @@ class Form extends BasicForm
     {
         if (!is_array($data)) {
             throw new \InvalidArgumentException('Uploaded data is not an array.' . PHP_EOL
-                . 'Propably you just forget to add enctype multipart/form-data to form');
+                . 'Propably you just forget to add enctype multipart/form-data to form.');
         }
 
         // Trim empty values to null
@@ -337,5 +344,4 @@ class Form extends BasicForm
 
         return $data;
     }
-
 }

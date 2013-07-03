@@ -16,7 +16,7 @@ class Encoder
     /**
      * @var array
      */
-    private static $encodings = array(
+    protected static $encodings = array(
         self::PHP,
         self::JSON,
         self::BASE64
@@ -25,7 +25,7 @@ class Encoder
     /**
      * @var int
      */
-    private $encoding;
+    protected $encoding;
 
     /**
      * Constructor
