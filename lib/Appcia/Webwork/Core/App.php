@@ -274,7 +274,7 @@ abstract class App
         $modules = $this->config->get('app.modules');
         if (empty($modules)) {
             throw new \InvalidArgumentException("Configuration for modules is empty."
-            . " Check whether key 'modules' has at least one module specified.");
+            . " Check whether key 'app.modules' has at least one module specified.");
         }
 
         foreach ($modules as $name => $config) {

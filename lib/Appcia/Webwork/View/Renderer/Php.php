@@ -57,6 +57,13 @@ class Php extends Renderer
     protected $blocks;
 
     /**
+     * Shared view data
+     *
+     * @var array
+     */
+    protected $data;
+
+    /**
      * Template path stack
      *
      * @var array
@@ -76,6 +83,7 @@ class Php extends Renderer
         $this->extends = array();
         $this->blocks = array();
         $this->paths = array();
+        $this->data = array();
     }
 
     /**
@@ -163,6 +171,63 @@ class Php extends Renderer
     }
 
     /**
+     * Get view shared variable
+     *
+     * @param string $name Name
+     *
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        return $this->get($name);
+    }
+
+    /**
+     * Set view shared variable (as property)
+     *
+     * @param string $name  Name
+     * @param mixed  $value Value
+     *
+     * @return $this
+     */
+    public function __set($name, $value)
+    {
+        return $this->set($name, $value);
+    }
+
+    /**
+     * Get view shared variable
+     *
+     * @param string $name Name
+     *
+     * @return mixed
+     * @throws \InvalidArgumentException
+     */
+    public function get($name)
+    {
+        if (!array_key_exists($name, $this->data)) {
+            throw new \InvalidArgumentException(sprintf("View shared variable '%s' does not exist.", $name));
+        }
+
+        return $this->data[$name];
+    }
+
+    /**
+     * Set view shared variable
+     *
+     * @param string $name  Name
+     * @param mixed  $value Value
+     *
+     * @return $this
+     */
+    public function set($name, $value)
+    {
+        $this->data[$name] = $value;
+
+        return $this;
+    }
+
+    /**
      * Get registered helpers
      *
      * @return array
@@ -177,7 +242,7 @@ class Php extends Renderer
      *
      * @param boolean $sanitization Flag
      *
-     * @return Php
+     * @return $this
      */
     public function setSanitization($sanitization)
     {
@@ -194,23 +259,6 @@ class Php extends Renderer
     public function isSanitization()
     {
         return $this->sanitization;
-    }
-
-    /**
-     * Get captured block
-     *
-     * @param string $name Block name
-     *
-     * @return string
-     * @throws \InvalidArgumentException
-     */
-    public function getBlock($name)
-    {
-        if (!isset($this->blocks[$name])) {
-            throw new \InvalidArgumentException(sprintf("Block '%s' does not exist", $name));
-        }
-
-        return $this->blocks[$name];
     }
 
     /**
@@ -249,7 +297,7 @@ class Php extends Renderer
      *
      * @param string $template Template
      *
-     * @return Php
+     * @return $this
      */
     protected function push($template)
     {
@@ -314,7 +362,7 @@ class Php extends Renderer
      *
      * @param string $template Template
      *
-     * @return Php
+     * @return $this
      */
     protected function pop($template)
     {
@@ -326,6 +374,22 @@ class Php extends Renderer
         }
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function render($template = null)
+    {
+        $this->push($template);
+        $content = $this->capture($template);
+        $this->pop($template);
+
+        if ($this->sanitization) {
+            $content = $this->sanitize($content);
+        }
+
+        return $content;
     }
 
     /**
@@ -359,22 +423,6 @@ class Php extends Renderer
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function render($template = null)
-    {
-        $this->push($template);
-        $content = $this->capture($template);
-        $this->pop($template);
-
-        if ($this->sanitization) {
-            $content = $this->sanitize($content);
-        }
-
-        return $content;
-    }
-
-    /**
      * Sanitize content (remove white space characters)
      *
      * @param string $content
@@ -396,5 +444,22 @@ class Php extends Renderer
         $content = preg_replace($search, $replace, $content);
 
         return $content;
+    }
+
+    /**
+     * Get captured block
+     *
+     * @param string $name Block name
+     *
+     * @return string
+     * @throws \InvalidArgumentException
+     */
+    public function getBlock($name)
+    {
+        if (!isset($this->blocks[$name])) {
+            throw new \InvalidArgumentException(sprintf("Block '%s' does not exist", $name));
+        }
+
+        return $this->blocks[$name];
     }
 }
