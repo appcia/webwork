@@ -88,7 +88,7 @@ class App extends BaseApp
     /**
      * Run application
      *
-     * @return Response
+     * @return Respo
      * @throws \LogicException
      */
     public function run()

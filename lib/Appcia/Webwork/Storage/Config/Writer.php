@@ -11,27 +11,49 @@ abstract class Writer
     /**
      * Creator
      *
-     * @param string|array $data Target (automatic determining) or writer config
+     * @param mixed $data Target (automatic determining) or writer config
      *
      * @return Writer
      * @throws \InvalidArgumentException
      */
     public static function create($data)
     {
+        $writer = null;
+        $type = null;
+        $target = null;
+        $config = null;
+        
+        if ($data instanceof Config) {
+            $data = $data->getData();
+        }
+        
         if (is_string($data)) {
-            $data = array(
-                'target' => $data
-            );
-        } elseif (!is_array($data)) {
-            throw new \InvalidArgumentException("Writer data has invalid format.");
+            $target = $data;
+        } elseif (is_array($data)) {
+            if (isset($data['type'])) {
+                $type = (string) $data['type'];
+            }
+
+            $config = new Config($data);
+        } else {
+            throw new \InvalidArgumentException("Config writer data has invalid format.");
         }
 
-        $config = new Config($data);
-        $writer = null;
 
-        if (isset($config['target'])) {
-            $target = $config['target'];
+        if ($type !== null) {
+            $class = $type;
+            if (!class_exists($class)) {
+                $class =  __CLASS__ . '\\' . ucfirst($type);
+            }
 
+            if (class_exists($class) && !is_subclass_of($class, __CLASS__)) {
+                throw new \InvalidArgumentException(sprintf("Config writer '%s' is invalid or unsupported.", $type));
+            }
+
+            $writer = new $class();
+        }
+
+        if ($writer === null && $target !== null) {
             $target = new File($target);
             $extension = $target->getExtension();
 
@@ -45,7 +67,7 @@ abstract class Writer
 
         if ($writer === null) {
             throw new \InvalidArgumentException(
-                "Writer cannot be created. Invalid data specified."
+                "Config writer cannot be created. Invalid data specified."
             );
         }
 

@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Storage;
 
 use Appcia\Webwork\Data\Encoder;
+use Appcia\Webwork\Storage\Session\Handler;
 
 /**
  * Session representation
@@ -17,11 +18,11 @@ class Session
     protected $encoder;
 
     /**
-     * Storage container
+     * Storage handler
      *
-     * @var \ArrayAccess
+     * @var Handler
      */
-    protected $storage;
+    protected $handler;
 
     /**
      * Constructor
@@ -29,6 +30,7 @@ class Session
     public function __construct()
     {
         $this->encoder = new Encoder();
+        $this->handler = new Handler\Php();
     }
 
     /**
@@ -56,36 +58,29 @@ class Session
     }
 
     /**
-     * Service session by superglobal table
+     * Get data handler
      *
-     * @return void
+     * @return Handler
      */
-    public function loadGlobals()
+    public function getHandler()
     {
-        session_start();
-        $this->storage = & $_SESSION;
+        return $this->handler;
     }
 
     /**
-     * Get storage
+     * Set data handler
      *
-     * @return \ArrayAccess
-     */
-    public function getStorage()
-    {
-        return $this->storage;
-    }
-
-    /**
-     * Set storage
-     *
-     * @param \ArrayAccess $storage
+     * @param mixed $handler
      *
      * @return $this
      */
-    public function setStorage(\ArrayAccess $storage)
+    public function setHandler($handler)
     {
-        $this->storage = $storage;
+        if (!$handler instanceof Handler) {
+            $handler = Handler::create($handler);
+        }
+
+        $this->handler = $handler;
 
         return $this;
     }
@@ -100,11 +95,11 @@ class Session
      */
     public function get($key)
     {
-        if (!isset($this->storage[$key])) {
+        if (!isset($this->handler[$key])) {
             throw new \InvalidArgumentException(sprintf("Session key '%s' does not exist", $key));
         }
 
-        $value = $this->storage[$key];
+        $value = $this->handler[$key];
 
         if ($this->encoder !== null) {
             $value = $this->encoder->decode($value);
@@ -127,7 +122,7 @@ class Session
             $value = $this->encoder->encode($value);
         }
 
-        $this->storage[$key] = $value;
+        $this->handler[$key] = $value;
 
         return $this;
     }
@@ -141,7 +136,7 @@ class Session
      */
     public function has($key)
     {
-        return isset($this->storage[$key]);
+        return isset($this->handler[$key]);
     }
 
     /**
@@ -153,7 +148,7 @@ class Session
      */
     public function clear($key)
     {
-        unset($this->storage[$key]);
+        unset($this->handler[$key]);
 
         return $this;
     }

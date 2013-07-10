@@ -17,7 +17,7 @@ abstract class App
     const PRODUCTION = 'prod';
 
     /**
-     * Possible environments
+     * Available environments
      *
      * @var array
      */
@@ -54,6 +54,13 @@ abstract class App
     protected $autoloader;
 
     /**
+     * PHP settings
+     *
+     * @var array
+     */
+    protected $php;
+
+    /**
      * Current environment
      *
      * @var string
@@ -75,12 +82,60 @@ abstract class App
         $container = new Container();
         $container->set('app', $this);
 
-        $config->grab('app')
-            ->inject($this);
-
         $this->container = $container;
         $this->config = $config;
+
         $this->modules = array();
+        $this->environment = self::DEVELOPMENT;
+
+        $config->grab('app')
+            ->inject($this);
+    }
+
+    /**
+     * Get available environments
+     *
+     * @return array
+     */
+    public static function getEnvironments()
+    {
+        return self::$environments;
+    }
+
+    /**
+     * Get PHP settings
+     *
+     * @return array
+     */
+    public function getPhp()
+    {
+        return $this->php;
+    }
+
+    /**
+     * Set PHP settings
+     *
+     * @param array $settings
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function setPhp(array $settings)
+    {
+        foreach ($settings as $name => $value) {
+            if (ini_get($name) === false) {
+                throw new \InvalidArgumentException(sprintf(
+                    "Setting '%s' is invalid or unsupported in current PHP version.",
+                    $name
+                ));
+            }
+
+            ini_set($name, $value);
+        }
+
+        $this->php = $settings;
+
+        return $this;
     }
 
     /**
@@ -96,16 +151,6 @@ abstract class App
      * @return $this
      */
     abstract public function bootstrap();
-
-    /**
-     * Get all possible environments
-     *
-     * @return array
-     */
-    public static function getEnvironments()
-    {
-        return self::$environments;
-    }
 
     /**
      * Quick get service or parameter from DI container
@@ -176,6 +221,16 @@ abstract class App
     }
 
     /**
+     * Get autoloader
+     *
+     * @return object
+     */
+    public function getAutoloader()
+    {
+        return $this->autoloader;
+    }
+
+    /**
      * Set autoloader (could be from Composer)
      *
      * @param object $autoloader
@@ -187,16 +242,6 @@ abstract class App
         $this->autoloader = $autoloader;
 
         return $this;
-    }
-
-    /**
-     * Get autoloader
-     *
-     * @return object
-     */
-    public function getAutoloader()
-    {
-        return $this->autoloader;
     }
 
     /**
@@ -215,15 +260,15 @@ abstract class App
      * @param string $env Environment
      *
      * @return $this
-     * @throws \OutOfBoundsException
+     * @throws \InvalidArgumentException
      */
     public function setEnvironment($env)
     {
-        if (!in_array($env, self::$environments)) {
-            throw new \OutOfBoundsException(sprintf("Invalid environment: '%s'.", $env));
+        if (empty($env)) {
+            throw new \InvalidArgumentException("Application environment cannot be empty.");
         }
 
-        $this->environment = $env;
+        $this->environment = (string) $env;
 
         return $this;
     }
@@ -249,10 +294,49 @@ abstract class App
     public function getModule($name)
     {
         if (!isset($this->modules[$name])) {
-            throw new \OutOfBoundsException(sprintf("Module '%s' does not exist", $name));
+            throw new \OutOfBoundsException(sprintf("Module '%s' does not exist.", $name));
         }
 
         return $this->modules[$name];
+    }
+
+    /**
+     * Find existing sub-paths in all modules
+     *
+     * @param string  $subPath   Sub path
+     * @param boolean $namespace Use namespace as path prefix
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function findPaths($subPath, $namespace = true)
+    {
+        if (empty($subPath)) {
+            throw new \InvalidArgumentException("Module sub-path cannot be empty.");
+        }
+
+        $paths = array();
+
+        foreach ($this->modules as $module) {
+            $path = $module->getPath();
+
+            if ($namespace) {
+                if (empty($path)) {
+                    $path = 'lib/' . $module->getNamespace();
+                } else {
+                    $path .= '/lib/' . $module->getNamespace();
+                }
+            }
+
+            $path .= '/' . $subPath;
+            $dir = new Dir($path);
+
+            if ($dir->exists()) {
+                $paths[] = $path;
+            }
+        }
+
+        return $paths;
     }
 
     /**
@@ -297,7 +381,7 @@ abstract class App
     protected function loadModule($name, array $config)
     {
         if (!isset($config['path'])) {
-            throw new \InvalidArgumentException(sprintf("Module '%s' does not have path specified", $name));
+            throw new \InvalidArgumentException(sprintf("Module '%s' does not have path specified.", $name));
         }
 
         $path = $this->getRootPath();
@@ -319,7 +403,7 @@ abstract class App
             . '\\' . ucfirst($name) . 'Module';
 
         if (!class_exists($className)) {
-            throw new \ErrorException(sprintf("Module bootstrap '%s' does not contain class '%s'", $file, $className));
+            throw new \ErrorException(sprintf("Module bootstrap '%s' does not contain class '%s'.", $file, $className));
         }
 
         $module = new $className(
@@ -360,44 +444,5 @@ abstract class App
         $this->rootPath = $rootPath;
 
         return $this;
-    }
-
-    /**
-     * Find existing sub-paths in all modules
-     *
-     * @param string  $subPath   Sub path
-     * @param boolean $namespace Use namespace as path prefix
-     *
-     * @return array
-     * @throws \InvalidArgumentException
-     */
-    public function findPaths($subPath, $namespace = true)
-    {
-        if (empty($subPath)) {
-            throw new \InvalidArgumentException("Module sub path cannot be empty.");
-        }
-
-        $paths = array();
-
-        foreach ($this->modules as $module) {
-            $path = $module->getPath();
-
-            if ($namespace) {
-                if (empty($path)) {
-                    $path = 'lib/' . $module->getNamespace();
-                } else {
-                    $path .= '/lib/' . $module->getNamespace();
-                }
-            }
-
-            $path .= '/' .$subPath;
-            $dir = new Dir($path);
-
-            if ($dir->exists()) {
-                $paths[] = $path;
-            }
-        }
-
-        return $paths;
     }
 }

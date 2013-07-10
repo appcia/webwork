@@ -88,13 +88,17 @@ class Route
     /**
      * Creator
      *
-     * @param array $data Route data
+     * @param mixed $data Route data
      *
      * @return $this
      * @throws \InvalidArgumentException
      */
-    public static function create(array $data)
+    public static function create($data)
     {
+        if ($data instanceof Config) {
+            $data = $data->getData();
+        }
+
         if (!is_array($data)) {
             throw new \InvalidArgumentException('Route data should be an array');
         }

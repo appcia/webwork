@@ -48,7 +48,7 @@ class Encoder
     public static function create($encoding)
     {
         if (!is_string($encoding)) {
-            throw new \InvalidArgumentException('Encoder cannot be created. Invalid argument specified');
+            throw new \InvalidArgumentException('Encoder cannot be created. Invalid data specified.');
         }
 
         return new self($encoding);

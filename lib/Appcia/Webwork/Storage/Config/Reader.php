@@ -8,47 +8,51 @@ use Appcia\Webwork\System\File;
 
 abstract class Reader
 {
-    const PHP = 'php';
-
-    /**
-     * @var array
-     */
-    protected static $types = array(
-        self::PHP
-    );
-
-    /**
-     * @return array
-     */
-    public static function getTypes()
-    {
-        return self::$types;
-    }
-
     /**
      * Creator
      *
-     * @param string|array $data Source (automatic determining) or reader config
+     * @param mixed $data Source (automatic determining) or reader config
      *
      * @throws \InvalidArgumentException
      * @return Reader
      */
     public static function create($data)
     {
-        if (is_string($data)) {
-            $data = array(
-                'source' => $data
-            );
-        } elseif (!is_array($data)) {
-            throw new \InvalidArgumentException("Reader data has invalid format.");
+        $reader = null;
+        $type = null;
+        $source = null;
+        $config = null;
+
+        if ($data instanceof Config) {
+            $data = $data->getData();
         }
 
-        $config = new Config($data);
-        $reader = null;
+        if (is_string($data)) {
+            $source = $data;
+        } elseif (is_array($data)) {
+            if (isset($data['type'])) {
+                $type = (string) $data['type'];
+            }
 
-        if (isset($config['source'])) {
-            $source = $config['source'];
+            $config = new Config($data);
+        } else {
+            throw new \InvalidArgumentException("Config reader data has invalid format.");
+        }
 
+        if ($type !== null) {
+            $class = $type;
+            if (!class_exists($class)) {
+                $class =  __CLASS__ . '\\' . ucfirst($type);
+            }
+
+            if (class_exists($class) && !is_subclass_of($class, __CLASS__)) {
+                throw new \InvalidArgumentException(sprintf("Config reader '%s' is invalid or unsupported.", $type));
+            }
+
+            $reader = new $class();
+        }
+
+        if ($reader === null && $source !== null) {
             $source = new File($source);
             $extension = $source->getExtension();
 
@@ -62,11 +66,13 @@ abstract class Reader
 
         if ($reader === null) {
             throw new \InvalidArgumentException(
-                "Reader cannot be created. Invalid data specified."
+                "Config reader cannot be created. Invalid data specified."
             );
         }
 
-        $config->inject($reader);
+        if ($config !== null) {
+            $config->inject($reader);
+        }
 
         return $reader;
     }

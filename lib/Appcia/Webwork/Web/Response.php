@@ -133,15 +133,15 @@ class Response
      */
     public function sendHeaders()
     {
-        switch ($this->getStatus()) {
+        switch ($this->status) {
             case 200:
-                header($this->getProtocol() . " 200 OK", true, 200);
+                header($this->protocol . " 200 OK", true, 200);
                 break;
             case 404:
-                header($this->getProtocol() . " 404 Not Found", true, 404);
+                header($this->protocol . " 404 Not Found", true, 404);
                 break;
             case 500:
-                header($this->getProtocol() . ' 500 Internal Server Error', true, 500);
+                header($this->protocol . ' 500 Internal Server Error', true, 500);
                 break;
         }
 

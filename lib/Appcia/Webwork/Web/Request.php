@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\Web;
 
 /**
- * Web request representation
+ * Web request
  *
  * @package Appcia\Webwork\Web
  */
@@ -138,6 +138,13 @@ class Request
     protected $ip;
 
     /**
+     * Asynchronous
+     *
+     * @var boolean
+     */
+    protected $ajax;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -147,6 +154,8 @@ class Request
         $this->post = array();
         $this->get = array();
         $this->files = array();
+        $this->ajax = false;
+        $this->ip = '0.0.0.0';
     }
 
     /**
@@ -167,33 +176,6 @@ class Request
     public static function getMethods()
     {
         return self::$methods;
-    }
-
-    /**
-     * Load request data from global tables
-     *
-     * @return $this
-     */
-    public function loadGlobals()
-    {
-        $this->setPost($_POST);
-        $this->setGet($_GET);
-        $this->setFiles($_FILES);
-
-        $this->setScriptFile($_SERVER['SCRIPT_NAME'])
-            ->setServer($_SERVER['SERVER_NAME'])
-            ->setMethod($_SERVER['REQUEST_METHOD'])
-            ->setProtocol($_SERVER['SERVER_PROTOCOL'])
-            ->setPort($_SERVER['SERVER_PORT'])
-            ->setIp($_SERVER['REMOTE_ADDR']);
-
-        if (isset($_SERVER['REQUEST_URI'])) {
-            $this->setUri($_SERVER['REQUEST_URI']);
-        } else {
-            $this->setUri($_SERVER['PHP_SELF']);
-        }
-
-        return $this;
     }
 
     /**
@@ -279,6 +261,20 @@ class Request
     }
 
     /**
+     * Set client IP
+     *
+     * @param string $ip
+     *
+     * @return $this
+     */
+    public function setIp($ip)
+    {
+        $this->ip = (string) $ip;
+
+        return $this;
+    }
+
+    /**
      * Check whether source host is local machine
      *
      * @return boolean
@@ -291,17 +287,27 @@ class Request
     }
 
     /**
-     * Set client IP
+     * Set asynchronous flag
      *
-     * @param string $ip
+     * @param boolean $ajax Flag
      *
      * @return $this
      */
-    public function setIp($ip)
+    public function setAjax($ajax)
     {
-        $this->ip = (string) $ip;
+        $this->ajax = (bool) $ajax;
 
         return $this;
+    }
+
+    /**
+     * Check whether is asynchronous
+     *
+     * @return boolean
+     */
+    public function isAjax()
+    {
+        return $this->ajax;
     }
 
     /**
@@ -379,6 +385,29 @@ class Request
     }
 
     /**
+     * Parse URI and create path that could be matched to route
+     *
+     * @return $this
+     */
+    protected function parsePath()
+    {
+        $path = $this->uri;
+
+        if (strpos($path, $this->scriptFile) === 0) {
+            $path = substr($path, strlen($this->scriptFile));
+        }
+
+        if ($path !== '/') {
+            $path = rtrim($path, '/');
+        }
+
+        $path = parse_url($path, PHP_URL_PATH);
+        $this->path = $path;
+
+        return $this;
+    }
+
+    /**
      * Get parameters that occurs in URI
      *
      * @return array
@@ -437,7 +466,7 @@ class Request
     /**
      * Set method
      *
-     * @param $method
+     * @param string $method
      *
      * @return $this
      */
@@ -576,6 +605,18 @@ class Request
     }
 
     /**
+     * Check whether has specified parameter
+     *
+     * @param string $key Parameter name
+     *
+     * @return boolean
+     */
+    public function has($key)
+    {
+        return array_key_exists($key, $this->data);
+    }
+
+    /**
      * Grab request parameter
      * If it is not specified returns null
      *
@@ -591,53 +632,5 @@ class Request
         }
 
         return $this->data[$key];
-    }
-
-    /**
-     * Check whether has specified parameter
-     *
-     * @param string $key Parameter name
-     *
-     * @return boolean
-     */
-    public function has($key)
-    {
-        return array_key_exists($key, $this->data);
-    }
-
-    /**
-     * Check whether used method is ajax (asynchronous)
-     *
-     * @return boolean
-     */
-    public function isAjax()
-    {
-        $header = isset($_SERVER['HTTP_X_REQUESTED_WITH']) ? $_SERVER['HTTP_X_REQUESTED_WITH'] : null;
-        $ajax = ($header == 'xmlhttprequest');
-
-        return $ajax;
-    }
-
-    /**
-     * Parse URI and create path that could be matched to route
-     *
-     * @return $this
-     */
-    protected function parsePath()
-    {
-        $path = $this->uri;
-
-        if (strpos($path, $this->scriptFile) === 0) {
-            $path = substr($path, strlen($this->scriptFile));
-        }
-
-        if ($path !== '/') {
-            $path = rtrim($path, '/');
-        }
-
-        $path = parse_url($path, PHP_URL_PATH);
-        $this->path = $path;
-
-        return $this;
     }
 }

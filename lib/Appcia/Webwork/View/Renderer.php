@@ -16,23 +16,6 @@ use Appcia\Webwork\View\View;
  */
 abstract class Renderer
 {
-    const PHP = 'php';
-    const JSON = 'json';
-    const XML = 'xml';
-    const INI = 'ini';
-
-    /**
-     * Built-in types
-     *
-     * @var array
-     */
-    protected static $types = array(
-        self::PHP,
-        self::JSON,
-        self::XML,
-        self::INI
-    );
-
     /**
      * Source view
      *
@@ -41,68 +24,49 @@ abstract class Renderer
     protected $view;
 
     /**
-     * Get available types
+     * Creator
      *
-     * @return array
-     */
-    public static function getTypes()
-    {
-        return self::$types;
-    }
-
-    /**
-     * Create renderer from config
-     *
-     * @param string|array $data Data
+     * @param mixed $data Config data
      *
      * @return $this
      * @throws \InvalidArgumentException
      */
     public static function create($data)
     {
+        $renderer = null;
         $type = null;
         $config = null;
 
-        // Parse data
+        if ($data instanceof Config) {
+            $data = $data->getData();
+        }
+
         if (is_string($data)) {
             $type = $data;
         } elseif (is_array($data)) {
             if (!isset($data['type'])) {
-                throw new \InvalidArgumentException("View renderer config should have a key 'type");
+                throw new \InvalidArgumentException("View renderer data should has a key 'type'.");
             }
-            $type = $data['type'];
+            $type = (string) $data['type'];
 
             if (!empty($data['config'])) {
                 $config = new Config($data['config']);
             }
         } else {
-            throw new \InvalidArgumentException('View renderer cannot be created. Invalid data specified');
+            throw new \InvalidArgumentException("View renderer data has invalid format.");
         }
 
-        // Create valid object
-        $renderer = null;
-
-        switch ($type) {
-            case self::PHP:
-                $renderer = new Php();
-                break;
-            case self::JSON:
-                $renderer = new Json();
-                break;
-            case self::XML:
-                $renderer = new Xml();
-                break;
-            case self::INI:
-                $renderer = new Ini();
-                break;
-            default:
-                throw new \InvalidArgumentException(sprintf(
-                    "View renderer '%s' is invalid or unsupported / not built-in", $renderer
-                ));
-                break;
+        $class = $type;
+        if (!class_exists($class)) {
+            $class =  __CLASS__ . '\\' . ucfirst($type);
         }
 
-        // Inject configuration
+        if (!class_exists($class) || !is_subclass_of($class, __CLASS__)) {
+            throw new \InvalidArgumentException(sprintf("View renderer '%s' is invalid or unsupported.", $type));
+        }
+
+        $renderer = new $class();
+
         if ($config !== null) {
             $config->inject($renderer);
         }

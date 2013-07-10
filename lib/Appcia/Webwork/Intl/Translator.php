@@ -15,14 +15,9 @@ use Appcia\Webwork\Core\Component;
 abstract class Translator extends Component
 {
     /**
-     * Types
-     */
-    const GETTEXT = 'gettext';
-
-    /**
      * Creator
      *
-     * @param array|string $data Config data
+     * @param mixed $data Config data
      *
      * @return $this
      * @throws \InvalidArgumentException
@@ -32,6 +27,10 @@ abstract class Translator extends Component
     {
         $type = null;
         $config = null;
+
+        if ($data instanceof Config) {
+            $data = $data->getData();
+        }
 
         if (is_string($data)) {
             $type = $data;

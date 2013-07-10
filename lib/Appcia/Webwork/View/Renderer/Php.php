@@ -121,11 +121,16 @@ class Php extends Renderer
     public function getHelper($name)
     {
         if (!isset($this->helpers[$name])) {
-            $context = $this->getView()
-                ->getApp()
-                ->getContext();
+            $app = $this->getView()
+                ->getApp();
 
-            $helper = $this->createHelper($name);
+            $context = $app->getContext();
+            $config = $app->getConfig()
+                ->grab('view.helper')
+                ->set('type', $name);
+
+            $helper = Helper::create($config);
+
             $helper->setView($this->getView())
                 ->setContext($context);
 
@@ -136,50 +141,20 @@ class Php extends Renderer
     }
 
     /**
-     * Create helper by name
-     * Search for valid class name in all modules
-     *
-     * @param string $name Name
-     *
-     * @return Helper
-     * @throws \InvalidArgumentException
-     */
-    protected function createHelper($name)
-    {
-        $class = 'Appcia\\Webwork\\View\\Helper\\' . ucfirst($name);
-
-        if (class_exists($class)) {
-            return new $class();
-        }
-
-        $modules = $this->getView()
-            ->getApp()
-            ->getModules();
-
-        foreach ($modules as $module) {
-            $class = $module->getNamespace() . '\\View\\Helper\\' . ucfirst($name);
-
-            if (class_exists($class)) {
-                return new $class();
-            }
-        }
-
-        throw new \InvalidArgumentException(sprintf(
-            "View helper '%s' cannot be found. There is no valid class in any module",
-            $class
-        ));
-    }
-
-    /**
      * Get view shared variable
      *
      * @param string $name Name
      *
      * @return mixed
+     * @throws \InvalidArgumentException
      */
-    public function __get($name)
+    public function & __get($name)
     {
-        return $this->get($name);
+        if (!array_key_exists($name, $this->data)) {
+            throw new \InvalidArgumentException(sprintf("View shared variable '%s' does not exist.", $name));
+        }
+
+        return $this->data[$name];
     }
 
     /**
@@ -191,36 +166,6 @@ class Php extends Renderer
      * @return $this
      */
     public function __set($name, $value)
-    {
-        return $this->set($name, $value);
-    }
-
-    /**
-     * Get view shared variable
-     *
-     * @param string $name Name
-     *
-     * @return mixed
-     * @throws \InvalidArgumentException
-     */
-    public function get($name)
-    {
-        if (!array_key_exists($name, $this->data)) {
-            throw new \InvalidArgumentException(sprintf("View shared variable '%s' does not exist.", $name));
-        }
-
-        return $this->data[$name];
-    }
-
-    /**
-     * Set view shared variable
-     *
-     * @param string $name  Name
-     * @param mixed  $value Value
-     *
-     * @return $this
-     */
-    public function set($name, $value)
     {
         $this->data[$name] = $value;
 
