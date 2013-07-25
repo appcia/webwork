@@ -71,7 +71,9 @@ abstract class Writer
             );
         }
 
-        $config->inject($writer);
+        if ($config !== NULL) {
+            $config->inject($writer);
+        }
 
         return $writer;
     }

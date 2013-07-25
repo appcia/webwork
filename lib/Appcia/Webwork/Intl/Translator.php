@@ -14,6 +14,8 @@ use Appcia\Webwork\Core\Component;
  */
 abstract class Translator extends Component
 {
+    const GETTEXT = 'gettext';
+
     /**
      * Creator
      *

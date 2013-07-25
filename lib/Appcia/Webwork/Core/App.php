@@ -392,12 +392,14 @@ abstract class App
 
         $file = $path . '/module.php';
 
-        if ((@include_once($file)) === false) {
+        if (!file_exists($file)) {
             throw new \ErrorException(sprintf(
                 "Cannot include module bootstrap '%s'." . PHP_EOL
                 . 'Check whether that file really exists.', $file
             ));
         }
+
+        include_once $file;
 
         $className = ucfirst($name)
             . '\\' . ucfirst($name) . 'Module';
