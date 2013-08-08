@@ -2,11 +2,11 @@
 
 namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Data\CaseConverter;
 use Appcia\Webwork\Routing\Group;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Request;
+use Appcia\Webwork\Model\Template;
 
 /**
  * Processor which is matching request to route
@@ -86,7 +86,7 @@ class Router
     public function addRoute($route)
     {
         if (!$route instanceof Route) {
-           $route = Route::create($route);
+            $route = Route::create($route);
         }
 
         $name = $route->getName();
@@ -94,7 +94,7 @@ class Router
 
         $alias = $route->getAlias();
 
-        if ($alias !== null) {
+        if ($alias !== NULL) {
             if (isset($this->routes[$alias])) {
                 throw new \LogicException(sprintf("Route alias '%s' is already used.", $alias));
             }
@@ -196,7 +196,7 @@ class Router
             }
         }
 
-        return null;
+        return NULL;
     }
 
     /**
@@ -210,7 +210,7 @@ class Router
     protected function process($request, $route)
     {
         if ($request->getPath() == $route->getPath()) {
-            return true;
+            return TRUE;
         } else if ($route->hasParams()) {
             $match = array();
             if (preg_match($route->getPattern(), $request->getPath(), $match)) {
@@ -219,13 +219,13 @@ class Router
                 $params = $this->retrieveParams($route, $match);
                 $request->setParams($params);
 
-                return true;
+                return TRUE;
             } else {
-                return false;
+                return FALSE;
             }
         }
 
-        return false;
+        return FALSE;
     }
 
     /**
@@ -241,6 +241,14 @@ class Router
     {
         $config = $route->getParams();
         $names = array_keys($config);
+
+        if (count($names) != count($values)) {
+            throw new \InvalidArgumentException(sprintf(
+                    "Route values count is not enough for route '%s'",
+                    $route->getName())
+            );
+        }
+
         $params = array_combine($names, $values);
 
         foreach ($params as $name => $value) {
@@ -254,7 +262,7 @@ class Router
             if (isset($data['default'])) {
                 $param = $data['default'];
 
-                if (!is_scalar($param) && $param !== null) {
+                if (!is_scalar($param) && $param !== NULL) {
                     throw new \InvalidArgumentException('Route parameter default value should be a scalar or null.');
                 }
 
@@ -273,7 +281,7 @@ class Router
 
                 $param = array_search($value, $map);
 
-                if ($param !== false) {
+                if ($param !== FALSE) {
                     $params[$name] = $param;
                 }
             }
@@ -306,10 +314,10 @@ class Router
         }
 
         // Prepare parameters, map and set defaults
-        $params = array();
+        $template = new Template($route->getPath());
 
         foreach ($route->getParams() as $name => $config) {
-            $value = null;
+            $value = NULL;
 
             if (isset($config['default'])) {
                 $value = $config['default'];
@@ -320,7 +328,7 @@ class Router
                 unset($data[$name]);
             }
 
-            if ($value === null) {
+            if ($value === NULL) {
                 throw new \InvalidArgumentException(sprintf(
                     "Route '%s' cannot be assembled. Parameter '%s' is not specified.",
                     $route->getName(),
@@ -336,14 +344,13 @@ class Router
                 }
             }
 
-            $params['{' . $name . '}'] = $value;
+            $template->set($name, $value);
         }
 
-        $path = $route->getPath();
-        $path = str_replace(array_keys($params), array_values($params), $path);
+        $path = $template->render();
 
         if (!empty($data)) {
-            $path .= '?' . http_build_query($data, null, '&amp;');
+            $path .= '?' . http_build_query($data, NULL, '&amp;');
         }
 
         return $path;

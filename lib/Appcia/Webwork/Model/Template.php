@@ -118,6 +118,8 @@ class Template
             $this->regexp = '/^' . preg_quote($value, '/') . '?$/';
         }
 
+        $this->content = $value;
+
         return $this;
     }
 
