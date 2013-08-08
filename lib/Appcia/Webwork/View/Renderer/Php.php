@@ -127,7 +127,7 @@ class Php extends Renderer
             $context = $app->getContext();
             $config = $app->getConfig()
                 ->grab('view.helper')
-                ->set('type', $name);
+                ->set('class', $name);
 
             $helper = Helper::create($config);
 

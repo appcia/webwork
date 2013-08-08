@@ -29,49 +29,10 @@ abstract class Renderer
      * @param mixed $data Config data
      *
      * @return $this
-     * @throws \InvalidArgumentException
      */
     public static function create($data)
     {
-        $renderer = null;
-        $type = null;
-        $config = null;
-
-        if ($data instanceof Config) {
-            $data = $data->getData();
-        }
-
-        if (is_string($data)) {
-            $type = $data;
-        } elseif (is_array($data)) {
-            if (!isset($data['type'])) {
-                throw new \InvalidArgumentException("View renderer data should has a key 'type'.");
-            }
-            $type = (string) $data['type'];
-
-            if (!empty($data['config'])) {
-                $config = new Config($data['config']);
-            }
-        } else {
-            throw new \InvalidArgumentException("View renderer data has invalid format.");
-        }
-
-        $class = $type;
-        if (!class_exists($class)) {
-            $class =  __CLASS__ . '\\' . ucfirst($type);
-        }
-
-        if (!class_exists($class) || !is_subclass_of($class, __CLASS__)) {
-            throw new \InvalidArgumentException(sprintf("View renderer '%s' is invalid or unsupported.", $type));
-        }
-
-        $renderer = new $class();
-
-        if ($config !== null) {
-            $config->inject($renderer);
-        }
-
-        return $renderer;
+        return Config::create($data, __CLASS__);
     }
 
     /**
@@ -105,5 +66,5 @@ abstract class Renderer
      *
      * @return string
      */
-    abstract public function render($template = null);
+    abstract public function render($template = NULL);
 }

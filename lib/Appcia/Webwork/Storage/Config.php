@@ -1,6 +1,7 @@
 <?
 
 namespace Appcia\Webwork\Storage;
+
 use Appcia\Webwork\Storage\Config\Reader;
 use Appcia\Webwork\Storage\Config\Writer;
 use Appcia\Webwork\System\File;
@@ -524,5 +525,87 @@ class Config implements \Iterator, \ArrayAccess
         }
 
         return $this;
+    }
+
+    /**
+     * Create object by definition from configuration
+     *
+     * @param string|array $base Base class name
+     *
+     * @return mixed
+     * @throws \InvalidArgumentException
+     */
+    public function instantiate($base = null)
+    {
+        if (!isset($this->data['class'])) {
+            throw new \InvalidArgumentException("Config instantiation requires key 'class' specified.");
+        }
+
+        $name = ucfirst($this->data['class']);
+        $class = $name;
+
+        $namespaces = array();
+        if ($base !== null) {
+            $namespaces[] = $base;
+        }
+
+        if (!class_exists($class)) {
+            if (!empty($this->data['namespace'])) {
+                $namespaces = array_merge($namespaces, $this->data['namespace']);
+            }
+
+            $found = false;
+
+            foreach ($namespaces as $namespace) {
+                $class = trim($namespace, '\\') . '\\' . $name;
+
+                if ($base !== null && !is_subclass_of($class, $base)) {
+                    continue;
+                }
+
+                if (class_exists($class)) {
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                throw new \InvalidArgumentException(sprintf("Config instantiation class '%s' not found.", $name));
+            }
+        }
+
+        $object = new $class();
+
+        if (isset($this->data['config'])) {
+            $config = new static($this->data['config']);
+            $config->inject($object);
+        }
+
+        return $object;
+    }
+
+    /**
+     * Create object by mixed configuration data
+     *
+     * @param mixed       $config
+     * @param string|null $base
+     *
+     * @throws \InvalidArgumentException
+     *
+     * @return mixed
+     */
+    public static function create($config, $base = null)
+    {
+        if (is_string($config)) {
+            $config = new self(array('class' => $config));
+        } elseif (is_array($config)) {
+            $config = new self($config);
+        } elseif (!$config instanceof self) {
+            throw new \InvalidArgumentException("Config object creation data is invalid.");
+        }
+
+        $object = $config->instantiate($base);
+
+        return $object;
     }
 }
