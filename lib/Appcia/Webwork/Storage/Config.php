@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Storage;
 
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Storage\Config\Reader;
 use Appcia\Webwork\Storage\Config\Writer;
 use Appcia\Webwork\System\File;
@@ -14,25 +15,8 @@ use Appcia\Webwork\System\File;
  *
  * @package Appcia\Webwork\Storage
  */
-class Config implements \Iterator, \ArrayAccess
+class Config extends Objector implements \Iterator, \ArrayAccess
 {
-    /**
-     * Data container
-     *
-     * @var array
-     */
-    protected $data;
-
-    /**
-     * Constructor
-     *
-     * @param array $data Data
-     */
-    public function __construct(array $data = array())
-    {
-        $this->data = $data;
-    }
-
     /**
      * Get keys
      *
@@ -58,22 +42,6 @@ class Config implements \Iterator, \ArrayAccess
         $config = $reader->read($source);
 
         $this->extend($config);
-
-        return $this;
-    }
-
-    /**
-     * Save data to supported target
-     * Writer is determined automatically
-     *
-     * @param mixed $target
-     *
-     * @return $this
-     */
-    public function save($target)
-    {
-        $writer = Writer::create($target);
-        $writer->write($this, $target);
 
         return $this;
     }
@@ -134,25 +102,17 @@ class Config implements \Iterator, \ArrayAccess
     }
 
     /**
-     * Get data
+     * Save data to supported target
+     * Writer is determined automatically
      *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
-     * Set data
-     *
-     * @param array $data Data
+     * @param mixed $target
      *
      * @return $this
      */
-    public function setData(array $data)
+    public function save($target)
     {
-        $this->data = $data;
+        $writer = Writer::create($target);
+        $writer->write($this, $target);
 
         return $this;
     }
@@ -244,67 +204,6 @@ class Config implements \Iterator, \ArrayAccess
         $section = new self($data);
 
         return $section;
-    }
-
-    /**
-     * Inject data by object setters
-     *
-     * @param object $object Target object
-     *
-     * @return $this
-     */
-    public function inject($object)
-    {
-        foreach ($this->data as $property => $value) {
-            foreach (array('add', 'set') as $prefix) {
-                $method = $prefix . ucfirst($property);
-                $callback = array($object, $method);
-
-                if (method_exists($object, $method) && is_callable($callback)) {
-                    call_user_func($callback, $value);
-                    break;
-                }
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Suck data from object using getters
-     *
-     * @param object     $object     Source object
-     * @param array|null $properties Properties to be retrieved
-     *
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    public function suck($object, $properties = null)
-    {
-        if ($properties === null) {
-            $properties = get_object_vars($object);
-        } elseif (!is_array($properties)) {
-            throw new \InvalidArgumentException('Config property names should be passed as an array.');
-        }
-
-        foreach ($properties as $property) {
-            foreach (array('get', 'is') as $prefix) {
-                $method = $prefix . ucfirst($property);
-                $callback = array($object, $method);
-
-                if (method_exists($object, $method) && is_callable($callback)) {
-                    $value = call_user_func($callback);
-
-                    if ($value !== null) {
-                        $this->data[$property] = $value;
-                    }
-
-                    break;
-                }
-            }
-        }
-
-        return $this;
     }
 
     /**
@@ -525,87 +424,5 @@ class Config implements \Iterator, \ArrayAccess
         }
 
         return $this;
-    }
-
-    /**
-     * Create object by definition from configuration
-     *
-     * @param string|array $base Base class name
-     *
-     * @return mixed
-     * @throws \InvalidArgumentException
-     */
-    public function instantiate($base = null)
-    {
-        if (!isset($this->data['class'])) {
-            throw new \InvalidArgumentException("Config instantiation requires key 'class' specified.");
-        }
-
-        $name = ucfirst($this->data['class']);
-        $class = $name;
-
-        $namespaces = array();
-        if ($base !== null) {
-            $namespaces[] = $base;
-        }
-
-        if (!class_exists($class)) {
-            if (!empty($this->data['namespace'])) {
-                $namespaces = array_merge($namespaces, $this->data['namespace']);
-            }
-
-            $found = false;
-
-            foreach ($namespaces as $namespace) {
-                $class = trim($namespace, '\\') . '\\' . $name;
-
-                if ($base !== null && !is_subclass_of($class, $base)) {
-                    continue;
-                }
-
-                if (class_exists($class)) {
-                    $found = true;
-                    break;
-                }
-            }
-
-            if (!$found) {
-                throw new \InvalidArgumentException(sprintf("Config instantiation class '%s' not found.", $name));
-            }
-        }
-
-        $object = new $class();
-
-        if (isset($this->data['config'])) {
-            $config = new static($this->data['config']);
-            $config->inject($object);
-        }
-
-        return $object;
-    }
-
-    /**
-     * Create object by mixed configuration data
-     *
-     * @param mixed       $config
-     * @param string|null $base
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return mixed
-     */
-    public static function create($config, $base = null)
-    {
-        if (is_string($config)) {
-            $config = new self(array('class' => $config));
-        } elseif (is_array($config)) {
-            $config = new self($config);
-        } elseif (!$config instanceof self) {
-            throw new \InvalidArgumentException("Config object creation data is invalid.");
-        }
-
-        $object = $config->instantiate($base);
-
-        return $object;
     }
 }
