@@ -15,16 +15,6 @@ abstract class Pagination
     protected $lister;
 
     /**
-     * @var int
-     */
-    protected $before;
-
-    /**
-     * @var int
-     */
-    protected $after;
-
-    /**
      * @var boolean
      */
     protected $first;
@@ -42,54 +32,12 @@ abstract class Pagination
     public function __construct(Lister $lister)
     {
         $this->lister = $lister;
-        $this->before = 3;
-        $this->after = 3;
         $this->first = true;
         $this->last= true;
     }
 
     /**
-     * @param int $after
-     *
-     * @return $this
-     */
-    public function setAfter($after)
-    {
-        $this->after = (int) $after;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getAfter()
-    {
-        return $this->after;
-    }
-
-    /**
-     * @param int $before
-     *
-     * @return $this
-     */
-    public function setBefore($before)
-    {
-        $this->before = (int) $before;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getBefore()
-    {
-        return $this->before;
-    }
-
-    /**
-     * @param \Appcia\Webwork\Util\Lister $lister
+     * @param Lister $lister
      *
      * @return $this
      */
@@ -101,7 +49,7 @@ abstract class Pagination
     }
 
     /**
-     * @return \Appcia\Webwork\Util\Lister
+     * @return Lister
      */
     public function getLister()
     {

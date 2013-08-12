@@ -90,7 +90,9 @@ abstract class Module
      */
     public function autoload()
     {
-        $path = !empty($this->path) ? $this->path . '/lib' : 'lib';
+        $path = !empty($this->path)
+            ? $this->path . '/lib'
+            : 'lib';
 
         $this->app->getAutoloader()
             ->add($this->namespace, $path);

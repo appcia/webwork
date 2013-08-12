@@ -48,12 +48,8 @@ class Session
      *
      * @param Encoder|string $encoder
      */
-    public function setEncoder($encoder)
+    public function setEncoder(Encoder $encoder)
     {
-        if (!$encoder instanceof Encoder) {
-            $encoder = Encoder::create($encoder);
-        }
-
         $this->encoder = $encoder;
     }
 

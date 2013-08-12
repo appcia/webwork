@@ -131,7 +131,7 @@ class View
     /**
      * Get content renderer
      *
-     * @return Renderer
+     * @return Renderer|Renderer\Php
      */
     public function getRenderer()
     {

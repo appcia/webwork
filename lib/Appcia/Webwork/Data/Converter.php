@@ -3,11 +3,11 @@
 namespace Appcia\Webwork\Data;
 
 /**
- * Text case converter
+ * Text converter
  *
  * @package Appcia\Webwork\Data
  */
-class CaseConverter
+class Converter
 {
     /**
      * Convert camel cased text to dashed

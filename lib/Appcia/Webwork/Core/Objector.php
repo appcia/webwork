@@ -121,13 +121,18 @@ class Objector
      */
     public function instantiate($base = null)
     {
-        if (!isset($this->data['class'])) {
-            throw new \InvalidArgumentException("Object instantiation requires key 'class' specified.");
+        $name = null;
+        if (isset($this->data['class'])) {
+            $name = ucfirst($this->data['class']);
+        } else {
+            if ($base !== null) {
+                $name = $base;
+            } else {
+                throw new \InvalidArgumentException("Object instantiation requires key 'class' specified.");
+            }
         }
 
-        $name = ucfirst($this->data['class']);
         $class = $name;
-
         $namespaces = array();
         if ($base !== null) {
             $namespaces[] = $base;
@@ -159,11 +164,7 @@ class Objector
         }
 
         $object = new $class();
-
-        if (isset($this->data['config'])) {
-            $config = new self($this->data['config']);
-            $config->inject($object);
-        }
+        $this->inject($object);
 
         return $object;
     }
@@ -178,7 +179,7 @@ class Objector
      *
      * @return mixed
      */
-    public static function create($config, $base = null)
+    public static function create($config = null, $base = null)
     {
         if (is_string($config)) {
             $config = new self(array('class' => $config));

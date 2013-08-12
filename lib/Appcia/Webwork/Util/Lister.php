@@ -36,7 +36,7 @@ abstract class Lister
     {
         $this->filters = array();
         $this->sorters = array();
-        $this->pagePer = NULL;
+        $this->pagePer = null;
         $this->pageNum = 1;
     }
 
@@ -121,6 +121,21 @@ abstract class Lister
     }
 
     /**
+     * Get page count
+     *
+     * @return int
+     */
+    public function getPageCount()
+    {
+        $result = $this->getResult();
+        $count = (int) ($this->pagePer > 0)
+            ? ceil(count($result) / $this->pagePer)
+            : 0;
+
+        return $count;
+    }
+
+    /**
      * @return array
      */
     public function getSorters()
@@ -182,7 +197,7 @@ abstract class Lister
      */
     public function getOffset()
     {
-        $offset = $this->pagePer == 0
+        $offset = ($this->pagePer == 0)
             ? 0
             : ($this->pageNum - 1) * $this->pagePer;
 

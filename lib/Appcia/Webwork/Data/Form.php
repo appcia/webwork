@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Data;
 
+use Appcia\Webwork\Core\Component;
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\Storage\Config;
@@ -12,7 +13,7 @@ use Appcia\Webwork\Web\Context;
  *
  * @package Appcia\Webwork\Resource
  */
-class Form
+class Form extends Component
 {
     const METADATA = 'metadata';
 
@@ -66,7 +67,7 @@ class Form
         $this->valid = true;
         $this->encoder = new Encoder();
         $this->encryter = new Encrypter();
-        $this->metadata = new Field\Plain(self::METADATA);
+        $this->metadata = new Field\Plain(self::METADATA, $this->encoder->encode(array()));
 
         $this->build();
         $this->prepare();
@@ -233,27 +234,39 @@ class Form
     /**
      * Get metadata
      *
+     * @param string $key Data key
+     *
      * @return mixed
      */
-    public function getMetadata()
+    public function getMetadata($key)
     {
-        $value = $this->metadata->getValue();
-        $metadata = $this->encoder->decode($value);
+        $data = $this->metadata->getValue();
+        $metadata = $this->encoder->decode($data);
 
-        return $metadata;
+        if (!array_key_exists($key, $metadata)) {
+            return null;
+        }
+
+        return $metadata[$key];
     }
 
     /**
      * Set metadata
      *
-     * @param mixed $metadata Data
+     * @param mixed $key   Data key
+     * @param mixed $value Data value
      *
      * @return $this
      */
-    public function setMetadata($metadata)
+    public function setMetadata($key, $value)
     {
-        $value = $this->encoder->encode($metadata);
-        $this->metadata->setValue($value);
+        $data = $this->metadata->getValue();
+        $metadata = $this->encoder->decode($data);
+
+        $metadata[$key] = $value;
+
+        $data = $this->encoder->encode($metadata);
+        $this->metadata->setValue($data);
 
         return $this;
     }
@@ -316,7 +329,7 @@ class Form
     public function has($name)
     {
         $value = $this->get($name);
-        $has = !empty($value);
+        $has = !$this->isEmptyValue($value);
 
         return $has;
     }
@@ -336,7 +349,7 @@ class Form
         }
 
         $field = $this->fields[$name];
-        $value = $field->getValue();
+        $value = $this->getStringValue($field->getValue());
 
         return $value;
     }

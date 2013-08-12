@@ -15,7 +15,7 @@ use Appcia\Webwork\System\File;
  */
 class Form extends BasicForm
 {
-    const RESOURCE_SKIPPED = 'resourceSkipped';
+    const RESOURCE_SKIPPED = 'resource skipped';
 
     /**
      * Resource manager

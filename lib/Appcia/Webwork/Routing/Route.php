@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Data\CaseConverter;
+use Appcia\Webwork\Data\Converter;
 use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\Storage\Config;
 
@@ -95,30 +95,6 @@ class Route
      */
     public static function create($data)
     {
-        if ($data instanceof Config) {
-            $data = $data->getData();
-        }
-
-        if (!is_array($data)) {
-            throw new \InvalidArgumentException('Route data should be an array');
-        }
-
-        if (!isset($data['path'])) {
-            throw new \InvalidArgumentException('Route path is not specified');
-        }
-
-        if (!isset($data['module'])) {
-            throw new \InvalidArgumentException('Route module is not specified');
-        }
-
-        if (!isset($data['controller'])) {
-            throw new \InvalidArgumentException('Route controller is not specified');
-        }
-
-        if (!isset($data['action'])) {
-            throw new \InvalidArgumentException('Route action is not specified');
-        }
-
         if (!isset($data['name'])) {
             $data['name'] = self::generateName(
                 $data['module'],
@@ -127,12 +103,7 @@ class Route
             );
         }
 
-        $route = new Route();
-
-        $config = new Config($data);
-        $config->inject($route);
-
-        return $route;
+        return Config::create($data, __CLASS__);
     }
 
     /**
@@ -156,7 +127,7 @@ class Route
             $parts = array_merge($parts, array($action));
         }
 
-        $converter = new CaseConverter();
+        $converter = new Converter();
         foreach ($parts as $key => $value) {
             $parts[$key] = $converter->camelToDashed($value);
         }

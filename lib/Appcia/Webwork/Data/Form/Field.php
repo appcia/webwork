@@ -5,6 +5,7 @@ namespace Appcia\Webwork\Data\Form;
 use Appcia\Webwork\Core\Component;
 use Appcia\Webwork\Data\Filter;
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Storage\Config;
 
 /**
  * Form field
@@ -14,29 +15,16 @@ use Appcia\Webwork\Data\Validator;
 abstract class Field
 {
     /**
-     * Types
+     * Creator
      *
-     * Text     for text inputs with CSRF protection
-     * Set      for servicing set of values (arrays)
-     * File     input type file
-     * Plain    plain data (unsafe)
-     */
-    const TEXT = 'text';
-    const SET = 'set';
-    const FILE = 'file';
-    const PLAIN = 'plain';
-
-    /**
-     * Possible types:
+     * @param mixed $data Config data
      *
-     * @var array
+     * @return $this
      */
-    protected static $types = array(
-        self::TEXT,
-        self::SET,
-        self::FILE,
-        self::PLAIN
-    );
+    public static function create($data)
+    {
+        return Config::create($data, __CLASS__);
+    }
 
     /**
      * Filtered value which is tested by validation
@@ -91,9 +79,10 @@ abstract class Field
     /**
      * Constructor
      *
-     * @param string $name Name
+     * @param string $name  Name
+     * @param mixed  $value Initial value
      */
-    public function __construct($name)
+    public function __construct($name, $value = null)
     {
         $this->validators = array();
         $this->filters = array();
@@ -101,6 +90,7 @@ abstract class Field
         $this->data = array();
 
         $this->setName($name);
+        $this->setValue($value);
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Data\CaseConverter;
+use Appcia\Webwork\Data\Converter;
 use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\View\View;
@@ -339,7 +339,7 @@ class Dispatcher
      */
     protected function getPath($class)
     {
-        $converter = new CaseConverter();
+        $converter = new Converter();
         $parts = explode('\\', rtrim($class, '\\'));
 
         foreach ($parts as $key => $part) {

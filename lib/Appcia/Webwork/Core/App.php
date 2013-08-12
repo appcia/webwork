@@ -125,8 +125,9 @@ abstract class App
         foreach ($settings as $name => $value) {
             if (ini_get($name) === false) {
                 throw new \InvalidArgumentException(sprintf(
-                    "Setting '%s' is invalid or unsupported in current PHP version.",
-                    $name
+                    "Setting '%s' is invalid or unsupported in current PHP version (%s).",
+                    $name,
+                    PHP_VERSION
                 ));
             }
 

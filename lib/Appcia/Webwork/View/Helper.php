@@ -2,9 +2,9 @@
 
 namespace Appcia\Webwork\View;
 
+use Appcia\Webwork\Core\Component;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\View\View;
-use Appcia\Webwork\Core\Component;
 
 /**
  * Base for view helper (PHP renderer tool)

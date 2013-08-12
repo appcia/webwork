@@ -38,23 +38,6 @@ class Encoder
     }
 
     /**
-     * Creator
-     *
-     * @param string $encoding Encoding
-     *
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    public static function create($encoding)
-    {
-        if (!is_string($encoding)) {
-            throw new \InvalidArgumentException('Encoder cannot be created. Invalid data specified.');
-        }
-
-        return new self($encoding);
-    }
-
-    /**
      * Get available encodings
      *
      * @return array
