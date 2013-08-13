@@ -213,6 +213,20 @@ class Request
     }
 
     /**
+     * Get server URL
+     *
+     * @return string
+     */
+    public function getServerUrl()
+    {
+        $protocol = $this->getProtocolPrefix();
+        $server = trim($this->getServer(), '/');
+        $url = $protocol . $server;
+
+        return $url;
+    }
+
+    /**
      * Set server name
      *
      * @param string $server

@@ -13,14 +13,10 @@ class ServerUrl extends Helper
      */
     public function serverUrl()
     {
-        $request = $this->getView()
+        $url = $this->getView()
             ->getApp()
-            ->getRequest();
-
-        $protocol = $request->getProtocolPrefix();
-        $server = trim($request->getServer(), '/');
-
-        $url = $protocol . $server;
+            ->getRequest()
+            ->getServerUrl();
 
         return $url;
     }

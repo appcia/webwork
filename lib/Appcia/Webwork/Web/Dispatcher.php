@@ -2,6 +2,8 @@
 
 namespace Appcia\Webwork\Web;
 
+use Appcia\Webwork\Controller\Lite;
+use Appcia\Webwork\Core\Module;
 use Appcia\Webwork\Data\Converter;
 use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Routing\Route;
@@ -16,17 +18,23 @@ use Appcia\Webwork\Web\Response;
 class Dispatcher
 {
     /**
+     * Controller callback names
+     */
+    const BEFORE = 'before';
+    const AFTER = 'after';
+
+    /**
      * Available events for listening
      */
-    const STARTED = 'dispatchStarted';
-    const RESPONSE_CREATED = 'responseCreated';
-    const ROUTE_FOUND = 'routeFound';
-    const VIEW_CREATED = 'viewCreated';
-    const ACTION_INVOKED = 'actionInvoked';
-    const RESPONSE_PROCESSED = 'responseProcessed';
-    const EXCEPTION_CAUGHT = 'exceptionCaught';
-    const EXCEPTION_HANDLED = 'exceptionHandled';
-    const ENDED = 'dispatchEnded';
+    const STARTED = 'dispatch started';
+    const RESPONSE_CREATED = 'response created';
+    const ROUTE_FOUND = 'route found';
+    const VIEW_CREATED = 'view created';
+    const ACTION_INVOKED = 'action invoked';
+    const RESPONSE_PROCESSED = 'response processed';
+    const EXCEPTION_CAUGHT = 'exception caught';
+    const EXCEPTION_HANDLED = 'exception handled';
+    const ENDED = 'dispatch ended';
 
     /**
      * Application
@@ -48,6 +56,13 @@ class Dispatcher
      * @var View
      */
     protected $view;
+
+    /**
+     * View auto rendering
+     *
+     * @var boolean
+     */
+    protected $autoRender;
 
     /**
      * Current response
@@ -122,6 +137,7 @@ class Dispatcher
         $this->app = $app;
         $this->data = array();
 
+        $this->autoRender = true;
         $this->handlers = array();
         $this->listeners = array();
         $this->exceptionOnError = false;
@@ -129,7 +145,7 @@ class Dispatcher
     }
 
     /**
-     * Turn on / off exceptions on error
+     * Enable or disable exception triggering on error
      *
      * @param boolean $flag Flag
      *
@@ -158,6 +174,30 @@ class Dispatcher
     public function getException()
     {
         return $this->exception;
+    }
+
+    /**
+     * Check whether view auto rendering state
+     *
+     * @return boolean
+     */
+    public function isAutoRender()
+    {
+        return $this->autoRender;
+    }
+
+    /**
+     * Enable or disable view auto rendering
+     *
+     * @param boolean $flag Flag
+     *
+     * @return $this
+     */
+    public function setAutoRender($flag)
+    {
+        $this->autoRender = (bool) $flag;
+
+        return $this;
     }
 
     /**
@@ -211,7 +251,7 @@ class Dispatcher
             $view->addData($data);
             $this->notify(self::ACTION_INVOKED);
 
-            if (!$response->hasContent()) {
+            if ($this->autoRender && !$response->hasContent()) {
                 $content = $view->render();
                 $response->setContent($content);
             }
@@ -379,31 +419,61 @@ class Dispatcher
      */
     protected function invokeAction()
     {
-        $className = $this->getControllerClass();
-        $methodName = $this->getControllerMethod();
+        $class = $this->getControllerClass();
+        $method = $this->getControllerMethod();
 
-        if (!class_exists($className)) {
+        if (!class_exists($class)) {
             throw new \ErrorException(sprintf(
                 "Controller '%s' could not be loaded. Check paths and autoloader configuration",
-                $className
+                $class
             ));
         }
 
         $module = $this->runModule();
-        $controller = new $className($this->app, $module->getApp());
-        $action = array($controller, $methodName);
+        $controller = new $class($this->app);
 
-        if (!is_callable($action)) {
+        $this->addData($this->invokeMethod($controller, static::BEFORE, false));
+        $this->addData($this->invokeMethod($controller, $method, true));
+        $this->addData($this->invokeMethod($controller, static::AFTER, false));
+
+        $data = $this->getData();
+
+        return $data;
+    }
+
+    /**
+     * Invoke controller method
+     *
+     * @param Lite    $controller Controller
+     * @param string  $method     Method name
+     * @param boolean $verbose    Error when method does not exist
+     *
+     * @return array
+     * @throws \ErrorException
+     */
+    protected function invokeMethod($controller, $method, $verbose)
+    {
+        $action = array($controller, $method);
+        $class = get_class($controller);
+        $name = $class . '::' . $method;
+        $data = array();
+
+        if (is_callable($action)) {
+            $data = call_user_func($action);
+
+            if ($data === null) {
+                $data = array();
+            } elseif (!is_array($data)) {
+                throw new \ErrorException(sprintf(
+                    "Controller method '%s' should return values as array.",
+                    $name
+                ));
+            }
+        } elseif ($verbose) {
             throw new \ErrorException(sprintf(
-                "Could not dispatch '%s''. Check whether controller method really exist",
-                $className . '::' . $methodName
+                "Could not dispatch '%s''. Check whether controller method really exist.",
+                $name
             ));
-        }
-
-        $data = call_user_func($action);
-
-        if (!is_array($data)) {
-            throw new \ErrorException("Controller action must return values as array");
         }
 
         return $data;

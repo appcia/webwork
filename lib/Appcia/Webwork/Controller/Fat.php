@@ -30,15 +30,6 @@ abstract class Fat extends Lite
     }
 
     /**
-     * @return Dispatcher
-     */
-    protected function getDispatcher()
-    {
-        return $this->getApp()
-            ->getDispatcher();
-    }
-
-    /**
      * @return Config
      */
     protected function getConfig()
@@ -165,5 +156,32 @@ abstract class Fat extends Lite
         return $this->getApp()
             ->getDispatcher()
             ->getResponse();
+    }
+
+    /**
+     * Set response content
+     *
+     * @param mixed $content
+     *
+     * @return $this
+     */
+    protected function setContent($content)
+    {
+        $this->getDispatcher()
+            ->setAutoRender(false);
+
+        $this->getResponse()
+            ->setContent($content);
+
+        return $this;
+    }
+
+    /**
+     * @return Dispatcher
+     */
+    protected function getDispatcher()
+    {
+        return $this->getApp()
+            ->getDispatcher();
     }
 }
