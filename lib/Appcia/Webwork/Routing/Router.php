@@ -209,7 +209,7 @@ class Router
      */
     protected function process($request, $route)
     {
-        if ($request->getPath() == $route->getPath()) {
+        if ($route->getPath()->getContent() == $request->getPath()) {
             return TRUE;
         } else if ($route->hasParams()) {
             $match = array();
@@ -314,7 +314,7 @@ class Router
         }
 
         // Prepare parameters, map and set defaults
-        $template = new Template($route->getPath());
+        $template = new Template($route->getPath()->getContent());
 
         foreach ($route->getParams() as $name => $config) {
             $value = NULL;

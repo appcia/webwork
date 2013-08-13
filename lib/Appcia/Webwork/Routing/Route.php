@@ -21,9 +21,9 @@ class Route
     protected $name;
 
     /**
-     * Path for router
+     * Path representation
      *
-     * @var string
+     * @var Path
      */
     protected $path;
 
@@ -61,13 +61,6 @@ class Route
      * @var array
      */
     protected $params;
-
-    /**
-     * Pattern for retrieving parameters
-     *
-     * @var string
-     */
-    protected $pattern;
 
     /**
      * Alias for name
@@ -169,7 +162,7 @@ class Route
     /**
      * Get path
      *
-     * @return string
+     * @return Path
      */
     public function getPath()
     {
@@ -179,48 +172,24 @@ class Route
     /**
      * Set path
      *
-     * @param string $path
+     * @param string $path Path
      *
      * @return $this
-     * @throws \InvalidArgumentException
      */
     public function setPath($path)
     {
-        $location = null;
-        $params = array();
+        if (!$path instanceof Path) {
+            $path = new Path($path);
+        }
 
-        if (is_string($path)) {
-            $location = $path;
-        } else if (is_array($path)) {
-            if (!isset($path['location'])) {
-                throw new \InvalidArgumentException('Route location is not specified.');
-            }
-
-            $location = $path['location'];
-
-            if (isset($path['params'])) {
-                if (!is_array($params)) {
-                    throw new \InvalidArgumentException('Route parameters should be an array.');
-                }
-
-                $params = $path['params'];
+        $params = array_keys($path->getParams());
+        foreach ($params as $param) {
+            if (!isset($this->params[$param])) {
+                $this->params[$param] = array();
             }
         }
 
-        if ($location !== '/') {
-            $location = rtrim($location, '/');
-        }
-
-        $template = new Template($location);
-        foreach ($template->getParams() as $param) {
-            if (!isset($params[$param])) {
-                $params[$param] = array();
-            }
-        }
-
-        $this->pattern = $template->getRegExp();
-        $this->path = $location;
-        $this->params = $params;
+        $this->path = $path;
 
         return $this;
     }
@@ -233,7 +202,21 @@ class Route
      */
     public function getPattern()
     {
-        return $this->pattern;
+        return $this->path->getRegExp();
+    }
+
+    /**
+     * Set parameter config
+     *
+     * @param array $params Config
+     *
+     * @return $this
+     */
+    public function setParams(array $params)
+    {
+        $this->params = $params;
+
+        return $this;
     }
 
     /**

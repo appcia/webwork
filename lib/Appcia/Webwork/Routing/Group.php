@@ -130,12 +130,6 @@ class Group
             // Path generation
             if (is_string($route['path'])) {
                 $route['path'] = $this->processPath($route['path']);
-            } elseif (is_array($route['path'])) {
-                if (!isset($route['path']['location'])) {
-                    throw new \InvalidArgumentException("Route path location is not specified");
-                }
-
-                $route['path']['location'] = $this->processPath($route['path']['location']);
             } else {
                 throw new \InvalidArgumentException("Route path has invalid format");
             }
