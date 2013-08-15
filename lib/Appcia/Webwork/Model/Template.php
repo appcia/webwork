@@ -28,18 +28,9 @@ class Template
     protected $params;
 
     /**
-     * Regexp for parameter values extraction
-     *
-     * @var string
-     */
-    protected $regexp;
-
-    /**
      * Constructor
      *
      * @param string $content For example: 'week_{num}_{day}', (parameters are in braces)
-     *
-     * @throws \InvalidArgumentException
      */
     public function __construct($content = null)
     {
@@ -55,14 +46,6 @@ class Template
     public function getParams()
     {
         return $this->params;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getRegExp()
-    {
-        return $this->regexp;
     }
 
     /**
@@ -82,26 +65,9 @@ class Template
     public function setContent($content)
     {
         $content = (string) $content;
-        $this->params = array();
-
-        $match = array();
-        if (preg_match_all('/\{(' . self::PARAM_CLASS . ')\}/', $content, $match)) {
-            $params = $match[1];
-
-            $regexp = preg_replace('/\{(' . self::PARAM_CLASS . ')\}/', self::PARAM_SUBSTITUTION, $content);
-            $regexp = '/^' . preg_quote($regexp, '/') . '$/';
-            $regexp = str_replace(self::PARAM_SUBSTITUTION, '(' . self::PARAM_CLASS . ')', $regexp);
-
-            $this->regexp = $regexp;
-
-            foreach ($params as $param) {
-                $this->params[$param] = null;
-            }
-        } else {
-            $this->regexp = '/^' . preg_quote($content, '/') . '?$/';
-        }
 
         $this->content = $content;
+        $this->processParams($content);
 
         return $this;
     }
@@ -157,5 +123,26 @@ class Template
         $result = str_replace($names, $values, $this->content);
 
         return $result;
+    }
+
+    /**
+     * @param string $content
+     *
+     * @return $this
+     */
+    protected function processParams($content)
+    {
+        $params = array();
+        $match = array();
+
+        if (preg_match_all(':\{(' . self::PARAM_CLASS . ')\}:', $content, $match)) {
+            foreach ($match[1] as $param) {
+                $params[$param] = null;
+            }
+        }
+
+        $this->params = $params;
+
+        return $this;
     }
 }

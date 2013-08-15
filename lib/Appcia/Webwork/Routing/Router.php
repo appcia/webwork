@@ -241,12 +241,14 @@ class Router
     {
         $config = $route->getParams();
         $names = array_keys($config);
+        $missing = array_diff($names, $values);
 
-        if (count($names) != count($values)) {
+        if (!empty($missing)) {
             throw new \InvalidArgumentException(sprintf(
-                    "Route values count is not enough for route '%s'",
-                    $route->getName())
-            );
+                "Route '%s' has missing parameters '%s'.",
+                $route->getName(),
+                implode(', ', $missing)
+            ));
         }
 
         $params = array_combine($names, $values);
