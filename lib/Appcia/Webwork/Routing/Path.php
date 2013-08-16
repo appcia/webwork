@@ -13,14 +13,19 @@ use Appcia\Webwork\Storage\Config;
 class Path extends Template
 {
     /**
+     * Get regular expression that match all segments
+     *
      * @var string
      */
     protected $regExp;
 
+
     /**
-     * @var array
+     * Optional versions of path
+     *
+     * @var Template[]
      */
-    protected $optionals;
+    protected $segments;
 
     /**
      * Constructor
@@ -29,7 +34,7 @@ class Path extends Template
      */
     public function __construct($content = null)
     {
-        $this->optionals = array();
+        $this->segments = array();
         parent::__construct($content);
     }
 
@@ -45,9 +50,9 @@ class Path extends Template
         if ($content !== '/') {
             $content = rtrim($content, '/');
         }
-        parent::setContent($content);
 
-        $this->processRegExp($content);
+        parent::setContent($content);
+        $this->processSegments();
 
         return $this;
     }
@@ -55,13 +60,11 @@ class Path extends Template
     /**
      * Compile path to regular expression
      *
-     * @param string $content Path template
-     *
      * @return $this
      */
-    protected function processRegExp($content)
+    protected function processRegExp()
     {
-        $exp = str_replace(array('(', ')'), array('(', ')?'), $content);
+        $exp = str_replace(array('(', ')'), array('(', ')?'), $this->content);
         $exp = preg_replace(':\{(' . self::PARAM_CLASS . ')\}:', '(' . self::PARAM_CLASS . ')', $exp);
         $exp = ':^' . $exp . '$:';
 
@@ -71,10 +74,49 @@ class Path extends Template
     }
 
     /**
-     * @return string|null
+     * Process content taking into account optional parts
+     *
+     * @return $this
      */
-    public function getRegExp()
+    public function processSegments()
     {
-        return $this->regExp;
+        $path = '(' . $this->content . ')';
+        $segments = array();
+
+        do {
+            $match = array();
+
+            if (preg_match('/\(.*\)/', $path, $match)) {
+                $path = $match[0];
+                $path = substr($path, 1, -1);
+
+                $segments[] = $path;
+            } else {
+                $path = null;
+            }
+        } while ($path !== null);
+
+        $count = count($segments);
+        for ($i = 0; $i < $count - 1; $i++) {
+            $segments[$i] = str_replace('(' . $segments[$i + 1] . ')', self::PARAM_SUBSTITUTION, $segments[$i]);
+            $segments[$i + 1] = str_replace(self::PARAM_SUBSTITUTION, $segments[$i + 1], $segments[$i]);
+            $segments[$i] = str_replace(self::PARAM_SUBSTITUTION, '', $segments[$i]);
+        }
+
+        foreach ($segments as $key => $segment) {
+            $segments[$key] = new Template($segment);
+        }
+
+        $this->segments = $segments;
+
+        return $this;
+    }
+
+    /**
+     * @return Template[]
+     */
+    public function getSegments()
+    {
+        return $this->segments;
     }
 }

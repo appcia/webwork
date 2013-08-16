@@ -28,6 +28,13 @@ class Template
     protected $params;
 
     /**
+     * Regular expression for parameters retrieving
+     *
+     * @var string
+     */
+    protected $regExp;
+
+    /**
      * Constructor
      *
      * @param string $content For example: 'week_{num}_{day}', (parameters are in braces)
@@ -49,6 +56,30 @@ class Template
     }
 
     /**
+     * Set parameters
+     *
+     * @param array $params
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function setParams($params)
+    {
+        foreach ($params as $name => $value)
+        {
+            if (!array_key_exists($name, $this->params)) {
+                throw new \InvalidArgumentException(sprintf("Template parameter '%s' does not exist.", $name));
+            }
+
+            $this->params[$name] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get content
+     *
      * @return string
      */
     public function getContent()
@@ -57,17 +88,18 @@ class Template
     }
 
     /**
-     * @param string $content For example: 'week_{num}_{day}', (parameters are in braces)
+     * Set content
      *
-     * @return Template
-     * @throws \InvalidArgumentException
+     * @param string $content Content
+     *
+     * @return $this
      */
     public function setContent($content)
     {
-        $content = (string) $content;
+        $this->content = (string) $content;
 
-        $this->content = $content;
-        $this->processParams($content);
+        $this->processParams();
+        $this->processRegExp();
 
         return $this;
     }
@@ -110,6 +142,8 @@ class Template
     }
 
     /**
+     * Inject parameter values into content
+     *
      * @return string
      */
     public function render()
@@ -126,16 +160,31 @@ class Template
     }
 
     /**
-     * @param string $content
+     * Compile content to regular expression
      *
      * @return $this
      */
-    protected function processParams($content)
+    protected function processRegExp()
+    {
+        $exp = preg_replace(':\{(' . self::PARAM_CLASS . ')\}:', '(' . self::PARAM_CLASS . ')', $this->content);
+        $exp = ':^' . $exp . '$:';
+
+        $this->regExp = $exp;
+
+        return $this;
+    }
+
+    /**
+     * Find parameters in content, format: 'Hello {name}!'
+     *
+     * @return $this
+     */
+    protected function processParams()
     {
         $params = array();
         $match = array();
 
-        if (preg_match_all(':\{(' . self::PARAM_CLASS . ')\}:', $content, $match)) {
+        if (preg_match_all(':\{(' . self::PARAM_CLASS . ')\}:', $this->content, $match)) {
             foreach ($match[1] as $param) {
                 $params[$param] = null;
             }
@@ -144,5 +193,13 @@ class Template
         $this->params = $params;
 
         return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRegExp()
+    {
+        return $this->regExp;
     }
 }

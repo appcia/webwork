@@ -94,7 +94,7 @@ class Router
 
         $alias = $route->getAlias();
 
-        if ($alias !== NULL) {
+        if ($alias !== null) {
             if (isset($this->routes[$alias])) {
                 throw new \LogicException(sprintf("Route alias '%s' is already used.", $alias));
             }
@@ -196,7 +196,7 @@ class Router
             }
         }
 
-        return NULL;
+        return null;
     }
 
     /**
@@ -209,49 +209,39 @@ class Router
      */
     protected function process($request, $route)
     {
-        if ($route->getPath()->getContent() == $request->getPath()) {
-            return TRUE;
-        } else if ($route->hasParams()) {
-            $match = array();
-            if (preg_match($route->getPattern(), $request->getPath(), $match)) {
-                unset($match[0]);
+        $path = $route->getPath();
 
-                $params = $this->retrieveParams($route, $match);
-                $request->setParams($params);
+        if (preg_match($path->getRegExp(), $request->getPath())) {
+            foreach ($path->getSegments() as $segment) {
+                $values = array();
+                if (preg_match($segment->getRegExp(), $request->getPath(), $values)) {
+                    unset($values[0]);
+                    $values = array_values($values);
+                    $names = array_keys($segment->getParams());
+                    $params = $this->processParams($route, array_combine($names, $values));
 
-                return TRUE;
-            } else {
-                return FALSE;
+                    $request->setParams($params);
+
+                    return true;
+                }
             }
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
-     * Retrieve route parameter names
+     * Process route parameters
      *
      * @param Route $route  Route
-     * @param array $values Passed parameter values
+     * @param array $params Passed parameters
      *
      * @return array
      * @throws \InvalidArgumentException
      */
-    protected function retrieveParams(Route $route, array $values)
+    protected function processParams(Route $route, array $params)
     {
         $config = $route->getParams();
-        $names = array_keys($config);
-        $missing = array_diff($names, $values);
-
-        if (!empty($missing)) {
-            throw new \InvalidArgumentException(sprintf(
-                "Route '%s' has missing parameters '%s'.",
-                $route->getName(),
-                implode(', ', $missing)
-            ));
-        }
-
-        $params = array_combine($names, $values);
 
         foreach ($params as $name => $value) {
             if (!isset($config[$name])) {
@@ -259,19 +249,6 @@ class Router
             }
 
             $data = $config[$name];
-
-            // Apply default values
-            if (isset($data['default'])) {
-                $param = $data['default'];
-
-                if (!is_scalar($param) && $param !== NULL) {
-                    throw new \InvalidArgumentException('Route parameter default value should be a scalar or null.');
-                }
-
-                if (empty($value)) {
-                    $params[$name] = $param;
-                }
-            }
 
             // Reverse map parameter names
             if (isset($data['map'])) {
@@ -283,7 +260,7 @@ class Router
 
                 $param = array_search($value, $map);
 
-                if ($param !== FALSE) {
+                if ($param !== false) {
                     $params[$name] = $param;
                 }
             }
@@ -297,7 +274,7 @@ class Router
      * If parameters are not in route path there are interpreted as GET params
      *
      * @param string $route Route name
-     * @param array  $data  Path and GET parameters
+     * @param array  $data  Route path and GET parameters
      *
      * @return string
      * @throws \OutOfBoundsException
@@ -305,56 +282,81 @@ class Router
      */
     public function assemble($route, array $data = array())
     {
+        $route = $this->findRoute($route);
+
+        foreach ($route->getParams() as $name => $config) {
+            if (isset($config['default']) && !array_key_exists($name, $data)) {
+                $data[$name] = $config['default'];
+            }
+        }
+
+        $segment = $this->findSegment($route, $data);
+
+        $params = array_intersect_key($segment->getParams(), $data);
+        $get = array_diff($data, $segment->getParams());
+
+        $path = $segment->setParams($params)
+            ->render();
+
+        if (!empty($get)) {
+            $path .= '?' . http_build_query($get, null, '&amp;');
+        }
+
+        return $path;
+    }
+
+    /**
+     * Find route by name
+     *
+     * @param Route|string $route
+     *
+     * @return Route
+     * @throws \OutOfBoundsException
+     * @throws \InvalidArgumentException
+     */
+    protected function findRoute($route)
+    {
         if (is_string($route)) {
             if (!isset($this->routes[$route])) {
                 throw new \OutOfBoundsException(sprintf("Route by name '%s' does not exist.", $route));
             }
 
             $route = $this->routes[$route];
+
+            return $route;
         } elseif (!$route instanceof Route) {
             throw new \InvalidArgumentException('Route should be an existing route name or object.');
         }
 
-        // Prepare parameters, map and set defaults
-        $template = new Template($route->getPath()->getContent());
+        return $route;
+    }
 
-        foreach ($route->getParams() as $name => $config) {
-            $value = NULL;
+    /**
+     * Find segment that could have specified parameters
+     *
+     * @param Route $route  Route
+     * @param array $params Route parameters
+     *
+     * @return Template
+     * @throws \InvalidArgumentException
+     */
+    protected function findSegment(Route $route, array $params)
+    {
+        $segments = $route->getPath()
+            ->getSegments();
 
-            if (isset($config['default'])) {
-                $value = $config['default'];
+        foreach ($segments as $segment) {
+            $diff = array_diff_key($segment->getParams(), $params);
+
+            if (empty($diff)) {
+                return $segment;
             }
-
-            if (isset($data[$name])) {
-                $value = $data[$name];
-                unset($data[$name]);
-            }
-
-            if ($value === NULL) {
-                throw new \InvalidArgumentException(sprintf(
-                    "Route '%s' cannot be assembled. Parameter '%s' is not specified.",
-                    $route->getName(),
-                    $name
-                ));
-            }
-
-            if (isset($config['map'])) {
-                $map = $config['map'];
-
-                if (isset($map[$value])) {
-                    $value = $map[$value];
-                }
-            }
-
-            $template->set($name, $value);
         }
 
-        $path = $template->render();
-
-        if (!empty($data)) {
-            $path .= '?' . http_build_query($data, NULL, '&amp;');
-        }
-
-        return $path;
+        throw new \InvalidArgumentException(sprintf(
+            "Route '%s' does not have any segment that match specified parameters: '%s'.",
+            $route->getName(),
+            implode(', ', array_keys($params))
+        ));
     }
 }
