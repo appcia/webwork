@@ -285,15 +285,23 @@ class Router
         $route = $this->findRoute($route);
 
         foreach ($route->getParams() as $name => $config) {
-            if (isset($config['default']) && !array_key_exists($name, $data)) {
+            if (!array_key_exists($name, $data) && isset($config['default'])) {
                 $data[$name] = $config['default'];
+            }
+
+            if (array_key_exists($name, $data) && isset($config['map'])) {
+                $map = $config['map'];
+
+                if (isset($map[$data[$name]])) {
+                    $data[$name] = $map[$data[$name]];
+                }
             }
         }
 
         $segment = $this->findSegment($route, $data);
 
-        $params = array_intersect_key($segment->getParams(), $data);
-        $get = array_diff($data, $segment->getParams());
+        $params = array_intersect_key($data, $segment->getParams());
+        $get = array_diff($data, $params);
 
         $path = $segment->setParams($params)
             ->render();
