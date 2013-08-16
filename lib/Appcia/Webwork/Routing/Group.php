@@ -31,6 +31,13 @@ class Group
     protected $suffix;
 
     /**
+     * Default controller
+     *
+     * @var string
+     */
+    protected $controller;
+
+    /**
      * Default module
      *
      * @var string
@@ -48,7 +55,7 @@ class Group
     /**
      * Set default module
      *
-     * @param string $module
+     * @param string $module Name
      *
      * @return $this
      */
@@ -60,13 +67,37 @@ class Group
     }
 
     /**
-     * Get default module
+     * Get default module name
      *
      * @return string
      */
     public function getModule()
     {
         return $this->module;
+    }
+
+    /**
+     * Set default controller name
+     *
+     * @param string $controller Name
+     *
+     * @return $this
+     */
+    public function setController($controller)
+    {
+        $this->controller = $controller;
+
+        return $this;
+    }
+
+    /**
+     * Get default controller name
+     *
+     * @return string
+     */
+    public function getController()
+    {
+        return $this->controller;
     }
 
     /**
@@ -84,6 +115,8 @@ class Group
     }
 
     /**
+     * Get path prefix
+     *
      * @return string
      */
     public function getPrefix()
@@ -126,20 +159,7 @@ class Group
     public function setRoutes(array $routes)
     {
         foreach ($routes as $key => $route) {
-
-            // Path generation
-            if (is_string($route['path'])) {
-                $route['path'] = $this->processPath($route['path']);
-            } else {
-                throw new \InvalidArgumentException("Route path has invalid format");
-            }
-
-            // Module completion
-            if ($this->module !== null && !isset($route['module'])) {
-                $route['module'] = $this->module;
-            }
-
-            $routes[$key] = $route;
+            $routes[$key] = $this->processRoute($route);
         }
 
         $this->routes = $routes;
@@ -175,5 +195,31 @@ class Group
         }
 
         return $path;
+    }
+
+    /**
+     * Process route data
+     *
+     * @param Route $route Route
+     *
+     * @return Route
+     */
+    protected function processRoute($route)
+    {
+        // Path prefix, suffix
+        $route['path'] = $this->processPath($route['path']);
+
+        // Module name completion
+        if ($this->module !== null && !isset($route['module'])) {
+            $route['module'] = $this->module;
+        }
+
+        // Controller name completion
+        if ($this->controller !== null && !isset($route['controller'])) {
+            $route['controller'] = $this->controller;
+            return $route;
+        }
+
+        return $route;
     }
 }
