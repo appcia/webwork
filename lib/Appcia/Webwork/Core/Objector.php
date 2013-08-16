@@ -45,6 +45,9 @@ class Objector
      */
     public function setData(array $data)
     {
+        // Deterministic injecting
+        ksort($data);
+
         $this->data = $data;
 
         return $this;
