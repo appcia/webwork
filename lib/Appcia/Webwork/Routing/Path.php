@@ -13,28 +13,36 @@ use Appcia\Webwork\Storage\Config;
 class Path extends Template
 {
     /**
-     * Get regular expression that match all segments
-     *
-     * @var string
+     * Standard parameter classes
      */
-    protected $regExp;
+    const DIGITS = '[:digit:]+';
+    const ALPHABETIC = '[:alpha:]+';
+    const ALPHANUMERIC = '[:alnum:]+';
+    const FILENAME = '[\w- ]+(?:\.\w+)+';
 
+    /**
+     * Base route
+     *
+     * @var Route
+     */
+    protected $route;
 
     /**
      * Optional versions of path
      *
-     * @var Template[]
+     * @var Template[]|null
      */
     protected $segments;
 
     /**
      * Constructor
      *
+     * @param Route  $route   Base route
      * @param string $content Path template
      */
-    public function __construct($content = null)
+    public function __construct(Route $route, $content = null)
     {
-        $this->segments = array();
+        $this->route = $route;
         parent::__construct($content);
     }
 
@@ -52,25 +60,20 @@ class Path extends Template
         }
 
         parent::setContent($content);
-        $this->processSegments();
 
         return $this;
     }
 
     /**
-     * Compile path to regular expression
-     *
-     * @return $this
+     * @return Template[]
      */
-    protected function processRegExp()
+    public function getSegments()
     {
-        $exp = str_replace(array('(', ')'), array('(', ')?'), $this->content);
-        $exp = preg_replace(':\{(' . self::PARAM_CLASS . ')\}:', '(' . self::PARAM_CLASS . ')', $exp);
-        $exp = ':^' . $exp . '$:';
+        if ($this->segments === null) {
+            $this->findSegments();
+        }
 
-        $this->regExp = $exp;
-
-        return $this;
+        return $this->segments;
     }
 
     /**
@@ -78,7 +81,7 @@ class Path extends Template
      *
      * @return $this
      */
-    public function processSegments()
+    public function findSegments()
     {
         $path = '(' . $this->content . ')';
         $segments = array();
@@ -97,10 +100,12 @@ class Path extends Template
         } while ($path !== null);
 
         $count = count($segments);
+        $param = '___param___';
+        
         for ($i = 0; $i < $count - 1; $i++) {
-            $segments[$i] = str_replace('(' . $segments[$i + 1] . ')', self::PARAM_SUBSTITUTION, $segments[$i]);
-            $segments[$i + 1] = str_replace(self::PARAM_SUBSTITUTION, $segments[$i + 1], $segments[$i]);
-            $segments[$i] = str_replace(self::PARAM_SUBSTITUTION, '', $segments[$i]);
+            $segments[$i] = str_replace('(' . $segments[$i + 1] . ')', $param, $segments[$i]);
+            $segments[$i + 1] = str_replace($param, $segments[$i + 1], $segments[$i]);
+            $segments[$i] = str_replace($param, '', $segments[$i]);
         }
 
         foreach ($segments as $key => $segment) {
@@ -113,10 +118,24 @@ class Path extends Template
     }
 
     /**
-     * @return Template[]
+     * Compile path to regular expression
+     *
+     * @return $this
      */
-    public function getSegments()
+    protected function compileRegExp()
     {
-        return $this->segments;
+        $exp = str_replace(array('(', ')'), array('(', ')?'), $this->content);
+        foreach ($this->route->getParams() as $name => $config) {
+            $class = isset($config['regExp'])
+                ? $config['regExp']
+                : self::PARAM;
+
+            $exp = str_replace('{' . $name . '}', '(' . $class . ')', $exp);
+        }
+        $exp = ':^' . $exp . '$:u';
+
+        $this->regExp = $exp;
+
+        return $this;
     }
 }

@@ -10,8 +10,7 @@ namespace Appcia\Webwork\Model;
  */
 class Template
 {
-    const PARAM_CLASS = '[A-Za-z0-9-]+';
-    const PARAM_SUBSTITUTION = '___param___';
+    const PARAM = '[\w-]+';
 
     /**
      * Content with parameters in braces
@@ -30,7 +29,7 @@ class Template
     /**
      * Regular expression for parameters retrieving
      *
-     * @var string
+     * @var string|null
      */
     protected $regExp;
 
@@ -97,9 +96,7 @@ class Template
     public function setContent($content)
     {
         $this->content = (string) $content;
-
-        $this->processParams();
-        $this->processRegExp();
+        $this->findParams();
 
         return $this;
     }
@@ -160,14 +157,26 @@ class Template
     }
 
     /**
+     * @return string
+     */
+    public function getRegExp()
+    {
+        if ($this->regExp === null) {
+            $this->compileRegExp();
+        }
+
+        return $this->regExp;
+    }
+
+    /**
      * Compile content to regular expression
      *
      * @return $this
      */
-    protected function processRegExp()
+    protected function compileRegExp()
     {
-        $exp = preg_replace(':\{(' . self::PARAM_CLASS . ')\}:', '(' . self::PARAM_CLASS . ')', $this->content);
-        $exp = ':^' . $exp . '$:';
+        $exp = preg_replace(':\{(' . self::PARAM . ')\}:', '(' . self::PARAM . ')', $this->content);
+        $exp = ':^' . $exp . '$:u';
 
         $this->regExp = $exp;
 
@@ -179,12 +188,12 @@ class Template
      *
      * @return $this
      */
-    protected function processParams()
+    protected function findParams()
     {
         $params = array();
         $match = array();
 
-        if (preg_match_all(':\{(' . self::PARAM_CLASS . ')\}:', $this->content, $match)) {
+        if (preg_match_all(':\{(' . self::PARAM . ')\}:', $this->content, $match)) {
             foreach ($match[1] as $param) {
                 $params[$param] = null;
             }
@@ -193,13 +202,5 @@ class Template
         $this->params = $params;
 
         return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRegExp()
-    {
-        return $this->regExp;
     }
 }

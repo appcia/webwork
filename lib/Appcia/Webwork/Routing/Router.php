@@ -118,25 +118,6 @@ class Router
     }
 
     /**
-     * Get route by name
-     *
-     * @param string $name Name
-     *
-     * @return Route
-     * @throws \OutOfBoundsException
-     */
-    public function getRoute($name)
-    {
-        if (!isset($this->routes[$name])) {
-            throw new \OutOfBoundsException(sprintf("Route '%s' does not exist.", $name));
-        }
-
-        $route = $this->routes[$name];
-
-        return $route;
-    }
-
-    /**
      * Set routes using groups
      *
      * @param array $groups Data
@@ -186,7 +167,7 @@ class Router
      *
      * @param Request $request Source request
      *
-     * @return array
+     * @return Route|null
      */
     public function match(Request $request)
     {
@@ -216,6 +197,7 @@ class Router
                 $values = array();
                 if (preg_match($segment->getRegExp(), $request->getPath(), $values)) {
                     unset($values[0]);
+
                     $values = array_values($values);
                     $names = array_keys($segment->getParams());
                     $params = $this->processParams($route, array_combine($names, $values));
@@ -282,7 +264,7 @@ class Router
      */
     public function assemble($route, array $data = array())
     {
-        $route = $this->findRoute($route);
+        $route = $this->getRoute($route);
 
         foreach ($route->getParams() as $name => $config) {
             if (!array_key_exists($name, $data) && isset($config['default'])) {
@@ -298,7 +280,7 @@ class Router
             }
         }
 
-        $segment = $this->findSegment($route, $data);
+        $segment = $this->getSegment($route, $data);
 
         $params = array_intersect_key($data, $segment->getParams());
         $get = array_diff($data, $params);
@@ -322,7 +304,7 @@ class Router
      * @throws \OutOfBoundsException
      * @throws \InvalidArgumentException
      */
-    protected function findRoute($route)
+    public function getRoute($route)
     {
         if (is_string($route)) {
             if (!isset($this->routes[$route])) {
@@ -340,7 +322,7 @@ class Router
     }
 
     /**
-     * Find segment that could have specified parameters
+     * Find route segment that could have specified parameters
      *
      * @param Route $route  Route
      * @param array $params Route parameters
@@ -348,7 +330,7 @@ class Router
      * @return Template
      * @throws \InvalidArgumentException
      */
-    protected function findSegment(Route $route, array $params)
+    protected function getSegment(Route $route, array $params)
     {
         $segments = $route->getPath()
             ->getSegments();

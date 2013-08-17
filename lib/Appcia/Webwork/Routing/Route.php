@@ -179,7 +179,7 @@ class Route
     public function setPath($path)
     {
         if (!$path instanceof Path) {
-            $path = new Path($path);
+            $path = new Path($this, $path);
         }
 
         $params = array_keys($path->getParams());
@@ -227,16 +227,6 @@ class Route
     public function getParams()
     {
         return $this->params;
-    }
-
-    /**
-     * Check whether route has any parameters in path
-     *
-     * @return boolean
-     */
-    public function hasParams()
-    {
-        return !empty($this->params);
     }
 
     /**
