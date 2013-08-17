@@ -96,7 +96,7 @@ class Route
             );
         }
 
-        return Config::create($data, __CLASS__);
+        return Config::create($data, get_called_class());
     }
 
     /**

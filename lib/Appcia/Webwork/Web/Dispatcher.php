@@ -4,6 +4,7 @@ namespace Appcia\Webwork\Web;
 
 use Appcia\Webwork\Controller\Lite;
 use Appcia\Webwork\Core\Module;
+use Appcia\Webwork\Core\Monitor;
 use Appcia\Webwork\Data\Converter;
 use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Routing\Route;
@@ -37,11 +38,35 @@ class Dispatcher
     const ENDED = 'dispatch ended';
 
     /**
+     * Monitor events
+     *
+     * @var array
+     */
+    protected static $events = array(
+        self::STARTED,
+        self::RESPONSE_CREATED,
+        self::ROUTE_FOUND,
+        self::VIEW_CREATED,
+        self::ACTION_INVOKED,
+        self::RESPONSE_PROCESSED,
+        self::EXCEPTION_CAUGHT,
+        self::EXCEPTION_HANDLED,
+        self::ENDED
+    );
+
+    /**
      * Application
      *
      * @var App
      */
     protected $app;
+
+    /**
+     * Event monitor
+     *
+     * @var Monitor
+     */
+    protected $monitor;
 
     /**
      * Current route
@@ -51,7 +76,7 @@ class Dispatcher
     protected $route;
 
     /**
-     * Current View
+     * Current view
      *
      * @var View
      */
@@ -70,13 +95,6 @@ class Dispatcher
      * @var Response
      */
     protected $response;
-
-    /**
-     * Event listeners
-     *
-     * @var array
-     */
-    protected $listeners;
 
     /**
      * Exception handlers
@@ -112,22 +130,6 @@ class Dispatcher
     protected $data;
 
     /**
-     * Events for listening
-     *
-     * @var array
-     */
-    protected $events = array(
-        self::STARTED,
-        self::RESPONSE_CREATED,
-        self::ROUTE_FOUND,
-        self::VIEW_CREATED,
-        self::ACTION_INVOKED,
-        self::RESPONSE_PROCESSED,
-        self::EXCEPTION_HANDLED,
-        self::ENDED
-    );
-
-    /**
      * Constructor
      *
      * @param App $app
@@ -135,6 +137,7 @@ class Dispatcher
     public function __construct(App $app)
     {
         $this->app = $app;
+        $this->monitor = new Monitor($this, static::$events);
         $this->data = array();
 
         $this->autoRender = true;
@@ -164,6 +167,16 @@ class Dispatcher
         $this->exceptionOnError = $flag;
 
         return $this;
+    }
+
+    /**
+     * Get possible events
+     *
+     * @return array
+     */
+    public static function getEvents()
+    {
+        return static::$events;
     }
 
     /**
@@ -201,16 +214,6 @@ class Dispatcher
     }
 
     /**
-     * Get possible events
-     *
-     * @return array
-     */
-    public function getEvents()
-    {
-        return $this->events;
-    }
-
-    /**
      * Dispatch specified route
      *
      * @param mixed $route Route object or name
@@ -219,14 +222,14 @@ class Dispatcher
      */
     public function dispatch($route)
     {
-        $this->notify(self::STARTED);
+        $this->monitor->notify(self::STARTED);
 
         $response = null;
         $view = null;
 
         try {
             $this->forceRoute($route);
-            $this->notify(self::ROUTE_FOUND);
+            $this->monitor->notify(self::ROUTE_FOUND);
 
             $response = new Response();
             $this->app->getConfig()
@@ -234,7 +237,7 @@ class Dispatcher
                 ->inject($response);
 
             $this->response = $response;
-            $this->notify(self::RESPONSE_CREATED);
+            $this->monitor->notify(self::RESPONSE_CREATED);
 
             $view = new View($this->app);
             $this->app->getConfig()
@@ -245,49 +248,31 @@ class Dispatcher
             $view->setTemplate($template);
 
             $this->view = $view;
-            $this->notify(self::VIEW_CREATED);
+            $this->monitor->notify(self::VIEW_CREATED);
 
             $data = $this->invokeAction();
             $view->addData($data);
-            $this->notify(self::ACTION_INVOKED);
+            $this->monitor->notify(self::ACTION_INVOKED);
 
             if ($this->autoRender && !$response->hasContent()) {
                 $content = $view->render();
                 $response->setContent($content);
             }
-            $this->notify(self::RESPONSE_PROCESSED);
+            $this->monitor->notify(self::RESPONSE_PROCESSED);
         } catch (\Exception $e) {
-            $this->notify(self::EXCEPTION_CAUGHT);
+            $this->monitor->notify(self::EXCEPTION_CAUGHT);
 
             if ($response !== null) {
                 $response->clean();
             }
 
             $response = $this->react($e);
-            $this->notify(self::EXCEPTION_HANDLED);
+            $this->monitor->notify(self::EXCEPTION_HANDLED);
         }
 
-        $this->notify(self::ENDED);
+        $this->monitor->notify(self::ENDED);
 
         return $response;
-    }
-
-    /**
-     * Notify listeners about dispatching event
-     *
-     * @param string $event Event
-     *
-     * @return $this
-     */
-    protected function notify($event)
-    {
-        foreach ($this->listeners as $listener) {
-            if ($listener['event'] === $event) {
-                call_user_func($listener['callback'], $this);
-            }
-        }
-
-        return $this;
     }
 
     /**
@@ -442,44 +427,6 @@ class Dispatcher
     }
 
     /**
-     * Invoke controller method
-     *
-     * @param Lite    $controller Controller
-     * @param string  $method     Method name
-     * @param boolean $verbose    Error when method does not exist
-     *
-     * @return array
-     * @throws \ErrorException
-     */
-    protected function invokeMethod($controller, $method, $verbose)
-    {
-        $action = array($controller, $method);
-        $class = get_class($controller);
-        $name = $class . '::' . $method;
-        $data = array();
-
-        if (is_callable($action)) {
-            $data = call_user_func($action);
-
-            if ($data === null) {
-                $data = array();
-            } elseif (!is_array($data)) {
-                throw new \ErrorException(sprintf(
-                    "Controller method '%s' should return values as array.",
-                    $name
-                ));
-            }
-        } elseif ($verbose) {
-            throw new \ErrorException(sprintf(
-                "Could not dispatch '%s''. Check whether controller method really exist.",
-                $name
-            ));
-        }
-
-        return $data;
-    }
-
-    /**
      * Get controller class name basing on current route
      *
      * @return string
@@ -540,6 +487,68 @@ class Dispatcher
     }
 
     /**
+     * Add processed data
+     *
+     * @param array $data
+     *
+     * @return $this
+     */
+    protected function addData(array $data)
+    {
+        $this->data = array_merge($this->data, $data);
+
+        return $this;
+    }
+
+    /**
+     * Invoke controller method
+     *
+     * @param Lite    $controller Controller
+     * @param string  $method     Method name
+     * @param boolean $verbose    Error when method does not exist
+     *
+     * @return array
+     * @throws \ErrorException
+     */
+    protected function invokeMethod($controller, $method, $verbose)
+    {
+        $action = array($controller, $method);
+        $class = get_class($controller);
+        $name = $class . '::' . $method;
+        $data = array();
+
+        if (is_callable($action)) {
+            $data = call_user_func($action);
+
+            if ($data === null) {
+                $data = array();
+            } elseif (!is_array($data)) {
+                throw new \ErrorException(sprintf(
+                    "Controller method '%s' should return values as array.",
+                    $name
+                ));
+            }
+        } elseif ($verbose) {
+            throw new \ErrorException(sprintf(
+                "Could not dispatch '%s''. Check whether controller method really exist.",
+                $name
+            ));
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get response data
+     *
+     * @return array
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+
+    /**
      * React when exception occurred
      *
      * @param \Exception $e Exception
@@ -583,7 +592,7 @@ class Dispatcher
         $response = call_user_func($handler['callback'], $this);
 
         if (!$response instanceof Response) {
-            throw new \ErrorException('Dispatch error handler should return response object');
+            throw new \ErrorException('Dispatch error handler should return response object.');
         }
 
         return $response;
@@ -650,34 +659,6 @@ class Dispatcher
     }
 
     /**
-     * Register event listener
-     *
-     * @param string   $event    Event
-     * @param \Closure $callback Callback
-     *
-     * @return $this
-     * @throws \OutOfBoundsException
-     * @throws \InvalidArgumentException
-     */
-    public function listen($event, \Closure $callback)
-    {
-        if (!in_array($event, $this->events, true)) {
-            throw new \OutOfBoundsException(sprintf("Invalid event to be listened: '%s'", $event));
-        }
-
-        if (!is_callable($callback)) {
-            throw new \InvalidArgumentException('Listener callback is invalid');
-        }
-
-        $this->listeners[] = array(
-            'event' => $event,
-            'callback' => $callback
-        );
-
-        return $this;
-    }
-
-    /**
      * Callback for throwing exception on error
      *
      * @param int    $no      Error number
@@ -713,16 +694,6 @@ class Dispatcher
     }
 
     /**
-     * Get response data
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
      * @return Response
      */
     public function getResponse()
@@ -731,16 +702,12 @@ class Dispatcher
     }
 
     /**
-     * Add processed data
-     *
-     * @param array $data
-     *
-     * @return $this
+     * Get event monitor
+     * 
+     * @return Monitor
      */
-    protected function addData(array $data)
+    public function getMonitor()
     {
-        $this->data = array_merge($this->data, $data);
-
-        return $this;
+        return $this->monitor;
     }
 }

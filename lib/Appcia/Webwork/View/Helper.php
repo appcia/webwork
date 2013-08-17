@@ -29,7 +29,7 @@ abstract class Helper extends Component
      */
     public static function create($config)
     {
-        return Config::create($config, __CLASS__);
+        return Config::create($config, get_called_class());
     }
 
     /**

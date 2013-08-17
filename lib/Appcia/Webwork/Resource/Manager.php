@@ -2,13 +2,13 @@
 
 namespace Appcia\Webwork\Resource;
 
+use Appcia\Webwork\Resource\Service\Processor;
+use Appcia\Webwork\Resource\Service\Provider;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
 
 /**
  * Resource manager with path mapping and subtype processing
- *
- * @package Appcia\Webwork\Resource
  */
 class Manager
 {
@@ -27,11 +27,23 @@ class Manager
     protected $tempDir;
 
     /**
+     * @var Processor[]
+     */
+    protected $processors;
+
+    /**
+     * @var Provider[]
+     */
+    protected $providers;
+
+    /**
      * Constructor
      */
     public function __construct()
     {
         $this->resources = array();
+        $this->processors = array();
+        $this->providers = array();
     }
 
     /**
@@ -108,24 +120,24 @@ class Manager
             return null;
         }
 
-        $sourceFile = $this->retrieveFile($path);
+        $source = $this->retrieveFile($path);
 
         // Set static parameters
         $params['resource'] = $name;
 
         if (!isset($params['ext'])) {
-            $params['ext'] = $sourceFile->getExtension();
+            $params['ext'] = $source->getExtension();
         }
 
         $resource = new Resource($this, $name, $params);
-        $targetFile = $resource->getFile();
+        $target = $resource->getFile();
 
         // Copy / download resource (only when it is required)
-        if ($sourceFile->equals($targetFile)) {
+        if ($source->equals($target)) {
             return $resource;
         }
 
-        $sourceFile->copy($targetFile);
+        $source->copy($target);
 
         // Run processing based on origin resource)
         $resource->createTypes();
@@ -251,5 +263,51 @@ class Manager
         return $config;
     }
 
+    /**
+     * Get processor for creating derivative types basing on original resource
+     *
+     * @param string $type   Type name
+     * @param array  $config Configuration for type
+     *
+     * @return Processor
+     * @throws \InvalidArgumentException
+     * @throws \ErrorException
+     */
+    public function getProcessor($type, array $config)
+    {
+        if (empty($config['processor'])) {
+            throw new \InvalidArgumentException(sprintf("Processor configuration for resource type '%s' not found", $type));
+        }
 
+        if (empty($config['processor']['class'])) {
+            throw new \InvalidArgumentException(sprintf("Cannot find class name for resource type '%s'", $type));
+        }
+
+        $class = $config['processor']['class'];
+
+        if (isset($this->processors[$class])) {
+            return $this->processors[$class];
+        }
+
+        if (!class_exists($class)) {
+            throw new \ErrorException(sprintf("Processor class '%s' does not exist", $class));
+        }
+
+        $processor = new $class();
+        $processor->setManager($this);
+
+        $this->processors[$class] = $processor;
+
+        return $processor;
+    }
+
+    /**
+     * @param $type
+     *
+     * @return Provider
+     */
+    public function getProvider($type)
+    {
+        // TODO Implementation
+    }
 }

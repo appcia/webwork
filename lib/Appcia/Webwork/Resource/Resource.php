@@ -4,8 +4,6 @@ namespace Appcia\Webwork\Resource;
 
 /**
  * General file / URL representation for images, videos, anything...
- *
- * @package Appcia\Webwork\Resource
  */
 class Resource extends Type
 {
@@ -123,34 +121,27 @@ class Resource extends Type
         $types = array();
         $configs = $config['type'];
         foreach ($configs as $name => $config) {
-            $processor = $this->getProcessor($name, $config);
+            $processor = $this->manager->getProcessor($name, $config);
 
             $settings = null;
             if (!empty($config['processor']['settings'])) {
                 $settings = $config['processor']['settings'];
             }
 
-            $files = $processor->process($this, $settings);
-            if (!is_array($files)) {
-                throw new \ErrorException(sprintf("Processor for resource type '%s' should return files as array"));
-            }
+            $file = $processor->run($this, $settings);
 
             $params = $this->getParams();
             $params['type'] = $name;
 
-            foreach ($files as $fileKey => $file) {
-                $params['key'] = $fileKey;
+            $type = new Type($this, $config['path'], $params);
+            $types[$name] = $type;
 
-                $type = new Type($this, $config['path'], $params);
-                $types[$name] = $type;
-
-                $targetFile = $type->getFile();
-                if ($targetFile->exists()) {
-                    $targetFile->remove();
-                }
-
-                $file->move($targetFile);
+            $target = $type->getFile();
+            if ($target->exists()) {
+                $target->remove();
             }
+
+            $file->move($target);
         }
 
         $this->types = $types;
@@ -182,44 +173,6 @@ class Resource extends Type
         }
 
         return $types;
-    }
-
-    /**
-     * Get processor for creating derivative types basing on original resource
-     *
-     * @param string $type   Type name
-     * @param array  $config Configuration for type
-     *
-     * @return Manager
-     * @throws \InvalidArgumentException
-     * @throws \ErrorException
-     */
-    protected function getProcessor($type, array $config)
-    {
-        if (empty($config['processor'])) {
-            throw new \InvalidArgumentException(sprintf("Processor configuration for resource type '%s' not found", $type));
-        }
-
-        if (empty($config['processor']['class'])) {
-            throw new \InvalidArgumentException(sprintf("Cannot find class name for resource type '%s'", $type));
-        }
-
-        $class = $config['processor']['class'];
-
-        if (isset($this->processors[$class])) {
-            return $this->processors[$class];
-        }
-
-        if (!class_exists($class)) {
-            throw new \ErrorException(sprintf("Processor class '%s' does not exist", $class));
-        }
-
-        $processor = new $class();
-        $processor->setManager($this->manager);
-
-        $this->processors[$class] = $processor;
-
-        return $processor;
     }
 
     /**
