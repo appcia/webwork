@@ -23,6 +23,20 @@ class Form extends BaseForm
     protected $manager;
 
     /**
+     * At least one field is unloaded
+     *
+     * @var boolean
+     */
+    protected $unloaded;
+
+    /**
+     * At least one field is loaded
+     *
+     * @var boolean
+     */
+    protected $loaded;
+
+    /**
      * Constructor
      *
      * @param Context $context Use context
@@ -31,6 +45,9 @@ class Form extends BaseForm
     public function __construct(Context $context, Manager $manager)
     {
         $this->manager = $manager;
+        $this->loaded = false;
+        $this->unloaded = false;
+
         parent::__construct($context);
     }
 
@@ -41,26 +58,18 @@ class Form extends BaseForm
      * @param array|string $fields Field names
      *
      * @return $this
-     * @throws \InvalidArgumentException
      * @throws \LogicException
      */
     public function load($fields = null)
     {
-        $fields = (array) $fields;
-
         $token = $this->getMetadata(self::CSRF);
         if ($token === null) {
             throw new \LogicException("Form resource loading requires active CSRF protection.");
         }
 
-        foreach ($this->getFields() as $name => $field) {
-            if (!in_array($name, $fields)) {
+        foreach ($this->filterFields() as $name => $field) {
+            if ($fields !== null && !in_array($name, (array) $fields)) {
                 continue;
-            } elseif (!$field instanceof Field\File) {
-                throw new \InvalidArgumentException(sprintf(
-                    "Field '%s' resource cannot be loaded because its type is not a file.",
-                    $name
-                ));
             }
 
             $resource = null;
@@ -79,9 +88,28 @@ class Form extends BaseForm
             }
 
             $field->setValue($resource);
+            $this->loaded = true;
         }
 
         return $this;
+    }
+
+    /**
+     * Get all file fields
+     *
+     * @return Field[]
+     */
+    protected function filterFields()
+    {
+        $fields = array();
+
+        foreach ($this->fields as $name => $field) {
+            if ($field instanceof Field\File) {
+                $fields[$name] = $field;
+            }
+        }
+
+        return $fields;
     }
 
     /**
@@ -96,21 +124,15 @@ class Form extends BaseForm
      */
     public function unload($fields = null)
     {
-        $fields = (array) $fields;
-
         $token = $this->getMetadata(self::CSRF);
         if ($token === null) {
             throw new \LogicException("Form resource unloading requires active CSRF protection.");
         }
 
-        foreach ($this->getFields() as $name => $field) {
-            if (!in_array($name, $fields)) {
+        $this->unloaded = false;
+        foreach ($this->filterFields() as $name => $field) {
+            if ($fields !== null && !in_array($name, (array) $fields)) {
                 continue;
-            } elseif (!$field instanceof Field\File) {
-                throw new \InvalidArgumentException(sprintf(
-                    "Field '%s' resource cannot be unloaded because its type is not a file.",
-                    $name
-                ));
             }
 
             $this->manager->remove(
@@ -122,8 +144,29 @@ class Form extends BaseForm
             );
 
             $field->setValue(null);
+            $this->unloaded = true;
         }
 
         return $this;
+    }
+
+    /**
+     * Check whether at least one field with file is loaded
+     *
+     * @return boolean
+     */
+    public function isLoaded()
+    {
+        return $this->loaded;
+    }
+
+    /**
+     * Check whether at least one field with file is unloaded
+     *
+     * @return boolean
+     */
+    public function isUnloaded()
+    {
+        return $this->unloaded;
     }
 }

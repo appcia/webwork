@@ -13,13 +13,9 @@ class Encrypter
      * Methods
      */
     const SHA1 = 'sha1';
-
     const SHA256 = 'sha256';
-
     const MD5 = 'md5';
-
     const CRC32 = 'crc32';
-
     const TIGER128 = 'tiger128,3';
 
     /**
