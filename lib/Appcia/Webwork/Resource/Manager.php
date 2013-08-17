@@ -264,6 +264,68 @@ class Manager
     }
 
     /**
+     * Upload resource to temporary path
+     *
+     * @param array $data   File data
+     * @param array $params Path parameters
+     *
+     * @return Resource
+     * @throws \InvalidArgumentException
+     * @throws \ErrorException
+     */
+    public function upload($data, array $params)
+    {
+        if (empty($data)) {
+            throw new \InvalidArgumentException('Invalid uploaded file data.');
+        }
+
+        $path = $data['name'];
+        $sizeLimit = ini_get('upload_max_filesize');
+
+        if ($data['error'] != UPLOAD_ERR_OK) {
+            switch ($data['error']) {
+                case UPLOAD_ERR_INI_SIZE:
+                    throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $path, $sizeLimit));
+                    break;
+                case UPLOAD_ERR_FORM_SIZE:
+                    throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds form limit", $path));
+                    break;
+                case UPLOAD_ERR_PARTIAL:
+                    throw new \ErrorException(sprintf("Uploaded file '%s' is only partially completed", $path));
+                    break;
+                case UPLOAD_ERR_NO_FILE:
+                    throw new \ErrorException("File has not been uploaded");
+                    break;
+                case UPLOAD_ERR_NO_TMP_DIR:
+                    throw new \ErrorException(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
+                    break;
+                case UPLOAD_ERR_CANT_WRITE:
+                    throw new \ErrorException(sprintf("Failed to write uploaded file to disk: '%s'", $path));
+                    break;
+                case UPLOAD_ERR_EXTENSION:
+                default:
+                    throw new \ErrorException(sprintf("Unknown upload error: '%s'", $path));
+                    break;
+            }
+        }
+
+        $source = new File($data['name']);
+        $temp = new File($data['tmp_name']);
+
+        if (!isset($params['ext'])) {
+            $params['ext'] = $source->getExtension();
+        }
+
+        $resource = $this->save(
+            Manager::UPLOAD,
+            $params,
+            $temp
+        );
+
+        return $resource;
+    }
+
+    /**
      * Get processor for creating derivative types basing on original resource
      *
      * @param string $type   Type name
@@ -309,5 +371,41 @@ class Manager
     public function getProvider($type)
     {
         // TODO Implementation
+    }
+
+    /**
+     * Normalize uploaded file data
+     *
+     * @param array $data Data
+     *
+     * @return array|null
+     * @throws \InvalidArgumentException
+     */
+    public function normalizeUpload($data)
+    {
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException('Uploaded data is not an array.' . PHP_EOL
+            . 'Propably you just forget to add enctype multipart/form-data to form.');
+        }
+
+        // Trim empty values to null
+        if (empty($data['tmp_name'])) {
+            return null;
+        }
+
+        // Normalize for multiple files
+        if (is_array($data['tmp_name'])) {
+            $result = array();
+
+            foreach ($data as $key => $all) {
+                foreach ($all as $i => $val) {
+                    $result[$i][$key] = $val;
+                }
+            }
+
+            return $result;
+        }
+
+        return $data;
     }
 }

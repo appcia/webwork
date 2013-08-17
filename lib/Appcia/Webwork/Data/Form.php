@@ -16,6 +16,7 @@ use Appcia\Webwork\Web\Context;
 class Form extends Component
 {
     const METADATA = 'metadata';
+    const CSRF = 'csrf';
 
     /**
      * Use context
@@ -349,7 +350,7 @@ class Form extends Component
         }
 
         $field = $this->fields[$name];
-        $value = $this->getStringValue($field->getValue());
+        $value = $field->getValue();
 
         return $value;
     }
@@ -638,4 +639,20 @@ class Form extends Component
         return $field;
     }
 
+    public function protect()
+    {
+        // TODO Save token also in session
+        $token = md5(uniqid(rand(), TRUE));
+        $this->setMetadata(self::CSRF, $token);
+
+        return $this;
+    }
+
+    public function verify()
+    {
+        $token = $this->getMetadata(self::CSRF);
+
+        // TODO Compare with token from session
+        return true;
+    }
 }

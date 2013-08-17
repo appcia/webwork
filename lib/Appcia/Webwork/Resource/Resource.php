@@ -87,7 +87,7 @@ class Resource extends Type
     /**
      * Get type by name
      *
-     * @param $type Type name
+     * @param string $type Type name
      *
      * @return Type
      * @throws \OutOfBoundsException
@@ -99,7 +99,7 @@ class Resource extends Type
         }
 
         if (!isset($type, $this->types)) {
-            throw new \OutOfBoundsException(sprintf("Resource type '%s' is invalid", $type));
+            throw new \OutOfBoundsException(sprintf("Resource type '%s' is invalid.", $type));
         }
 
         return $this->types[$type];
@@ -128,7 +128,9 @@ class Resource extends Type
                 $settings = $config['processor']['settings'];
             }
 
-            $file = $processor->run($this, $settings);
+            $file = $processor->setResource($this)
+                ->setSettings($settings)
+                ->run($this, $settings);
 
             $params = $this->getParams();
             $params['type'] = $name;

@@ -208,7 +208,7 @@ class Dispatcher
      */
     public function setAutoRender($flag)
     {
-        $this->autoRender = (bool) $flag;
+        $this->autoRender = (bool)$flag;
 
         return $this;
     }
@@ -703,7 +703,7 @@ class Dispatcher
 
     /**
      * Get event monitor
-     * 
+     *
      * @return Monitor
      */
     public function getMonitor()
