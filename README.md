@@ -25,6 +25,9 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.8.2**
+* routes with: optional fragments, custom regular expression per parameter
+
 **0.8.1**
 * config reader / writer interface
 
