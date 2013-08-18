@@ -5,9 +5,7 @@ namespace Appcia\Webwork\Data;
 use Appcia\Webwork\Core\Component;
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Model\Template;
-use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Context;
-use Appcia\Webwork\Web\Request;
 
 /**
  * General utility for servicing web forms (data manipulation)
@@ -16,10 +14,6 @@ use Appcia\Webwork\Web\Request;
  */
 class Form extends Component
 {
-    const METADATA = 'metadata';
-
-    const CSRF = 'csrf';
-
     /**
      * Use context
      *
@@ -28,30 +22,11 @@ class Form extends Component
     protected $context;
 
     /**
-     * Data encoder
-     *
-     * @var Encoder
-     */
-    protected $encoder;
-
-    /**
-     * @var Encrypter
-     */
-    protected $encryter;
-
-    /**
      * Fields
      *
      * @var Field[]
      */
     protected $fields;
-
-    /**
-     * Metadata field
-     *
-     * @var Field
-     */
-    protected $metadata;
 
     /**
      * Validation result
@@ -68,9 +43,6 @@ class Form extends Component
         $this->context = $context;
         $this->fields = array();
         $this->valid = true;
-        $this->encoder = new Encoder();
-        $this->encryter = new Encrypter();
-        $this->metadata = new Field\Plain(self::METADATA, $this->encoder->encode(array()));
 
         $this->build();
         $this->prepare();
@@ -217,7 +189,7 @@ class Form extends Component
      *
      * @return array
      */
-    protected function nestArray($arr)
+    private function nestArray($arr)
     {
         $res = array();
         $curr = & $res;
@@ -232,94 +204,6 @@ class Form extends Component
         }
 
         return $res;
-    }
-
-    /**
-     * Get metadata
-     *
-     * @param string $key Data key
-     *
-     * @return mixed
-     */
-    public function getMetadata($key)
-    {
-        $data = $this->metadata->getValue();
-        $metadata = $this->encoder->decode($data);
-
-        if (!array_key_exists($key, $metadata)) {
-            return null;
-        }
-
-        return $metadata[$key];
-    }
-
-    /**
-     * Set metadata
-     *
-     * @param mixed $key   Data key
-     * @param mixed $value Data value
-     *
-     * @return $this
-     */
-    public function setMetadata($key, $value)
-    {
-        $data = $this->metadata->getValue();
-        $metadata = $this->encoder->decode($data);
-
-        $metadata[$key] = $value;
-
-        $data = $this->encoder->encode($metadata);
-        $this->metadata->setValue($data);
-
-        return $this;
-    }
-
-    /**
-     * Get data encoder
-     *
-     * @return Encoder
-     */
-    public function getEncoder()
-    {
-        return $this->encoder;
-    }
-
-    /**
-     * Set data encoder
-     *
-     * @param Encoder $encoder Encoder
-     *
-     * @return $this
-     */
-    public function setEncoder($encoder)
-    {
-        $this->encoder = $encoder;
-
-        return $this;
-    }
-
-    /**
-     * Set token encrypter
-     *
-     * @param Encrypter $encryter
-     *
-     * @return $this
-     */
-    public function setEncryter($encryter)
-    {
-        $this->encryter = $encryter;
-
-        return $this;
-    }
-
-    /**
-     * Get token encrypter
-     *
-     * @return Encrypter
-     */
-    public function getEncryter()
-    {
-        return $this->encryter;
     }
 
     /**
@@ -387,7 +271,7 @@ class Form extends Component
     }
 
     /**
-     * Populate form by data
+     * Populate form using data
      *
      * @param array $data Data
      *
@@ -400,10 +284,6 @@ class Form extends Component
                 $field = $this->fields[$name];
                 $field->setValue($value);
             }
-        }
-
-        if (isset($data[self::METADATA])) {
-            $this->metadata->setValue($data[self::METADATA]);
         }
 
         $this->service();
@@ -497,7 +377,7 @@ class Form extends Component
     /**
      * Inject values by object setters
      *
-     * @param Object  $object    Target object
+     * @param mixed   $object    Target object
      * @param boolean $populated Only populated values (skip nulls)
      *
      * @return $this
@@ -583,27 +463,6 @@ class Form extends Component
     }
 
     /**
-     * Generate token basing on field names and custom key
-     *
-     * @param string|null $salt Salt
-     *
-     * @return string
-     * @throws \InvalidArgumentException
-     */
-    public function tokenize($salt = null)
-    {
-        if ($salt !== null && !is_string($salt) && !is_numeric($salt)) {
-            throw new \InvalidArgumentException('Form token key should be a number or a string.');
-        }
-
-        $value = implode('', array_keys($this->fields));
-        $token = $this->encryter->setSalt($salt)
-            ->crypt($value);
-
-        return $token;
-    }
-
-    /**
      * Magic getter for $form->{fieldName}
      * Useful in view templates
      *
@@ -630,58 +489,12 @@ class Form extends Component
     {
         $field = null;
 
-        if ($name === self::METADATA) {
-            $field = $this->metadata;
-        } elseif (isset($this->fields[$name])) {
+        if (isset($this->fields[$name])) {
             $field = $this->fields[$name];
         } else {
             throw new \OutOfBoundsException(sprintf("Field '%s' does not exist.", $name));
         }
 
         return $field;
-    }
-
-    public function protect()
-    {
-        // TODO Save token also in session
-        $token = md5(uniqid(rand(), true));
-        $this->setMetadata(self::CSRF, $token);
-
-        return $this;
-    }
-
-    public function verify()
-    {
-        $token = $this->getMetadata(self::CSRF);
-
-        // TODO Compare with token from session
-        return true;
-    }
-
-    /**
-     * Load data via request
-     *
-     * @param Request $request Base request
-     * @param string  $method  Request method
-     *
-     * @return boolean
-     */
-    public function load(Request $request, $method)
-    {
-        if ($request->getMethod() !== $method) {
-            return false;
-        }
-
-        switch ($method) {
-        case Request::POST:
-            $this->populate($request->getPost());
-            break;
-        case
-            Request::GET:
-            $this->populate($request->getGet());
-            break;
-        }
-
-        return true;
     }
 }

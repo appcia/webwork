@@ -2,8 +2,8 @@
 
 namespace Appcia\Webwork\Resource;
 
-use Appcia\Webwork\Data\Form as BaseForm;
 use Appcia\Webwork\Data\Form\Field;
+use Appcia\Webwork\Data\Form\Secure;
 use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
 use Appcia\Webwork\Web\Context;
@@ -11,10 +11,8 @@ use Appcia\Webwork\Web\Request;
 
 /**
  * Form with resource service (upload with temporary state)
- *
- * @package Appcia\Webwork\Resource
  */
-class Form extends BaseForm
+class Form extends Secure
 {
     /**
      * Resource manager
@@ -190,33 +188,5 @@ class Form extends BaseForm
     public function isUnloaded()
     {
         return $this->unloaded;
-    }
-
-    /**
-     * Load data via request with resource upload service
-     *
-     * @param Request $request Base request
-     * @param string  $method  Request method
-     * @param mixed   $fields  Fields serviced with file upload
-     *
-     * @return boolean
-     */
-    public function request(Request $request, $method, $fields = null)
-    {
-        if ($request->getMethod() !== $method) {
-            return false;
-        }
-
-        switch ($method) {
-        case Request::POST:
-            $this->populate($request->getPost());
-            $this->upload($request->getFiles(), $fields);
-            break;
-        case Request::GET:
-            $this->populate($request->getGet());
-            break;
-        }
-
-        return true;
     }
 }

@@ -16,7 +16,12 @@ class Php extends Handler
      */
     public function __construct()
     {
-        session_start();
+        $id = session_id();
+
+        if (empty($id)) {
+            session_start();
+        }
+
         $this->data = & $_SESSION;
     }
 

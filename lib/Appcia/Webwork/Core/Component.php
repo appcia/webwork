@@ -104,8 +104,7 @@ abstract class Component
      */
     protected function isEmptyValue($value)
     {
-        $flag = ($value === '')
-            || ($value === null);
+        $flag = in_array($value, array(null, false, '', array()), true);
 
         return $flag;
     }
@@ -119,7 +118,7 @@ abstract class Component
      */
     protected function isArrayValue($value)
     {
-        $flag =  is_array($value)
+        $flag = is_array($value)
             || (($value instanceof \Traversable) && ($value instanceof \ArrayAccess));
 
         return $flag;
