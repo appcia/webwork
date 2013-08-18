@@ -69,8 +69,9 @@ abstract class Service {
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(Manager $manager)
     {
+        $this->manager = $manager;
         $this->monitor = new Monitor($this, static::$events);
         $this->config = array();
     }

@@ -5,6 +5,7 @@ namespace Appcia\Webwork\Resource;
 use Appcia\Webwork\Resource\Resource;
 use Appcia\Webwork\Resource\Service\Processor;
 use Appcia\Webwork\Resource\Service\Provider;
+use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
 
@@ -13,6 +14,9 @@ use Appcia\Webwork\System\File;
  */
 class Manager
 {
+    /**
+     * Predefined types
+     */
     const UPLOAD = 'upload';
 
     /**
@@ -104,50 +108,6 @@ class Manager
     }
 
     /**
-     * Save resource
-     *
-     * @param string $name   Resource name
-     * @param array  $params Path parameters
-     * @param mixed  $source Source file
-     *
-     * @return Resource|null
-     */
-    public function save($name, array $params, $source)
-    {
-        // Remove non-existing resource (hook for editing)
-        if ($source instanceof Resource && !$source->exists()) {
-            $source->remove();
-
-            return null;
-        }
-
-        // Set static parameters
-        $source = $this->retrieveFile($source);
-
-        if (!isset($params['ext'])) {
-            $params['ext'] = $source->getExtension();
-        }
-
-        $params['resource'] = $name;
-
-        // Target location determining
-        $resource = new Resource($this, $name, $params);
-        $target = $resource->getFile();
-
-        // Copy / download resource (only when it is required)
-        if ($source->equals($target)) {
-            return $resource;
-        }
-
-        $source->copy($target);
-
-        // Run processing based on origin resource
-        $resource->createTypes();
-
-        return $resource;
-    }
-
-    /**
      * Remove resource and sub types
      *
      * @param string $name   Resource name
@@ -205,39 +165,6 @@ class Manager
         }
 
         return $this;
-    }
-
-    /**
-     * Retrieve file from various arguments
-     *
-     * @param mixed $resource
-     *
-     * @return File
-     * @throws \InvalidArgumentException
-     */
-    public function retrieveFile($resource)
-    {
-        $file = null;
-
-        if (empty($resource)) {
-            throw new \InvalidArgumentException('Resource file is not specified.');
-        } else {
-            if ($resource instanceof Type) {
-                $file = $resource->getFile();
-            } elseif ($resource instanceof File) {
-                $file = $resource;
-            } elseif (is_string($resource)) {
-                $file = new File($resource);
-            } else {
-                throw new \InvalidArgumentException('Resource has unsupported type.');
-            }
-        }
-
-        if ($file === null) {
-            throw new \InvalidArgumentException(sprintf("Resource file does not exist."));
-        }
-
-        return $file;
     }
 
     /**
@@ -327,6 +254,83 @@ class Manager
     }
 
     /**
+     * Save resource
+     *
+     * @param string $name   Resource name
+     * @param array  $params Path parameters
+     * @param mixed  $source Source file
+     *
+     * @return Resource|null
+     */
+    public function save($name, array $params, $source)
+    {
+        // Remove non-existing resource (hook for editing)
+        if ($source instanceof Resource && !$source->exists()) {
+            $source->remove();
+
+            return null;
+        }
+
+        // Set static parameters
+        $source = $this->retrieveFile($source);
+
+        if (!isset($params['ext'])) {
+            $params['ext'] = $source->getExtension();
+        }
+
+        $params['resource'] = $name;
+
+        // Target location determining
+        $resource = new Resource($this, $name, $params);
+        $target = $resource->getFile();
+
+        // Copy / download resource (only when it is required)
+        if ($source->equals($target)) {
+            return $resource;
+        }
+
+        $source->copy($target);
+
+        // Run processing based on origin resource
+        $resource->createTypes();
+
+        return $resource;
+    }
+
+    /**
+     * Retrieve file from various arguments
+     *
+     * @param mixed $resource
+     *
+     * @return File
+     * @throws \InvalidArgumentException
+     */
+    public function retrieveFile($resource)
+    {
+        $file = null;
+
+        if (empty($resource)) {
+            throw new \InvalidArgumentException('Resource file is not specified.');
+        } else {
+            if ($resource instanceof Type) {
+                $file = $resource->getFile();
+            } elseif ($resource instanceof File) {
+                $file = $resource;
+            } elseif (is_string($resource)) {
+                $file = new File($resource);
+            } else {
+                throw new \InvalidArgumentException('Resource has unsupported type.');
+            }
+        }
+
+        if ($file === null) {
+            throw new \InvalidArgumentException(sprintf("Resource file does not exist."));
+        }
+
+        return $file;
+    }
+
+    /**
      * Get processor for creating derivative types basing on original resource
      *
      * @param string $type   Type name
@@ -339,39 +343,48 @@ class Manager
     public function getProcessor($type, array $config)
     {
         if (empty($config['processor'])) {
-            throw new \InvalidArgumentException(sprintf("Processor configuration for resource type '%s' not found", $type));
+            throw new \InvalidArgumentException(sprintf("Processor configuration not found for resource type '%s'.", $type));
         }
 
         if (empty($config['processor']['class'])) {
-            throw new \InvalidArgumentException(sprintf("Cannot find class name for resource type '%s'", $type));
+            throw new \InvalidArgumentException(sprintf("Processor class not found for resource type '%s'.", $type));
         }
 
         $class = $config['processor']['class'];
 
-        if (isset($this->processors[$class])) {
-            return $this->processors[$class];
+        if (!isset($this->processors[$class])) {
+            $this->processors[$class] = Config::create($config['processor'], null, array($this));
         }
 
-        if (!class_exists($class)) {
-            throw new \ErrorException(sprintf("Processor class '%s' does not exist", $class));
-        }
-
-        $processor = new $class();
-        $processor->setManager($this);
-
-        $this->processors[$class] = $processor;
-
-        return $processor;
+        return $this->processors[$class];
     }
 
     /**
-     * @param $type
+     * Get provider for getting resources from different sources
+     *
+     * @param string $type   Type name
+     * @param array  $config Configuration
      *
      * @return Provider
+     * @throws \InvalidArgumentException
      */
-    public function getProvider($type)
+    public function getProvider($type, array $config)
     {
-        // TODO Implementation
+        if (empty($config['provider'])) {
+            throw new \InvalidArgumentException(sprintf("Provider configuration not found for resource type '%s'.", $type));
+        }
+
+        if (empty($config['provider']['class'])) {
+            throw new \InvalidArgumentException(sprintf("Provider class not found for resource type '%s'.", $type));
+        }
+
+        $class = $config['provider']['class'];
+
+        if (!isset($this->providers[$class])) {
+            $this->providers[$class] = Config::create($config['provider'], null, array($this));
+        }
+
+        return $this->providers[$class];
     }
 
     /**

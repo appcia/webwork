@@ -377,17 +377,17 @@ class Form extends Component
     /**
      * Inject values by object setters
      *
-     * @param mixed   $object    Target object
-     * @param boolean $populated Only populated values (skip nulls)
+     * @param mixed   $object Target object
+     * @param array   $except Excluded property names
      *
      * @return $this
      */
-    public function inject($object, $populated = true)
+    public function inject($object, $except = array())
     {
         $data = $this->getData();
 
         foreach ($data as $property => $value) {
-            if ($populated && $value === null) {
+            if ($value === null || in_array($property, (array) $except)) {
                 continue;
             }
 
@@ -423,12 +423,12 @@ class Form extends Component
      * Suck values from object using getters or direct from array
      *
      * @param object|array $source  Source object or array
-     * @param boolean      $defined Only defined values (skip nulls)
+     * @param array        $except  Excluded field names
      *
      * @throws \InvalidArgumentException
      * @return $this
      */
-    public function suck($source, $defined = true)
+    public function suck($source, $except = array())
     {
         foreach ($this->fields as $property => $field) {
             if (is_object($source)) {
@@ -439,7 +439,7 @@ class Form extends Component
                     if (method_exists($source, $method) && is_callable($callback)) {
                         $value = call_user_func($callback);
 
-                        if ($value !== null || !$defined) {
+                        if ($value !== null && !in_array($property, (array) $except)) {
                             $field->setValue($value);
                         }
 
@@ -450,7 +450,7 @@ class Form extends Component
                 if (array_key_exists($property, $source)) {
                     $value = $source[$property];
 
-                    if ($value !== null || !$defined) {
+                    if ($value !== null && !in_array($property, (array) $except)) {
                         $field->setValue($value);
                     }
                 }

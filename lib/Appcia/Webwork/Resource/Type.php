@@ -113,6 +113,7 @@ class Type
      * @param array  $params Parameters for path
      *
      * @return $this|null
+     * @throws \InvalidArgumentException
      */
     protected function determineFile($path, array $params)
     {
@@ -122,6 +123,10 @@ class Type
         }
 
         foreach ($params as $key => $value) {
+            if ($value === null) {
+                throw new \InvalidArgumentException(sprintf("Resource parameter '%s' value is not specified.", $key));
+            }
+
             $params['{' . $key . '}'] = $value;
             unset($params[$key]);
         }

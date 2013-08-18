@@ -118,11 +118,12 @@ class Objector
      * Create object by definition from configuration
      *
      * @param string|array $base Base class name
+     * @param array        $args Constructor arguments
      *
      * @return mixed
      * @throws \InvalidArgumentException
      */
-    public function instantiate($base = null)
+    public function instantiate($base = null, $args = array())
     {
         $name = null;
         if (isset($this->data['class'])) {
@@ -166,7 +167,9 @@ class Objector
             }
         }
 
-        $object = new $class();
+        $reflector = new \ReflectionClass($class);
+        $object = $reflector->newInstanceArgs($args);
+
         $this->inject($object);
 
         return $object;
@@ -175,14 +178,15 @@ class Objector
     /**
      * Create object by mixed configuration data
      *
-     * @param mixed       $config
-     * @param string|null $base
+     * @param mixed       $config Configuration data
+     * @param string|null $base   Base class
+     * @param array       $args   Constructor arguments
      *
      * @throws \InvalidArgumentException
      *
      * @return mixed
      */
-    public static function create($config = null, $base = null)
+    public static function create($config = null, $base = null, $args = array())
     {
         if (is_string($config)) {
             $config = new self(array('class' => $config));
@@ -192,7 +196,7 @@ class Objector
             throw new \InvalidArgumentException("Object creation data is invalid.");
         }
 
-        $object = $config->instantiate($base);
+        $object = $config->instantiate($base, $args);
 
         return $object;
     }

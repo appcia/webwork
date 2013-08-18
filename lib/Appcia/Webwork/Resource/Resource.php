@@ -98,8 +98,8 @@ class Resource extends Type
             $this->types = $this->loadTypes();
         }
 
-        if (!isset($type, $this->types)) {
-            throw new \OutOfBoundsException(sprintf("Resource type '%s' is invalid.", $type));
+        if (!isset($this->types[$type])) {
+            throw new \OutOfBoundsException(sprintf("Resource type '%s' does not exist.", $type));
         }
 
         return $this->types[$type];
