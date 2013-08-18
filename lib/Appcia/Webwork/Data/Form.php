@@ -62,18 +62,14 @@ class Form extends Component
 
     /**
      * Prepare built field
-     * Propagate use context for components
      *
      * @return $this
      */
     protected function prepare()
     {
         foreach ($this->fields as $field) {
-            foreach ($field->getComponents() as $component) {
-                $component->setContext($this->context);
-            }
-
-            $field->prepare();
+            $field->setContext($this->context)
+                ->prepare();
         }
 
         return $this;

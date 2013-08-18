@@ -73,6 +73,21 @@ abstract class Field extends Component
     }
 
     /**
+     * Prepare field before using it
+     * Called by form when built
+     *
+     * @return $this
+     */
+    public function prepare()
+    {
+        foreach ($this->getComponents() as $component) {
+            $component->setContext($this->context);
+        }
+
+        return $this;
+    }
+
+    /**
      * Set name
      *
      * @param string $name Name
