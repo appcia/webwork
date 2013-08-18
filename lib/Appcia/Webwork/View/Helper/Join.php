@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Join extends Helper
@@ -16,11 +17,11 @@ class Join extends Helper
      */
     public function join($data, $separator = ', ')
     {
-        if ($this->isArrayValue($data)) {
+        if (Value::isArray($data)) {
             $values = array();
 
             foreach ($data as $value) {
-                $value = $this->getStringValue($value);
+                $value = Value::getString($value);
 
                 if ($value !== null) {
                     $values[] = $value;

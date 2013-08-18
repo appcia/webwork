@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class RouteUrl extends Helper
@@ -16,7 +17,7 @@ class RouteUrl extends Helper
      */
     public function routeUrl($name = null, $params = null)
     {
-        $name = $this->getStringValue($name);
+        $name = Value::getString($name);
         if ($name === null) {
             return null;
         }

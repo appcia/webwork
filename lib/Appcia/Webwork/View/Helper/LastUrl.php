@@ -19,7 +19,9 @@ class LastUrl extends Helper
             ->getApp()
             ->get('tracker');
 
-        $url = $different ? $tracker->getPreviousUrl() : $tracker->getLastUrl();
+        $url = $different
+            ? $tracker->getPreviousUrl()
+            : $tracker->getLastUrl();
 
         return $url;
     }

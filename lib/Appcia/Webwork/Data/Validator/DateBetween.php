@@ -4,6 +4,7 @@ namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Data\Value;
 
 /**
  * Check whether date belongs to range
@@ -37,11 +38,23 @@ class DateBetween extends Validator
      * @param mixed   $left   Date or time
      * @param mixed   $right  Date or time
      * @param boolean $edges  Include or exclude interval edges
+     * 
+     * @throws \InvalidArgumentException
      */
     public function __construct($left, $right, $edges = true)
     {
-        $this->left = $this->getDateValue($left);
-        $this->right = $this->getDateValue($right);
+        $left = Value::getDate($left);
+        if ($left === null) {
+            throw new \InvalidArgumentException("Date between left edge of interval is invalid.");
+        }
+
+        $right = Value::getDate($right);
+        if ($right === null) {
+            throw new \InvalidArgumentException("Date between right edge of interval is invalid.");
+        }
+        
+        $this->left = $left;
+        $this->right = $right;
         $this->edges = $edges;
     }
 
@@ -50,11 +63,11 @@ class DateBetween extends Validator
      */
     public function validate($value)
     {
-        if ($this->isEmptyValue($value)) {
+        if (Value::isEmpty($value)) {
             return true;
         }
 
-        $value = $this->getDateValue($value);
+        $value = Value::getDate($value);
         if ($value === null) {
             return false;
         }

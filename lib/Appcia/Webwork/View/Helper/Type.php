@@ -13,7 +13,7 @@ class Type extends Helper
     const ARR = 'array';
     const OBJECT = 'object';
     const RESOURCE = 'resource';
-    const NULL = 'NULL';
+    const NULL = 'null';
     const UNKNOWN = 'unknown';
 
     /**

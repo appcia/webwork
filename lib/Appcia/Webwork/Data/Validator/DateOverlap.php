@@ -4,6 +4,7 @@ namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Data\Value;
 
 /**
  * Check whether two date ranges do not overlaps itself
@@ -21,12 +22,12 @@ class DateOverlap extends DateBetween
             return false;
         }
 
-        if ($this->isEmptyValue($values[0]) && $this->isEmptyValue($values[1])) {
+        if (Value::isEmpty($values[0]) && Value::isEmpty($values[1])) {
             return true;
         }
 
-        $left = $this->getDateValue($values[0]);
-        $right = $this->getDateValue($values[1]);
+        $left = Value::getDate($values[0]);
+        $right = Value::getDate($values[1]);
 
         $between = new DateBetween($left, $right);
 

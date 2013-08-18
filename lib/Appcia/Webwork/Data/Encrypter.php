@@ -4,8 +4,6 @@ namespace Appcia\Webwork\Data;
 
 /**
  * Data encrypter
- *
- * @package Appcia\Webwork\Data
  */
 class Encrypter
 {

@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Data\Value;
 
 class Date extends Validator
 {
@@ -35,11 +36,11 @@ class Date extends Validator
      */
     public function validate($value)
     {
-        if ($this->isEmptyValue($value)) {
+        if (Value::isEmpty($value)) {
             return true;
         }
 
-        $value = $this->getStringValue($value);
+        $value = Value::getString($value);
         if ($value === null) {
             return false;
         }

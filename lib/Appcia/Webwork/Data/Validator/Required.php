@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Data\Value;
 
 class Required extends Validator
 {
@@ -11,15 +12,15 @@ class Required extends Validator
      */
     public function validate($value)
     {
-        if ($this->isEmptyValue($value)) {
+        if (Value::isEmpty($value)) {
             return false;
         }
 
-        if ($this->isArrayValue($value)) {
+        if (Value::isArray($value)) {
             $flag = !empty($value);
         } else {
-            $value = $this->getStringValue($value);
-            $flag = !empty($value);
+            $value = Value::getString($value);
+            $flag = !Value::isEmpty($value);
         }
 
         return $flag;

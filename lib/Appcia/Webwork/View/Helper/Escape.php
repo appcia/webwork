@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Escape extends Helper
@@ -15,7 +16,7 @@ class Escape extends Helper
      */
     public function escape($value)
     {
-        $value = $this->getStringValue($value);
+        $value = Value::getString($value);
         if ($value === null) {
             return null;
         }

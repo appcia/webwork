@@ -5,6 +5,7 @@ namespace Appcia\Webwork\Data\Form;
 use Appcia\Webwork\Core\Component;
 use Appcia\Webwork\Data\Filter;
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\Storage\Config;
 
 /**
@@ -73,21 +74,6 @@ abstract class Field extends Component
     }
 
     /**
-     * Prepare field before using it
-     * Called by form when built
-     *
-     * @return $this
-     */
-    public function prepare()
-    {
-        foreach ($this->getComponents() as $component) {
-            $component->setContext($this->context);
-        }
-
-        return $this;
-    }
-
-    /**
      * Set name
      *
      * @param string $name Name
@@ -104,6 +90,36 @@ abstract class Field extends Component
         $this->name = (string) $name;
 
         return $this;
+    }
+
+    /**
+     * Prepare field before using it
+     * Called by form when built
+     *
+     * @return $this
+     */
+    public function prepare()
+    {
+        foreach ($this->getComponents() as $component) {
+            $component->setContext($this->context);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get all components (filters and validators)
+     *
+     * @return Component[]
+     */
+    public function getComponents()
+    {
+        $components = array_merge(
+            array_values($this->filters),
+            array_values($this->validators)
+        );
+
+        return $components;
     }
 
     /**
@@ -270,21 +286,6 @@ abstract class Field extends Component
     }
 
     /**
-     * Get all components (filters and validators)
-     *
-     * @return Component[]
-     */
-    public function getComponents()
-    {
-        $components = array_merge(
-            array_values($this->filters),
-            array_values($this->validators)
-        );
-
-        return $components;
-    }
-
-    /**
      * Get additional data
      *
      * @param string $key Key
@@ -356,7 +357,7 @@ abstract class Field extends Component
      */
     public function __toString()
     {
-        return $this->getStringValue($this->value);
+        return (string) Value::getString($this->value);
     }
 
     /**
@@ -366,7 +367,7 @@ abstract class Field extends Component
      */
     public function isEmpty()
     {
-        return $this->isEmptyValue($this->value);
+        return Value::isEmpty($this->value);
     }
 
     /**

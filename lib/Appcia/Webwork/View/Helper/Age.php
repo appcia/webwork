@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Age extends Helper
@@ -15,11 +16,11 @@ class Age extends Helper
      */
     public function age($date)
     {
-        if ($this->isEmptyValue($date)) {
+        if (Value::isEmpty($date)) {
             return null;
         }
 
-        $date = $this->getDateValue($date);
+        $date = Value::getDate($date);
         $now = new \DateTime('now');
 
         $age = $now->diff($date)->y;

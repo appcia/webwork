@@ -9,8 +9,6 @@ use Appcia\Webwork\Web\Context;
 
 /**
  * General utility for servicing web forms (data manipulation)
- *
- * @package Appcia\Webwork\Resource
  */
 class Form extends Component
 {
@@ -169,37 +167,12 @@ class Form extends Component
                 unset($match[0]);
                 $match[] = $field;
 
-                $fields = $this->nestArray($match);
+                $fields = Arr::nest($match);
                 $result = array_merge_recursive($result, $fields);
             }
         }
 
         return $result;
-    }
-
-    /**
-     * Create nested array from flat
-     * Creates a branch, merging with another produces tree
-     *
-     * @param array $arr Flat 1D array
-     *
-     * @return array
-     */
-    private function nestArray($arr)
-    {
-        $res = array();
-        $curr = & $res;
-
-        foreach ($arr as $val) {
-            if ($val === end($arr)) {
-                $curr = $val;
-            } else {
-                $curr[$val] = array();
-                $curr = & $curr[$val];
-            }
-        }
-
-        return $res;
     }
 
     /**
@@ -212,7 +185,7 @@ class Form extends Component
     public function has($name)
     {
         $value = $this->get($name);
-        $has = !$this->isEmptyValue($value);
+        $has = !Value::isEmpty($value);
 
         return $has;
     }
@@ -373,8 +346,8 @@ class Form extends Component
     /**
      * Inject values by object setters
      *
-     * @param mixed   $object Target object
-     * @param array   $except Excluded property names
+     * @param mixed $object Target object
+     * @param array $except Excluded property names
      *
      * @return $this
      */

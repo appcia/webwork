@@ -14,6 +14,16 @@ class Set extends Field
     /**
      * {@inheritdoc}
      */
+    public function setValue($value)
+    {
+        $value = (array) $value;
+
+        return parent::setValue($value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function filter()
     {
         if (is_array($this->value)) {

@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class FirstLower extends Helper
@@ -16,7 +17,7 @@ class FirstLower extends Helper
      */
     public function firstLower($value, $upperRest = false)
     {
-        $value = $this->getStringValue($value);
+        $value = Value::getString($value);
         if ($value === null) {
             return null;
         }

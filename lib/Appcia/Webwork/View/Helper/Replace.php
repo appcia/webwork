@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Replace extends Helper
@@ -11,18 +12,18 @@ class Replace extends Helper
      *
      * @param string $search  Search
      * @param string $replace Replace
-     * @param string $subject Subject
+     * @param string $value   Subject
      *
      * @return string
      */
-    public function replace($subject, $search, $replace)
+    public function replace($value, $search, $replace)
     {
-        $subject = $this->getStringValue($subject);
-        if ($subject === null) {
+        $value = Value::getString($value);
+        if ($value === null) {
             return null;
         }
 
-        $value = str_replace($search, $replace, $subject);
+        $value = str_replace($search, $replace, $value);
 
         return $value;
     }

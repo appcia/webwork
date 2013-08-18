@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Asset extends Helper
@@ -32,7 +33,7 @@ class Asset extends Helper
      */
     public function asset($file)
     {
-        if ($this->isEmptyValue($file)) {
+        if (Value::isEmpty($file)) {
             return null;
         }
 

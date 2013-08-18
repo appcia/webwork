@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Trim extends Helper
@@ -9,19 +10,19 @@ class Trim extends Helper
     /**
      * Caller
      *
-     * @param mixed $data Data
+     * @param mixed $value Data
      *
      * @return mixed
      */
-    public function trim($data)
+    public function trim($value)
     {
-        $data = $this->getStringValue($data);
-        if ($data === null) {
+        $value = Value::getString($value);
+        if ($value === null) {
             return null;
         }
 
-        $data = trim($data);
+        $value = trim($value);
 
-        return $data;
+        return $value;
     }
 }

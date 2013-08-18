@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Date extends Helper
@@ -17,17 +18,16 @@ class Date extends Helper
      */
     public function date($value = null, $format = '%Y-%m-%d %H:%M:%S')
     {
-        if ($this->isEmptyValue($value)) {
+        if (Value::isEmpty($value)) {
             return null;
         }
 
-        $value = $this->getDateValue($value);
-
+        $value = Value::getDate($value);
         if ($value === null) {
             return null;
         }
 
-        $result = strftime($format, $value);
+        $result = strftime($format, $value->getTimestamp());
 
         return $result;
     }

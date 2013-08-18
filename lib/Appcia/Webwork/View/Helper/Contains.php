@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Contains extends Helper
@@ -16,7 +17,7 @@ class Contains extends Helper
      */
     public function contains($value, $set)
     {
-        if ($this->isEmptyValue($value) || !$this->isArrayValue($set)) {
+        if (Value::isEmpty($value) || !Value::isArray($set)) {
             return false;
         }
 

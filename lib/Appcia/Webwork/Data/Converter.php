@@ -4,8 +4,6 @@ namespace Appcia\Webwork\Data;
 
 /**
  * Text converter
- *
- * @package Appcia\Webwork\Data
  */
 class Converter
 {

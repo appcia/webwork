@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Each extends Helper
@@ -16,7 +17,7 @@ class Each extends Helper
      */
     public function each($values, \Closure $callback)
     {
-        if (!$this->isArrayValue($values) || !is_callable($callback)) {
+        if (!Value::isArray($values) || !is_callable($callback)) {
             return array();
         }
 

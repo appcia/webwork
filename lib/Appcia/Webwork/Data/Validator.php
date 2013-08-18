@@ -6,8 +6,6 @@ use Appcia\Webwork\Core\Component;
 
 /**
  * Base for data validators
- *
- * @package Appcia\Webwork\Data
  */
 abstract class Validator extends Component {
 

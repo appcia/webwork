@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Renderer;
 
+use Appcia\Webwork\Data\Arr;
 use Appcia\Webwork\View\Helper;
 use Appcia\Webwork\View\Renderer;
 
@@ -39,7 +40,7 @@ class Ini extends Renderer
     {
         $max = null;
         foreach ($data as $value) {
-            $depth = $this->calculateDepth($value) + 1;
+            $depth = Arr::depth($value) + 1;
 
             if ($max === null) {
                 $max = $depth;
@@ -54,33 +55,6 @@ class Ini extends Renderer
         $max = (int) $max;
         if ($max > 2) {
             throw new \InvalidArgumentException('Rendering INI format expects only 1 or 2 dimensional array.');
-        }
-
-        return $max;
-    }
-
-    /**
-     * Calculate data depth
-     *
-     * @param array $data Data
-     *
-     * @return int
-     */
-    protected function calculateDepth($data)
-    {
-        if (!is_array($data)) {
-            return 0;
-        }
-
-        $max = 1;
-        foreach ($data as $value) {
-            if (is_array($value)) {
-                $depth = $this->calculateDepth($value) + 1;
-
-                if ($depth > $max) {
-                    $max = $depth;
-                }
-            }
         }
 
         return $max;

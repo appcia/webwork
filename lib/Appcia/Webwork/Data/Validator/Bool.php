@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\Exception\Exception;
 
 class Bool extends Validator
@@ -12,7 +13,7 @@ class Bool extends Validator
      */
     public function validate($value)
     {
-        if ($this->isEmptyValue($value)) {
+        if (Value::isEmpty($value)) {
             return true;
         }
 

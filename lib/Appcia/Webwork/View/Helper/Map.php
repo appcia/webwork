@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\View\Helper;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
 
 class Map extends Helper
@@ -16,7 +17,7 @@ class Map extends Helper
      */
     public function map($data, \Closure $callback)
     {
-        if (!$this->isArrayValue($data)) {
+        if (!Value::isArray($data)) {
             return array();
         } elseif (!is_callable($callback)) {
             return $data;

@@ -75,7 +75,7 @@ abstract class Component
     public function getContext()
     {
         if ($this->context === null) {
-            throw new \LogicException(sprintf("Component '%s' is not usable without any context", $this->name));
+            throw new \LogicException(sprintf("Component '%s' is not usable without any context.", $this->name));
         }
 
         return $this->context;
@@ -93,78 +93,5 @@ abstract class Component
         $this->context = $context;
 
         return $this;
-    }
-
-    /**
-     * Check whether value seems to be empty
-     *
-     * @param $value
-     *
-     * @return boolean
-     */
-    protected function isEmptyValue($value)
-    {
-        $flag = in_array($value, array(null, false, '', array()), true);
-
-        return $flag;
-    }
-
-    /**
-     * Check whether values could be iterated with foreach loop, accessed like an array
-     *
-     * @param mixed $value Value
-     *
-     * @return boolean
-     */
-    protected function isArrayValue($value)
-    {
-        $flag = is_array($value)
-            || (($value instanceof \Traversable) && ($value instanceof \ArrayAccess));
-
-        return $flag;
-    }
-
-    /**
-     * Get value treated as string
-     *
-     * @param mixed $value Value
-     *
-     * @return string|null
-     */
-    protected function getStringValue($value)
-    {
-        $flag = !(!is_scalar($value)
-            && !(is_object($value) && method_exists($value, '__toString')));
-
-        if ($flag) {
-            $value = (string) $value;
-        } else {
-            $value = null;
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get timestamp from various arguments
-     *
-     * @param mixed $value
-     *
-     * @return int|null
-     */
-    protected function getDateValue($value)
-    {
-        if ($value instanceof \DateTime) {
-            $value = $value->getTimestamp();
-        } elseif (!is_numeric($value)) {
-            $value = $this->getStringValue($value);
-            $value = strtotime($value);
-
-            if ($value === false) {
-                $value = null;
-            }
-        }
-
-        return (int) $value;
     }
 }

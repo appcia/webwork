@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Data\Validator;
 
 use Appcia\Webwork\Data\Validator;
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\Exception\Exception;
 
 class Length extends Validator
@@ -50,11 +51,11 @@ class Length extends Validator
      */
     public function validate($value)
     {
-        if ($this->isEmptyValue($value)) {
+        if (Value::isEmpty($value)) {
             return true;
         }
 
-        $value = $this->getStringValue($value);
+        $value = Value::getString($value);
         if ($value === null) {
             return false;
         }
