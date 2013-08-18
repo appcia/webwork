@@ -7,24 +7,24 @@ use Appcia\Webwork\Model\Mask;
 /**
  * Mask with named options
  */
-class Options extends Mask
+class Options extends Mask implements \ArrayAccess
 {
     /**
      * Mapped mask options to names
      *
      * @var array
      */
-    protected $options;
+    protected $map;
 
     /**
      * Constructor
      *
+     * @param array $map
      * @param int   $value
-     * @param array $options
      */
-    public function __construct(array $options = array(), $value = 0)
+    public function __construct(array $map = array(), $value = 0)
     {
-        $this->setOptions($options);
+        $this->setMap($map);
         parent::__construct($value);
     }
 
@@ -36,7 +36,7 @@ class Options extends Mask
     public function getAll()
     {
         $values = array();
-        foreach ($this->options as $option) {
+        foreach ($this->map as $option) {
             $values[$option] = $this->is($option);
         }
 
@@ -69,12 +69,12 @@ class Options extends Mask
     {
         $option = null;
         if (is_string($name)) {
-            $option = array_search($name, $this->options);
+            $option = array_search($name, $this->map);
             if ($option === false) {
                 throw new \OutOfBoundsException(sprintf("Option by name '%s' not found.", $name));
             }
         } else {
-            if (!array_key_exists($name, $this->options)) {
+            if (!array_key_exists($name, $this->map)) {
                 throw new \OutOfBoundsException(sprintf("Option '%s' does not exist.", $name));
             }
 
@@ -87,13 +87,13 @@ class Options extends Mask
     /**
      * Set mask options using names
      *
-     * @param array $values
+     * @param array $options Options
      *
      * @return $this
      */
-    public function setAll(array $values)
+    public function setAll(array $options)
     {
-        foreach ($values as $option => $value) {
+        foreach ($options as $option => $value) {
             $this->set($option, $value);
         }
 
@@ -120,9 +120,9 @@ class Options extends Mask
      *
      * @return array
      */
-    public function getOptions()
+    public function getMap()
     {
-        return $this->options;
+        return $this->map;
     }
 
     /**
@@ -132,10 +132,54 @@ class Options extends Mask
      *
      * @return $this
      */
-    public function setOptions($options)
+    public function setMap($options)
     {
-        $this->options = $options;
+        $this->map = $options;
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetExists($option)
+    {
+        return $this->has($option);
+    }
+
+    /**
+     * Check whether option exist
+     *
+     * @param string $option Option name
+     *
+     * @return boolean
+     */
+    public function has($option)
+    {
+        return in_array($option, $this->map);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetGet($option)
+    {
+        return $this->is($option);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetSet($option, $value)
+    {
+        $this->set($option, $value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetUnset($option)
+    {
+        $this->set($option, false);
     }
 }

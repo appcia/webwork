@@ -146,26 +146,25 @@ abstract class Component
     }
 
     /**
-     * Get value treated as date time object
+     * Get timestamp from various arguments
      *
      * @param mixed $value
      *
-     * @return \DateTime|null
+     * @return int|null
      */
     protected function getDateValue($value)
     {
         if ($value instanceof \DateTime) {
-            return $value;
+            $value = $value->getTimestamp();
+        } elseif (!is_numeric($value)) {
+            $value = $this->getStringValue($value);
+            $value = strtotime($value);
+
+            if ($value === false) {
+                $value = null;
+            }
         }
 
-        $value = $this->getStringValue($value);
-
-        try {
-            $value = new \DateTime($value);
-        } catch (\Exception $e) {
-            return null;
-        }
-
-        return $value;
+        return (int) $value;
     }
 }

@@ -25,7 +25,7 @@ class Date extends Validator
      *
      * @param string $format
      */
-    public function __construct($format = self::DATE_TIME)
+    public function __construct($format = null)
     {
         $this->format = $format;
     }
@@ -44,8 +44,12 @@ class Date extends Validator
             return false;
         }
 
-        $date = \DateTime::createFromFormat($this->format, $value);
-        $flag = ($date !== false);
+        $flag = null;
+        if ($this->format === null) {
+            $flag = (strtotime($value) !== false);
+        } else {
+            $flag = (\DateTime::createFromFormat($this->format, $value) !== false);
+        }
 
         return $flag;
     }

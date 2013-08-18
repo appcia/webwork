@@ -10,20 +10,8 @@ use Appcia\Webwork\Storage\Config;
 /**
  * Form field
  */
-abstract class Field
+abstract class Field extends Component
 {
-    /**
-     * Creator
-     *
-     * @param mixed $data Config data
-     *
-     * @return $this
-     */
-    public static function create($data)
-    {
-        return Config::create($data, get_called_class());
-    }
-
     /**
      * Filtered value which is tested by validation
      *
@@ -51,13 +39,6 @@ abstract class Field
      * @var boolean
      */
     protected $valid;
-
-    /**
-     * Name
-     *
-     * @var string
-     */
-    protected $name;
 
     /**
      * Unfiltered value
@@ -89,27 +70,6 @@ abstract class Field
 
         $this->setName($name);
         $this->setValue($value);
-    }
-
-    /**
-     * Prepare field to before using
-     * Called by form when built
-     *
-     * @return $this
-     */
-    public function prepare()
-    {
-        return $this;
-    }
-
-    /**
-     * Get name
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
     }
 
     /**
@@ -154,43 +114,6 @@ abstract class Field
         $this->rawValue = $value;
 
         return $this;
-    }
-
-    /**
-     * Check whether value is empty
-     *
-     * @return boolean
-     */
-    public function isEmpty()
-    {
-        return empty($this->value);
-    }
-
-    /**
-     * Check how value evaluates to true or false
-     *
-     * @return boolean
-     */
-    public function isEnabled()
-    {
-        return (bool) $this->value;
-    }
-
-    /**
-     * Check if value belongs to set
-     * Suppose that value is an array
-     *
-     * @param mixed $value Value
-     *
-     * @return boolean
-     */
-    public function contains($value)
-    {
-        if (!is_array($this->value)) {
-            return false;
-        }
-
-        return in_array($value, $this->value);
     }
 
     /**
@@ -418,6 +341,55 @@ abstract class Field
      */
     public function __toString()
     {
-        return (string) $this->value;
+        return $this->getStringValue($this->value);
+    }
+
+    /**
+     * Check whether value is empty
+     *
+     * @return boolean
+     */
+    public function isEmpty()
+    {
+        return $this->isEmptyValue($this->value);
+    }
+
+    /**
+     * Check value evaluated to boolean
+     *
+     * @return boolean
+     */
+    public function isEnabled()
+    {
+        return (bool) $this->value;
+    }
+
+    /**
+     * Check if value belongs to set
+     *
+     * @param mixed   $value Value
+     * @param boolean $keys  Check value key and corresponding value
+     *
+     * @return boolean
+     * @throws \InvalidArgumentException
+     */
+    public function isContained($value, $keys = true)
+    {
+        $flag = null;
+        if ($this->value instanceof \ArrayAccess) {
+            $flag = $keys
+                && isset($this->value[$value])
+                && $this->value[$value];
+        } elseif (is_array($this->value)) {
+            $flag = in_array($value, $this->value)
+                || ($keys && (array_key_exists($value, $this->value) && $this->value[$value]));
+        } else {
+            throw new \InvalidArgumentException(sprintf(
+                "Field '%s' value is not a set of values so containment cannot be checked.",
+                $this->name
+            ));
+        }
+
+        return $flag;
     }
 }

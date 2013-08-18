@@ -177,7 +177,7 @@ class Secure extends Form
     public function verify()
     {
         $metadata = $this->getMetadata(self::CSRF);
-        $session = $this->session->get(self::CSRF);
+        $session = $this->session->grab(self::CSRF);
 
         $flag = ($metadata == $session);
 

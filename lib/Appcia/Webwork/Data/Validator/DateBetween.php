@@ -15,12 +15,12 @@ use Appcia\Webwork\Data\Validator;
 class DateBetween extends Validator
 {
     /**
-     * @var mixed
+     * @var int|null
      */
     protected $left;
 
     /**
-     * @var mixed
+     * @var int|null
      */
     protected $right;
 
@@ -34,9 +34,9 @@ class DateBetween extends Validator
     /**
      * Constructor
      *
-     * @param \DateTime|string $left   Date or time
-     * @param \DateTime|string $right  Date or time
-     * @param boolean          $edges  Include or exclude interval edges
+     * @param mixed   $left   Date or time
+     * @param mixed   $right  Date or time
+     * @param boolean $edges  Include or exclude interval edges
      */
     public function __construct($left, $right, $edges = true)
     {
@@ -60,8 +60,8 @@ class DateBetween extends Validator
         }
 
         $v = $value->getTimestamp();
-        $l = $this->left === null ? -INF : $this->left->getTimestamp();
-        $r = $this->right === null ? INF : $this->right->getTimestamp();
+        $l = $this->left === null ? -INF : $this->left;
+        $r = $this->right === null ? INF : $this->right;
 
         $flag = null;
         if ($this->edges) {

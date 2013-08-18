@@ -46,11 +46,15 @@ class Session
     /**
      * Set data encoder
      *
-     * @param Encoder|string $encoder
+     * @param Encoder $encoder
+     *
+     * @return $this
      */
     public function setEncoder(Encoder $encoder)
     {
         $this->encoder = $encoder;
+
+        return $this;
     }
 
     /**
@@ -95,11 +99,26 @@ class Session
             throw new \InvalidArgumentException(sprintf("Session key '%s' does not exist", $key));
         }
 
-        $value = $this->handler[$key];
+        $value = $this->load($key);
 
-        if ($this->encoder !== null) {
-            $value = $this->encoder->decode($value);
+        return $value;
+    }
+
+    /**
+     * Grab stored value by key
+     *
+     * @param string $key     Key
+     * @param mixed  $default Default value
+     *
+     * @return mixed|null
+     */
+    public function grab($key, $default = null)
+    {
+        if (!$this->has($key)) {
+            return $default;
         }
+
+        $value = $this->load($key);
 
         return $value;
     }
@@ -114,11 +133,7 @@ class Session
      */
     public function set($key, $value)
     {
-        if ($this->encoder !== null) {
-            $value = $this->encoder->encode($value);
-        }
-
-        $this->handler[$key] = $value;
+        $this->save($key, $value);
 
         return $this;
     }
@@ -147,5 +162,44 @@ class Session
         unset($this->handler[$key]);
 
         return $this;
+    }
+
+    /**
+     * Save value using handler
+     *
+     * @param string $key   Key
+     * @param mixed  $value Value
+     *
+     * @return $this
+     */
+    protected function save($key, $value)
+    {
+        if ($this->encoder !== null) {
+            $value = $this->encoder->encode($value);
+        }
+
+        $this->handler[$key] = $value;
+
+        return $this;
+    }
+
+    /**
+     * Load value using handler
+     *
+     * @param string $key Key
+     *
+     * @return mixed
+     */
+    protected function load($key)
+    {
+        $value = $this->handler[$key];
+
+        if ($this->encoder !== null) {
+            $value = $this->encoder->decode($value);
+
+            return $value;
+        }
+
+        return $value;
     }
 }

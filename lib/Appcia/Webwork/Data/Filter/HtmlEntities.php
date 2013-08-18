@@ -2,8 +2,8 @@
 
 namespace Appcia\Webwork\Data\Filter;
 
-use Appcia\Webwork\Context;
 use Appcia\Webwork\Data\Filter;
+use Appcia\Webwork\Web\Context;
 
 class HtmlEntities extends Filter
 {
