@@ -164,18 +164,6 @@ abstract class Field extends Component
     }
 
     /**
-     * Check whether filter is registered
-     *
-     * @param string $name Filter name
-     *
-     * @return boolean
-     */
-    public function hasFilter($name)
-    {
-        return isset($this->filters[$name]);
-    }
-
-    /**
      * Get registered filters
      *
      * @return array
@@ -222,18 +210,6 @@ abstract class Field extends Component
         $this->filters[$name] = $filter;
 
         return $this;
-    }
-
-    /**
-     * Check whether validator is registered
-     *
-     * @param string $name Validator name
-     *
-     * @return boolean
-     */
-    public function hasValidator($name)
-    {
-        return isset($this->validators[$name]);
     }
 
     /**
