@@ -2,11 +2,12 @@
 
 namespace Appcia\Webwork\Resource;
 
-use Appcia\Webwork\Web\Context;
 use Appcia\Webwork\Data\Form as BaseForm;
 use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
+use Appcia\Webwork\Web\Context;
+use Appcia\Webwork\Web\Request;
 
 /**
  * Form with resource service (upload with temporary state)
@@ -55,12 +56,13 @@ class Form extends BaseForm
      * Load resources using resource manager
      * Upload files, retrieve previously uploaded from temporaries
      *
+     * @param mixed        $files  Files
      * @param array|string $fields Field names
      *
      * @return $this
      * @throws \LogicException
      */
-    public function load($fields = null)
+    public function upload($files, $fields = null)
     {
         $token = $this->getMetadata(self::CSRF);
         if ($token === null) {
@@ -72,23 +74,29 @@ class Form extends BaseForm
                 continue;
             }
 
-            $resource = null;
+            if (!isset($files[$name])) {
+                throw new \LogicException(sprintf("Form file field '%s' cannot be loaded. No data provided.", $name));
+            }
+
+            $data = $this->manager->normalizeUpload($files[$name]);
             $params = array(
                 'token' => $token,
                 'key' => $name
             );
 
-            $value = $field->getValue();
-            $data = $this->manager->normalizeUpload($value);
-
+            // Try to get from upload, if not get from temporary location
+            $resource = null;
             if (!empty($data)) {
                 $resource = $this->manager->upload($data, $params);
             } else {
                 $resource = $this->manager->load(Manager::UPLOAD, $params);
             }
 
-            $field->setValue($resource);
-            $this->loaded = true;
+            // Set if exists
+            if ($resource->exists()) {
+                $field->setValue($resource);
+                $this->loaded = true;
+            }
         }
 
         return $this;
@@ -135,7 +143,8 @@ class Form extends BaseForm
                 continue;
             }
 
-            $this->manager->remove(
+            // Temporary resource from upload
+            $resource = $this->manager->load(
                 Manager::UPLOAD,
                 array(
                     'token' => $token,
@@ -143,30 +152,71 @@ class Form extends BaseForm
                 )
             );
 
-            $field->setValue(null);
-            $this->unloaded = true;
+            // Previously created from editing
+            if (!$resource->exists()) {
+                $value = $field->getValue();
+                if ($value instanceof Resource) {
+                    $resource = $value;
+                }
+            }
+
+            // Remove if exist
+            if ($resource->exists()) {
+                $resource->remove();
+
+                $field->setValue(null);
+                $this->unloaded = true;
+            }
         }
 
         return $this;
     }
 
     /**
-     * Check whether at least one field with file is loaded
+     * Check whether at least one field with file is uploaded
      *
      * @return boolean
      */
-    public function isLoaded()
+    public function isUploaded()
     {
         return $this->loaded;
     }
 
     /**
-     * Check whether at least one field with file is unloaded
+     * Check whether at least one field with file was uploaded (removed)
      *
      * @return boolean
      */
     public function isUnloaded()
     {
         return $this->unloaded;
+    }
+
+    /**
+     * Load data via request with resource upload service
+     *
+     * @param Request $request Base request
+     * @param string  $method  Request method
+     * @param mixed   $fields  Fields serviced with file upload
+     *
+     * @return boolean
+     */
+    public function request(Request $request, $method, $fields = null)
+    {
+        if ($request->getMethod() !== $method) {
+            return false;
+        }
+
+        switch ($method) {
+        case Request::POST:
+            $this->populate($request->getPost());
+            $this->upload($request->getFiles(), $fields);
+            break;
+        case Request::GET:
+            $this->populate($request->getGet());
+            break;
+        }
+
+        return true;
     }
 }

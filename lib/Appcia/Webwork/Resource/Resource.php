@@ -178,19 +178,33 @@ class Resource extends Type
     }
 
     /**
-     * Shortcut for removing itself
+     * Remove files using manager
      *
      * @return $this
      */
     public function remove()
     {
-        $this->manager->remove($this->name, $this->getParams());
+        $this->manager->remove($this->name, $this->params);
 
         return $this;
     }
 
     /**
-     * Check existing whenever associated file exists
+     * Save files using manager
+     *
+     * @param mixed $source Source file
+     *
+     * @return $this
+     */
+    public function save($source)
+    {
+        $this->manager->save($this->name, $this->params, $source);
+
+        return $this;
+    }
+
+    /**
+     * Check existing whether associated file exists
      *
      * @return boolean
      */

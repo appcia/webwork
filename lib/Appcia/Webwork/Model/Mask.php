@@ -55,17 +55,13 @@ class Mask
     /**
      * Toggle mask option
      *
-     * @param int     $option Option value
-     * @param boolean $flag   Flag
+     * @param int $option Option value
      *
      * @return $this
      */
-    public function toggle($option, $flag = null)
+    public function toggle($option)
     {
-        if ($flag === null) {
-            $flag = !$this->is($option);
-        }
-
+        $flag = !$this->is($option);
         $this->set($option, $flag);
 
         return $this;
@@ -140,6 +136,25 @@ class Mask
         }
 
         $this->value = $value;
+
+        return $this;
+    }
+
+    /**
+     * Bind value by reference
+     *
+     * @param int $value Value
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function bindValue(&$value)
+    {
+        if ($value < 0) {
+            throw new \InvalidArgumentException("Mask value should be greater than 0.");
+        }
+
+        $this->value = &$value;
 
         return $this;
     }

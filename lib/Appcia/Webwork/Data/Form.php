@@ -7,6 +7,7 @@ use Appcia\Webwork\Data\Form\Field;
 use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Context;
+use Appcia\Webwork\Web\Request;
 
 /**
  * General utility for servicing web forms (data manipulation)
@@ -16,6 +17,7 @@ use Appcia\Webwork\Web\Context;
 class Form extends Component
 {
     const METADATA = 'metadata';
+
     const CSRF = 'csrf';
 
     /**
@@ -642,7 +644,7 @@ class Form extends Component
     public function protect()
     {
         // TODO Save token also in session
-        $token = md5(uniqid(rand(), TRUE));
+        $token = md5(uniqid(rand(), true));
         $this->setMetadata(self::CSRF, $token);
 
         return $this;
@@ -653,6 +655,33 @@ class Form extends Component
         $token = $this->getMetadata(self::CSRF);
 
         // TODO Compare with token from session
+        return true;
+    }
+
+    /**
+     * Load data via request
+     *
+     * @param Request $request Base request
+     * @param string  $method  Request method
+     *
+     * @return boolean
+     */
+    public function load(Request $request, $method)
+    {
+        if ($request->getMethod() !== $method) {
+            return false;
+        }
+
+        switch ($method) {
+        case Request::POST:
+            $this->populate($request->getPost());
+            break;
+        case
+            Request::GET:
+            $this->populate($request->getGet());
+            break;
+        }
+
         return true;
     }
 }

@@ -9,8 +9,6 @@ use Appcia\Webwork\Storage\Config;
 
 /**
  * Form field
- *
- * @package Appcia\Webwork\Data\Form
  */
 abstract class Field
 {
@@ -102,16 +100,6 @@ abstract class Field
     public function prepare()
     {
         return $this;
-    }
-
-    /**
-     * Get allowed types
-     *
-     * @return array
-     */
-    public static function getTypes()
-    {
-        return self::$types;
     }
 
     /**

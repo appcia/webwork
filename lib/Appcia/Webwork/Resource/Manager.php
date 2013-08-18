@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Resource;
 
+use Appcia\Webwork\Resource\Resource;
 use Appcia\Webwork\Resource\Service\Processor;
 use Appcia\Webwork\Resource\Service\Provider;
 use Appcia\Webwork\System\Dir;
@@ -105,30 +106,31 @@ class Manager
     /**
      * Save resource
      *
-     * @param string $name
-     * @param array  $params
-     * @param string $path
+     * @param string $name   Resource name
+     * @param array  $params Path parameters
+     * @param mixed  $source Source file
      *
      * @return Resource|null
      */
-    public function save($name, array $params, $path)
+    public function save($name, array $params, $source)
     {
-        // Hook for removing when path is null
-        if ($path === null) {
-            $this->remove($name, $params);
+        // Remove non-existing resource (hook for editing)
+        if ($source instanceof Resource && !$source->exists()) {
+            $source->remove();
 
             return null;
         }
 
-        $source = $this->retrieveFile($path);
-
         // Set static parameters
-        $params['resource'] = $name;
+        $source = $this->retrieveFile($source);
 
         if (!isset($params['ext'])) {
             $params['ext'] = $source->getExtension();
         }
 
+        $params['resource'] = $name;
+
+        // Target location determining
         $resource = new Resource($this, $name, $params);
         $target = $resource->getFile();
 
@@ -139,14 +141,14 @@ class Manager
 
         $source->copy($target);
 
-        // Run processing based on origin resource)
+        // Run processing based on origin resource
         $resource->createTypes();
 
         return $resource;
     }
 
     /**
-     * Remove resource
+     * Remove resource and sub types
      *
      * @param string $name   Resource name
      * @param array  $params Path parameters
@@ -156,41 +158,32 @@ class Manager
     public function remove($name, array $params)
     {
         $resource = $this->load($name, $params);
+        $this->removeFile($resource->getFile());
 
-        if ($resource !== null) {
-            $this->removeFile($resource->getFile());
-
-            foreach ($resource->getTypes() as $type) {
-                $this->removeFile($type->getFile());
-            }
-
+        foreach ($resource->getTypes() as $type) {
+            $this->removeFile($type->getFile());
         }
 
         return $this;
     }
 
     /**
-     * Load resource
+     * Get resource representation (could be non-existing)
      *
      * @param string $name   Resource name
      * @param array  $params Path parameters
      *
-     * @return Resource|null
+     * @return Resource
      */
     public function load($name, array $params)
     {
         $resource = new Resource($this, $name, $params);
-        $file = $resource->getFile();
-
-        if ($file === null) {
-            return null;
-        }
 
         return $resource;
     }
 
     /**
-     * Remove existing file and also directory if empty
+     * Safely remove file and also directory if empty
      *
      * @param File|null $file File
      *
@@ -198,6 +191,10 @@ class Manager
      */
     protected function removeFile($file)
     {
+        if ($file === null) {
+            return $this;
+        }
+
         if ($file->exists()) {
             $file->remove();
         }
@@ -211,11 +208,11 @@ class Manager
     }
 
     /**
-     * Retrieve file object from various arguments
+     * Retrieve file from various arguments
      *
-     * @param Resource|File|string $resource
+     * @param mixed $resource
      *
-     * @return File|null
+     * @return File
      * @throws \InvalidArgumentException
      */
     public function retrieveFile($resource)
@@ -234,6 +231,10 @@ class Manager
             } else {
                 throw new \InvalidArgumentException('Resource has unsupported type.');
             }
+        }
+
+        if ($file === null) {
+            throw new \InvalidArgumentException(sprintf("Resource file does not exist."));
         }
 
         return $file;
@@ -284,28 +285,28 @@ class Manager
 
         if ($data['error'] != UPLOAD_ERR_OK) {
             switch ($data['error']) {
-                case UPLOAD_ERR_INI_SIZE:
-                    throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $path, $sizeLimit));
-                    break;
-                case UPLOAD_ERR_FORM_SIZE:
-                    throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds form limit", $path));
-                    break;
-                case UPLOAD_ERR_PARTIAL:
-                    throw new \ErrorException(sprintf("Uploaded file '%s' is only partially completed", $path));
-                    break;
-                case UPLOAD_ERR_NO_FILE:
-                    throw new \ErrorException("File has not been uploaded");
-                    break;
-                case UPLOAD_ERR_NO_TMP_DIR:
-                    throw new \ErrorException(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
-                    break;
-                case UPLOAD_ERR_CANT_WRITE:
-                    throw new \ErrorException(sprintf("Failed to write uploaded file to disk: '%s'", $path));
-                    break;
-                case UPLOAD_ERR_EXTENSION:
-                default:
-                    throw new \ErrorException(sprintf("Unknown upload error: '%s'", $path));
-                    break;
+            case UPLOAD_ERR_INI_SIZE:
+                throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $path, $sizeLimit));
+                break;
+            case UPLOAD_ERR_FORM_SIZE:
+                throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds form limit", $path));
+                break;
+            case UPLOAD_ERR_PARTIAL:
+                throw new \ErrorException(sprintf("Uploaded file '%s' is only partially completed", $path));
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                throw new \ErrorException("File has not been uploaded");
+                break;
+            case UPLOAD_ERR_NO_TMP_DIR:
+                throw new \ErrorException(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
+                break;
+            case UPLOAD_ERR_CANT_WRITE:
+                throw new \ErrorException(sprintf("Failed to write uploaded file to disk: '%s'", $path));
+                break;
+            case UPLOAD_ERR_EXTENSION:
+            default:
+                throw new \ErrorException(sprintf("Unknown upload error: '%s'", $path));
+                break;
             }
         }
 
