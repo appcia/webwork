@@ -182,14 +182,26 @@ class Route
             $path = new Path($this, $path);
         }
 
-        $params = array_keys($path->getParams());
+        $this->path = $path;
+        $this->updateParams($path);
+
+        return $this;
+    }
+
+    /**
+     * Complete params configuration basing on names defined in path
+     *
+     * @return $this
+     */
+    protected function updateParams()
+    {
+        $params = array_keys($this->path->getParams());
+
         foreach ($params as $param) {
             if (!isset($this->params[$param])) {
                 $this->params[$param] = array();
             }
         }
-
-        $this->path = $path;
 
         return $this;
     }
@@ -206,6 +218,18 @@ class Route
     }
 
     /**
+     * Get parameter names
+     *
+     * @return array
+     */
+    public function getParams()
+    {
+        $this->updateParams();
+
+        return $this->params;
+    }
+
+    /**
      * Set parameter config
      *
      * @param array $params Config
@@ -217,16 +241,6 @@ class Route
         $this->params = $params;
 
         return $this;
-    }
-
-    /**
-     * Get parameter names
-     *
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->params;
     }
 
     /**
