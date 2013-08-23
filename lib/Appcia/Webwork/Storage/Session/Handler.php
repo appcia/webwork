@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Storage\Session;
 
+use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Storage\Session;
 
@@ -10,7 +11,7 @@ use Appcia\Webwork\Storage\Session;
  *
  * @package Appcia\Webwork\Storage\Session
  */
-abstract class Handler implements \ArrayAccess
+abstract class Handler extends Object implements \ArrayAccess
 {
     /**
      * Stored data
@@ -25,19 +26,6 @@ abstract class Handler implements \ArrayAccess
     public function __construct()
     {
         $this->data = array();
-    }
-
-    /**
-     * Creator
-     *
-     * @param mixed $data Config data
-     *
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    public static function create($data)
-    {
-        return Config::create($data, get_called_class());
     }
 
     /**

@@ -21,18 +21,6 @@ abstract class Helper extends Component
     protected $view;
 
     /**
-     * Creator
-     *
-     * @param mixed $config Config
-     *
-     * @return $this
-     */
-    public static function create($config)
-    {
-        return Config::create($config, get_called_class());
-    }
-
-    /**
      * Get another helper
      *
      * @param string $name

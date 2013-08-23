@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\Core\Monitor;
+use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Storage\Config;
 
 /**
@@ -10,7 +11,7 @@ use Appcia\Webwork\Storage\Config;
  *
  * @package Appcia\Webwork\Resource
  */
-abstract class Service {
+abstract class Service extends Object {
 
     /**
      * Monitor events
@@ -52,18 +53,6 @@ abstract class Service {
     public static function getEvents()
     {
         return static::$events;
-    }
-
-    /**
-     * Creator
-     *
-     * @param mixed $config Config data
-     *
-     * @return mixed
-     */
-    public static function create($config)
-    {
-        return Config::create($config, get_called_class());
     }
 
     /**

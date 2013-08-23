@@ -2,21 +2,23 @@
 
 namespace Appcia\Webwork\Storage\Config;
 
+use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Storage\Config\Writer\Php;
 use Appcia\Webwork\System\File;
 
-abstract class Writer
+abstract class Writer extends Object
 {
     /**
      * Creator
      *
      * @param mixed $data Target (automatic determining) or writer config
+     * @param array $args Constructor arguments
      *
      * @return Writer
      * @throws \InvalidArgumentException
      */
-    public static function create($data)
+    public static function create($data, $args = array())
     {
         if (is_string($data)) {
             $target = new File($data);
@@ -30,7 +32,7 @@ abstract class Writer
             }
         }
 
-        return Config::create($data, get_called_class());
+        return parent::create($data, $args);
     }
 
     /**

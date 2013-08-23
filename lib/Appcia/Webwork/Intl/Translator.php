@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Intl;
 
 use Appcia\Webwork\Core\Component;
+use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Context;
 
@@ -11,20 +12,19 @@ use Appcia\Webwork\Web\Context;
  *
  * @package Appcia\Webwork\Intl
  */
-abstract class Translator extends Component
+abstract class Translator extends Object
 {
     /**
-     * Creator
-     *
-     * @param mixed $data Config data
-     *
-     * @return $this
-     * @throws \InvalidArgumentException
-     * @throws \OutOfBoundsException
+     * @var Context
      */
-    public static function create($data)
+    protected $context;
+
+    /**
+     * Constructor
+     */
+    public function __construct($context)
     {
-        return Config::create($data, get_called_class());
+        $this->context = $context;
     }
 
     /**
@@ -35,4 +35,12 @@ abstract class Translator extends Component
      * @return mixed
      */
     abstract public function translate($id);
+
+    /**
+     * @return Context
+     */
+    public function getContext()
+    {
+        return $this->context;
+    }
 }

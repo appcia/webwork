@@ -2,11 +2,8 @@
 
 namespace Appcia\Webwork\View;
 
+use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Storage\Config;
-use Appcia\Webwork\View\Renderer\Ini;
-use Appcia\Webwork\View\Renderer\Json;
-use Appcia\Webwork\View\Renderer\Php;
-use Appcia\Webwork\View\Renderer\Xml;
 use Appcia\Webwork\View\View;
 
 /**
@@ -14,7 +11,7 @@ use Appcia\Webwork\View\View;
  *
  * @package Appcia\Webwork\View
  */
-abstract class Renderer
+abstract class Renderer extends Object
 {
     /**
      * Source view
@@ -22,18 +19,6 @@ abstract class Renderer
      * @var View
      */
     protected $view;
-
-    /**
-     * Creator
-     *
-     * @param mixed $data Config data
-     *
-     * @return $this
-     */
-    public static function create($data)
-    {
-        return Config::create($data, get_called_class());
-    }
 
     /**
      * Get view

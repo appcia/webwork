@@ -20,9 +20,9 @@ class Gettext extends Translator
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(Context $context)
     {
-        parent::__construct();
+        parent::__construct($context);
 
         if (function_exists('gettext') === false) {
             throw new \RuntimeException("Translator cannot be instantiated. Gettext is not installed.");

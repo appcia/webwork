@@ -2,6 +2,9 @@
 
 namespace Appcia\Webwork\Web;
 
+use Appcia\Webwork\Intl\Translator;
+use Appcia\Webwork\Intl\Locale;
+
 /**
  * Configuration related with WWW technology
  *
@@ -9,11 +12,15 @@ namespace Appcia\Webwork\Web;
  */
 class Context {
 
-    // HTML versions
+    /**
+     * HTML versions
+     */
     const HTML_5 = 'HTML 5';
     const HTML_401 = 'HTML 4.01';
 
     /**
+     * Available HTML versions
+     *
      * @var array
      */
     protected static $htmlVersions = array(
@@ -22,34 +29,42 @@ class Context {
     );
 
     /**
+     * Domain name
+     *
      * @var string
      */
     protected $domain;
 
     /**
+     * URL prefix after domain
+     *
      * @var string
      */
     protected $baseUrl;
 
     /**
-     * @var string
-     */
-    protected $locale;
-
-    /**
-     * @var string
-     */
-    protected $timezone;
-
-    /**
+     * Character encoding
+     *
      * @var string
      */
     protected $charset;
 
     /**
+     * HTML language version
+     *
      * @var string
      */
     protected $htmlVersion;
+
+    /**
+     * @var Locale
+     */
+    protected $locale;
+
+    /**
+     * @var Translator
+     */
+    protected $translator;
 
     /**
      * Constructor
@@ -58,25 +73,10 @@ class Context {
     {
         $this->domain = 'localhost';
         $this->baseUrl = '';
-        $this->locale = 'en_US';
         $this->charset = 'UTF-8';
         $this->htmlVersion = self::HTML_5;
-
-        $this->setTimezone('Europe/Warsaw');
-        $this->updateLocale();
-    }
-
-    /**
-     * @return $this
-     */
-    protected function updateLocale()
-    {
-        $locale =  $this->locale . '.' . strtoupper($this->charset);
-
-        putenv('LC_ALL=' . $locale);
-        setlocale(LC_ALL, $locale);
-
-        return $this;
+        $this->locale = new Locale($this);
+        $this->translator = new Translator\Php($this);
     }
 
     /**
@@ -132,53 +132,6 @@ class Context {
     /**
      * @return string
      */
-    public function getLocale()
-    {
-        return $this->locale;
-    }
-
-    /**
-     * @param string $locale
-     *
-     * @return $this
-     */
-    public function setLocale($locale)
-    {
-        $this->locale = $locale;
-        $this->updateLocale();
-
-        return $this;
-    }
-
-    /**
-     * @param string $timezone
-     *
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    public function setTimezone($timezone)
-    {
-        $flag = date_default_timezone_set($timezone);
-        if (!$flag) {
-            throw new \InvalidArgumentException(sprintf("Timezone '%s' is invalid or unsupported.", $timezone));
-        }
-
-        $this->timezone = $timezone;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTimezone()
-    {
-        return $this->timezone;
-    }
-
-    /**
-     * @return string
-     */
     public function getCharset()
     {
         return $this->charset;
@@ -192,7 +145,7 @@ class Context {
     public function setCharset($charset)
     {
         $this->charset = $charset;
-        $this->updateLocale();
+        $this->locale->update();
 
         return $this;
     }
@@ -217,4 +170,51 @@ class Context {
         return $this;
     }
 
+    /**
+     * @param Locale $locale
+     *
+     * @return $this
+     */
+    public function setLocale($locale)
+    {
+        if (!$locale instanceof Locale) {
+            $locale = Locale::create($locale, array($this));
+        }
+
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    /**
+     * @return Locale
+     */
+    public function getLocale()
+    {
+        return $this->locale;
+    }
+
+    /**
+     * @param Translator $translator
+     *
+     * @return $this
+     */
+    public function setTranslator($translator)
+    {
+        if (!$translator instanceof Translator) {
+            $translator = Translator::create($translator, array($this));
+        }
+
+        $this->translator = $translator;
+
+        return $this;
+    }
+
+    /**
+     * @return Translator
+     */
+    public function getTranslator()
+    {
+        return $this->translator;
+    }
 }

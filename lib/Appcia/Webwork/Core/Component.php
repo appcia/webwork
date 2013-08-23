@@ -10,7 +10,7 @@ use Appcia\Webwork\Web\Context;
  *
  * @package Appcia\Webwork\Core
  */
-abstract class Component
+abstract class Component extends Object
 {
     /**
      * Name

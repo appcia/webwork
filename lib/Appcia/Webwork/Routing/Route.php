@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Routing;
 
+use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Data\Converter;
 use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\Storage\Config;
@@ -11,7 +12,7 @@ use Appcia\Webwork\Storage\Config;
  *
  * @package Appcia\Webwork\Routing
  */
-class Route
+class Route extends Object
 {
     /**
      * Name
@@ -82,11 +83,11 @@ class Route
      * Creator
      *
      * @param mixed $data Route data
+     * @param array $args Constructor arguments
      *
      * @return $this
-     * @throws \InvalidArgumentException
      */
-    public static function create($data)
+    public static function create($data, $args = array())
     {
         if (!isset($data['name'])) {
             $data['name'] = self::generateName(
@@ -96,7 +97,7 @@ class Route
             );
         }
 
-        return Config::create($data, get_called_class());
+        return parent::create($data, $args);
     }
 
     /**
