@@ -15,7 +15,7 @@ abstract class Writer extends Object
      * @param mixed $data Target (automatic determining) or writer config
      * @param array $args Constructor arguments
      *
-     * @return Writer
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public static function create($data, $args = array())
@@ -41,7 +41,7 @@ abstract class Writer extends Object
      * @param Config $config Configuration
      * @param mixed  $target Target
      *
-     * @return void
+     * @return $this
      */
     abstract public function write(Config $config, $target);
 }

@@ -4,6 +4,7 @@ namespace Appcia\Webwork\Core;
 
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\System\Dir;
+use Appcia\Webwork\Web\Response;
 
 /**
  * Base for modular application
@@ -75,10 +76,26 @@ abstract class App
     protected $modules;
 
     /**
+     * Exception handlers
+     *
+     * @var array
+     */
+    protected $handlers;
+
+    /**
+     * Default error handler
+     *
+     * @var \Closure|NULL
+     */
+    protected $errorHandler;
+
+    /**
      * Constructor
      */
     public function __construct(Config $config)
     {
+        $this->registerHandler(true);
+
         $container = new Container();
         $container->set('app', $this);
 
@@ -90,6 +107,14 @@ abstract class App
 
         $config->grab('app')
             ->inject($this);
+    }
+
+    /**
+     * Destructor
+     */
+    public function __destruct()
+    {
+        $this->registerHandler(false);
     }
 
     /**
@@ -348,18 +373,10 @@ abstract class App
      */
     protected function loadModules()
     {
-        $config = $this->config->get('app');
-        if (empty($config)) {
-            throw new \InvalidArgumentException("Configuration for base application module is empty."
-            . " Check whether key 'app' really exist in config file.");
-        }
-
-        $this->loadModule('app', $config);
-
-        $modules = $this->config->get('app.modules');
+        $modules = $this->config->get('app.module');
         if (empty($modules)) {
             throw new \InvalidArgumentException("Configuration for modules is empty."
-            . " Check whether key 'app.modules' has at least one module specified.");
+            . " Check whether key 'app.module' has at least one module specified.");
         }
 
         foreach ($modules as $name => $config) {
@@ -447,5 +464,120 @@ abstract class App
         $this->rootPath = $rootPath;
 
         return $this;
+    }
+
+    /**
+     * Callback for throwing exception on error
+     *
+     * @param int    $no      Error number
+     * @param string $message Error Message
+     * @param string $path    File path
+     * @param int    $line    Line number
+     *
+     * @throws \ErrorException
+     */
+    public function throwHandler($no, $message, $path, $line)
+    {
+        throw new \ErrorException($message, $no, 0, $path, $line);
+    }
+
+    /**
+     * Enable or disable exception triggering on error
+     *
+     * @param boolean $flag Toggle
+     *
+     * @return $this
+     */
+    public function registerHandler($flag)
+    {
+        if (!$flag && $this->errorHandler) {
+            set_error_handler($this->errorHandler);
+        }
+
+        if ($flag) {
+            $this->errorHandler = set_error_handler(array($this, 'throwHandler'));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Register exception handler
+     *
+     * Exception could be:
+     * - class name for example: Appcia\Webwork\NotFound
+     * - object     for example: new Appcia\Webwork\Exception\NotFound()
+     * - boolean    if should always / never handle any type of exception
+     *
+     * @param mixed    $exception Exception to be handled, see description!
+     * @param callable $callback  Callback function
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function handle($exception, \Closure $callback)
+    {
+        if (!is_callable($callback)) {
+            throw new \InvalidArgumentException('Handler callback is invalid');
+        }
+
+        if (is_object($exception)) {
+            if (!$exception instanceof \Exception) {
+                throw new \InvalidArgumentException('Invalid exception to be handled');
+            }
+
+            $exception = get_class($exception);
+        }
+
+        $this->handlers[] = array(
+            'exception' => $exception,
+            'callback' => $callback
+        );
+
+        return $this;
+    }
+
+    /**
+     * React when exception occurred
+     *
+     * @param \Exception $e Exception
+     *
+     * @return Response
+     * @throws \Exception
+     */
+    public function react($e)
+    {
+        // Look for most detailed exception handler
+        $exception = get_class($e);
+        $specificHandler = null;
+        $allHandler = null;
+
+        foreach ($this->handlers as $handler) {
+            if ($handler['exception'] === true) {
+                $allHandler = $handler;
+            }
+
+            if ($handler['exception'] === $exception) {
+                $specificHandler = $handler;
+            }
+        }
+
+        $handler = $allHandler;
+        if ($specificHandler !== null) {
+            $handler = $specificHandler;
+        }
+
+        if ($handler === null) {
+            throw $e;
+        }
+
+        // Call for new response
+        $response = call_user_func($handler['callback'], $this);
+
+        if (!$response instanceof Response) {
+            throw new \ErrorException('Error handler callback should return response object.');
+        }
+
+        return $response;
     }
 }

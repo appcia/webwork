@@ -353,7 +353,7 @@ class Manager
         $class = $config['processor']['class'];
 
         if (!isset($this->processors[$class])) {
-            $this->processors[$class] = Config::create($config['processor'], null, array($this));
+            $this->processors[$class] = Config::create($config['processor'], array($this));
         }
 
         return $this->processors[$class];

@@ -97,25 +97,11 @@ class Dispatcher
     protected $response;
 
     /**
-     * Exception handlers
-     *
-     * @var array
-     */
-    protected $handlers;
-
-    /**
      * Caught exception
      *
      * @var array
      */
     protected $exception;
-
-    /**
-     * Exceptions instead of PHP errors
-     *
-     * @var boolean
-     */
-    protected $exceptionOnError;
 
     /**
      * Handler for all exceptions
@@ -144,29 +130,6 @@ class Dispatcher
         $this->handlers = array();
         $this->listeners = array();
         $this->exceptionOnError = false;
-        $this->setExceptionOnError(true);
-    }
-
-    /**
-     * Enable or disable exception triggering on error
-     *
-     * @param boolean $flag Flag
-     *
-     * @return $this
-     */
-    public function setExceptionOnError($flag)
-    {
-        if ($this->exceptionOnError) {
-            restore_error_handler();
-        }
-
-        if ($flag) {
-            set_error_handler(array($this, 'throwExceptionOnError'));
-        }
-
-        $this->exceptionOnError = $flag;
-
-        return $this;
     }
 
     /**
@@ -219,6 +182,7 @@ class Dispatcher
      * @param mixed $route Route object or name
      *
      * @return Response
+     * @throws \Exception
      */
     public function dispatch($route)
     {
@@ -259,14 +223,24 @@ class Dispatcher
                 $response->setContent($content);
             }
             $this->monitor->notify(self::RESPONSE_PROCESSED);
-        } catch (\Exception $e) {
-            $this->monitor->notify(self::EXCEPTION_CAUGHT);
 
+        } catch (\Exception $e) {
+
+            // Clean buffers for sure
             if ($response !== null) {
                 $response->clean();
             }
 
-            $response = $this->react($e);
+            // Prevent nested exceptions
+            if ($this->exception !== null) {
+                throw $e;
+            } else {
+                $this->exception = $e;
+            }
+
+            // Create proper response
+            $this->monitor->notify(self::EXCEPTION_CAUGHT);
+            $response = $this->app->react($e);
             $this->monitor->notify(self::EXCEPTION_HANDLED);
         }
 
@@ -549,92 +523,6 @@ class Dispatcher
     }
 
     /**
-     * React when exception occurred
-     *
-     * @param \Exception $e Exception
-     *
-     * @return Response
-     * @throws \Exception
-     */
-    protected function react($e)
-    {
-        // Prevent nested exceptions
-        if ($this->exception !== null) {
-            throw $e;
-        } else {
-            $this->exception = $e;
-        }
-
-        // Find best
-        $exception = get_class($e);
-        $specificHandler = null;
-        $allHandler = null;
-
-        foreach ($this->handlers as $handler) {
-            if ($handler['exception'] === true) {
-                $allHandler = $handler;
-            }
-
-            if ($handler['exception'] === $exception) {
-                $specificHandler = $handler;
-            }
-        }
-
-        $handler = $allHandler;
-        if ($specificHandler !== null) {
-            $handler = $specificHandler;
-        }
-
-        if ($handler === null) {
-            throw $e;
-        }
-
-        $response = call_user_func($handler['callback'], $this);
-
-        if (!$response instanceof Response) {
-            throw new \ErrorException('Dispatch error handler should return response object.');
-        }
-
-        return $response;
-    }
-
-    /**
-     * Register exception handler
-     *
-     * Exception could be:
-     * - class name for example: Appcia\Webwork\NotFound
-     * - object     for example: new Appcia\Webwork\Exception\NotFound()
-     * - boolean    if should always / never handle any type of exception
-     *
-     * @param mixed    $exception Exception to be handled, see description!
-     * @param callable $callback  Callback function
-     *
-     * @return $this
-     * @throws \InvalidArgumentException
-     */
-    public function handle($exception, \Closure $callback)
-    {
-        if (!is_callable($callback)) {
-            throw new \InvalidArgumentException('Handler callback is invalid');
-        }
-
-        if (is_object($exception)) {
-            if (!$exception instanceof \Exception) {
-                throw new \InvalidArgumentException('Invalid exception to be handled');
-            }
-
-            $exception = get_class($exception);
-        }
-
-        $this->handlers[] = array(
-            'exception' => $exception,
-            'callback' => $callback
-        );
-
-        return $this;
-    }
-
-    /**
      * Get current view
      *
      * @return View
@@ -656,31 +544,6 @@ class Dispatcher
         $this->handler = $callback;
 
         return $this;
-    }
-
-    /**
-     * Callback for throwing exception on error
-     *
-     * @param int    $no      Error number
-     * @param string $message Error Message
-     * @param string $path    File path
-     * @param int    $line    Line number
-     *
-     * @throws \ErrorException
-     */
-    public function throwExceptionOnError($no, $message, $path, $line)
-    {
-        throw new \ErrorException($message, $no, 0, $path, $line);
-    }
-
-    /**
-     * Check whether exception will be thrown on error
-     *
-     * @return boolean
-     */
-    public function isExceptionOnError()
-    {
-        return $this->exceptionOnError;
     }
 
     /**

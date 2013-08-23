@@ -64,7 +64,10 @@ class Form extends Secure
     {
         $token = $this->getMetadata(self::CSRF);
         if ($token === null) {
-            throw new \LogicException("Form resource loading requires active CSRF protection.");
+            throw new \LogicException(
+                "Form resource loading requires active CSRF protection.'
+                .' Please be sure that form is verified before uploading."
+            );
         }
 
         foreach ($this->filterFields() as $name => $field) {
