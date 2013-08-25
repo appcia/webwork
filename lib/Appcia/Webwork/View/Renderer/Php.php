@@ -129,7 +129,7 @@ class Php extends Renderer
                 ->grab('view.helper')
                 ->set('class', $name);
 
-            $helper = Helper::create($config);
+            $helper = Helper::create($config, array($context));
 
             $helper->setView($this->getView())
                 ->setContext($context);

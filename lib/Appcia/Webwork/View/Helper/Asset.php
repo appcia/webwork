@@ -4,6 +4,7 @@ namespace Appcia\Webwork\View\Helper;
 
 use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\View\Helper;
+use Appcia\Webwork\Web\Context;
 
 class Asset extends Helper
 {
@@ -16,10 +17,12 @@ class Asset extends Helper
 
     /**
      * Constructor
+     *
+     * @param Context $context Use context
      */
-    public function __construct()
+    public function __construct(Context $context)
     {
-        parent::__construct();
+        parent::__construct($context);
 
         $this->assets = array();
     }
@@ -44,8 +47,7 @@ class Asset extends Helper
         }
 
         // Generate proper url
-        $url = $this->getContext()
-            ->getBaseUrl();
+        $url = $this->context->getBaseUrl();
 
         if (!empty($url)) {
             $url .= '/';

@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\View;
 
-use Appcia\Webwork\Core\Component;
+use Appcia\Webwork\Data\Component;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\View\View;
 

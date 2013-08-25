@@ -9,8 +9,8 @@ class Begin extends Helper
     /**
      * Caller
      *
-     * @param string $name    Block name
-     * @param string $file    View to be extended
+     * @param string $name Block name
+     * @param string $file View to be extended
      *
      * @return void
      */

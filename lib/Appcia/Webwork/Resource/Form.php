@@ -2,8 +2,8 @@
 
 namespace Appcia\Webwork\Resource;
 
-use Appcia\Webwork\Data\Form\Field;
-use Appcia\Webwork\Data\Form\Secure;
+use Appcia\Webwork\Web\Form\Field;
+use Appcia\Webwork\Web\Form\Secure;
 use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\System\File;
 use Appcia\Webwork\Web\Context;

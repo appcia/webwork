@@ -2,15 +2,12 @@
 
 namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Intl\Translator;
-use Appcia\Webwork\Intl\Locale;
+use Appcia\Webwork\Core\Context as BaseContext;
 
 /**
- * Configuration related with WWW technology
- *
- * @package Appcia\Webwork\Web
+ * Context configuration related with WWW technology
  */
-class Context {
+class Context extends BaseContext {
 
     /**
      * HTML versions
@@ -43,13 +40,6 @@ class Context {
     protected $baseUrl;
 
     /**
-     * Character encoding
-     *
-     * @var string
-     */
-    protected $charset;
-
-    /**
      * HTML language version
      *
      * @var string
@@ -57,26 +47,15 @@ class Context {
     protected $htmlVersion;
 
     /**
-     * @var Locale
-     */
-    protected $locale;
-
-    /**
-     * @var Translator
-     */
-    protected $translator;
-
-    /**
      * Constructor
      */
     public function __construct()
     {
+        parent::__construct();
+
         $this->domain = 'localhost';
         $this->baseUrl = '';
-        $this->charset = 'UTF-8';
         $this->htmlVersion = self::HTML_5;
-        $this->locale = new Locale($this);
-        $this->translator = new Translator\Php($this);
     }
 
     /**
@@ -132,27 +111,6 @@ class Context {
     /**
      * @return string
      */
-    public function getCharset()
-    {
-        return $this->charset;
-    }
-
-    /**
-     * @param string $charset
-     *
-     * @return $this
-     */
-    public function setCharset($charset)
-    {
-        $this->charset = $charset;
-        $this->locale->update();
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
     public function getHtmlVersion()
     {
         return $this->htmlVersion;
@@ -168,53 +126,5 @@ class Context {
         $this->htmlVersion = $htmlVersion;
 
         return $this;
-    }
-
-    /**
-     * @param Locale $locale
-     *
-     * @return $this
-     */
-    public function setLocale($locale)
-    {
-        if (!$locale instanceof Locale) {
-            $locale = Locale::create($locale, array($this));
-        }
-
-        $this->locale = $locale;
-
-        return $this;
-    }
-
-    /**
-     * @return Locale
-     */
-    public function getLocale()
-    {
-        return $this->locale;
-    }
-
-    /**
-     * @param Translator $translator
-     *
-     * @return $this
-     */
-    public function setTranslator($translator)
-    {
-        if (!$translator instanceof Translator) {
-            $translator = Translator::create($translator, array($this));
-        }
-
-        $this->translator = $translator;
-
-        return $this;
-    }
-
-    /**
-     * @return Translator
-     */
-    public function getTranslator()
-    {
-        return $this->translator;
     }
 }
