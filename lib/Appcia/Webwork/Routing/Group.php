@@ -203,10 +203,15 @@ class Group
      * @param Route $route Route
      *
      * @return Route
+     * @throws \InvalidArgumentException
      */
     protected function processRoute($route)
     {
         // Path prefix, suffix
+        if (!isset($route['path'])) {
+            throw new \InvalidArgumentException("Route path is not specified.");
+        }
+
         $route['path'] = $this->processPath($route['path']);
 
         // Module name completion

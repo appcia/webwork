@@ -104,13 +104,6 @@ class Dispatcher
     protected $exception;
 
     /**
-     * Handler for all exceptions
-     *
-     * @var \Closure
-     */
-    protected $handler;
-
-    /**
      * @var array
      */
     protected $data;
@@ -125,11 +118,7 @@ class Dispatcher
         $this->app = $app;
         $this->monitor = new Monitor($this, static::$events);
         $this->data = array();
-
         $this->autoRender = true;
-        $this->handlers = array();
-        $this->listeners = array();
-        $this->exceptionOnError = false;
     }
 
     /**
@@ -530,20 +519,6 @@ class Dispatcher
     public function getView()
     {
         return $this->view;
-    }
-
-    /**
-     * Set handler for all exceptions
-     *
-     * @param callable $callback
-     *
-     * @return $this
-     */
-    public function setHandler(\Closure $callback)
-    {
-        $this->handler = $callback;
-
-        return $this;
     }
 
     /**
