@@ -12,13 +12,6 @@ use Appcia\Webwork\Storage\Config;
 class Container
 {
     /**
-     * Service or parameter container
-     *
-     * @var Container
-     */
-    protected static $instance;
-
-    /**
      * Services and parameters
      *
      * @var Config
@@ -40,34 +33,6 @@ class Container
     }
 
     /**
-     * Setup instance
-     *
-     * @param Container $container
-     *
-     * @return void
-     */
-    public static function setup($container = null)
-    {
-        if ($container === null) {
-            $container = new self();
-        }
-
-        self::$instance = $container;
-    }
-
-    /**
-     * Shortcut getter
-     *
-     * @param string $key Key
-     *
-     * @return mixed
-     */
-    public static function acquire($key)
-    {
-        return self::instance()->get($key);
-    }
-
-    /**
      * Get a parameter or a service
      *
      * @param string $key Key
@@ -84,16 +49,6 @@ class Container
         $isFactory = is_object($this->values[$key]) && method_exists($this->values[$key], '__invoke');
 
         return $isFactory ? $this->values[$key]($this) : $this->values[$key];
-    }
-
-    /**
-     * Get instance
-     *
-     * @return $this
-     */
-    public static function instance()
-    {
-        return self::$instance;
     }
 
     /**

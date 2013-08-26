@@ -96,10 +96,7 @@ abstract class App
     {
         $this->registerHandler(true);
 
-        $container = new Container();
-        $container->set('app', $this);
-
-        $this->container = $container;
+        $this->container = new Container();
         $this->config = $config;
 
         $this->modules = array();
