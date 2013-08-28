@@ -11,7 +11,7 @@ use Appcia\Webwork\Web\Response;
  *
  * @package Appcia\Webwork\Core
  */
-abstract class App
+abstract class App extends Container
 {
     const DEVELOPMENT = 'dev';
     const TEST = 'test';
@@ -27,13 +27,6 @@ abstract class App
         self::TEST,
         self::PRODUCTION
     );
-
-    /**
-     * DI container
-     *
-     * @var Container
-     */
-    protected $container;
 
     /**
      * @var Config
@@ -96,7 +89,8 @@ abstract class App
     {
         $this->registerHandler(true);
 
-        $this->container = new Container();
+        parent::__construct();
+
         $this->config = $config;
 
         $this->modules = array();
@@ -174,26 +168,6 @@ abstract class App
      * @return $this
      */
     abstract public function bootstrap();
-
-    /**
-     * Quick get service or parameter from DI container
-     *
-     * @param string $key Key
-     *
-     * @return mixed
-     */
-    public function get($key)
-    {
-        return $this->container->get($key);
-    }
-
-    /**
-     * @return Container
-     */
-    public function getContainer()
-    {
-        return $this->container;
-    }
 
     /**
      * @return Config

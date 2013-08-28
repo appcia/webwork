@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Core\App as BaseApp;
+use Appcia\Webwork\Core\App as Base;
 use Appcia\Webwork\Core\Bootstrap;
 use Appcia\Webwork\Routing\Router;
 use Appcia\Webwork\Storage\Config;
@@ -11,10 +11,8 @@ use Appcia\Webwork\Web\Dispatcher;
 /**
  * Web application
  * To get a response: bootstrap, set a request and run...
- *
- * @package Appcia\Webwork\Web
  */
-class App extends BaseApp
+class App extends Base
 {
     /**
      * @var Request
@@ -46,8 +44,8 @@ class App extends BaseApp
         parent::__construct($config);
 
         $this->dispatcher = new Dispatcher($this);
+        $this->context = new Context($this);
         $this->router = new Router();
-        $this->context = new Context();
     }
 
     /**

@@ -2,12 +2,12 @@
 
 namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Core\Context as BaseContext;
+use Appcia\Webwork\Core\Context as Base;
 
 /**
  * Context configuration related with WWW technology
  */
-class Context extends BaseContext {
+class Context extends Base {
 
     /**
      * HTML versions
@@ -49,9 +49,9 @@ class Context extends BaseContext {
     /**
      * Constructor
      */
-    public function __construct()
+    public function __construct(App $app)
     {
-        parent::__construct();
+        parent::__construct($app);
 
         $this->domain = 'localhost';
         $this->baseUrl = '';

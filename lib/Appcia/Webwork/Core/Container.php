@@ -20,16 +20,10 @@ class Container
 
     /**
      * Constructor
-     *
-     * @param Config $config Data container
      */
-    public function __construct(Config $config = null)
+    public function __construct()
     {
-        if ($config === null) {
-            $config = new Config();
-        }
-
-        $this->values = $config;
+        $this->values = new Config();
     }
 
     /**

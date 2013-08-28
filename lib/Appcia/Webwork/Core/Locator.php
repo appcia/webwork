@@ -14,22 +14,34 @@ abstract class Locator
     /**
      * @var Container
      */
-    protected static $container;
+    protected static $app;
 
     /**
-     * Setup instance
+     * Setup application
      *
-     * @param Container $container
+     * @param App $app
      *
-     * @return void
+     * @return App
+     * @throws \ErrorException
      */
-    public static function setup($container = null)
+    public static function setup(App $app)
     {
-        if ($container === null) {
-            $container = new Container();
+        static::$app = $app;
+    }
+
+    /**
+     * Get application
+     *
+     * @return App
+     * @throws \ErrorException
+     */
+    public static function app()
+    {
+        if (static::$app === null) {
+            throw new \ErrorException("Locator application is not specified.");
         }
 
-        static::$container = $container;
+        return static::$app;
     }
 
     /**
@@ -40,7 +52,7 @@ abstract class Locator
      */
     public static function bind($id, \Closure $value)
     {
-        static::$container->set($id, $value);
+        static::$app->set($id, $value);
     }
 
     /**
@@ -51,7 +63,7 @@ abstract class Locator
      */
     public static function single($id, \Closure $callable)
     {
-        static::$container->single($id, $callable);
+        static::$app->single($id, $callable);
     }
 
     /**
@@ -62,7 +74,7 @@ abstract class Locator
      */
     public static function set($id, $value)
     {
-        static::$container->set($id, $value);
+        static::$app->set($id, $value);
     }
 
     /**
@@ -74,6 +86,6 @@ abstract class Locator
      */
     public static function get($id)
     {
-        return static::$container->get($id);
+        return static::$app->get($id);
     }
 }
