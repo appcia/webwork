@@ -54,17 +54,13 @@ class Tracker
      */
     public function track()
     {
-        if (!isset($this->data['steps'])) {
-            $this->data['steps'] = array();
-        }
-
-        $steps = $this->data['steps'];
+        $steps = $this->getSteps();
         $steps[] = array(
             'url' => $this->request->getUri(),
             'time' => time()
         );
 
-        $steps = $arr = array_slice($steps, $this->stepCount * (-1));
+        $steps = array_slice($steps, $this->stepCount * (-1));
 
         $this->data['steps'] = $steps;
 
@@ -80,7 +76,7 @@ class Tracker
     {
         $currentUrl = $this->getCurrentUrl();
 
-        $steps = $this->data['steps'];
+        $steps = (array) $this->data['steps'];
         foreach (array_reverse($steps) as $step) {
             if ($step['url'] !== $currentUrl) {
                 return $step['url'];
@@ -131,8 +127,8 @@ class Tracker
      */
     public function getSteps()
     {
-        if (empty($this->data['steps'])) {
-            return array();
+        if (!isset($this->data['steps'])) {
+            $this->data['steps'] = array();
         }
 
         $steps = $this->data['steps'];
