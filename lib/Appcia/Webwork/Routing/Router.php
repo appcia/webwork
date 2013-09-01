@@ -200,7 +200,11 @@ class Router
 
                     $values = array_values($values);
                     $names = array_keys($segment->getParams());
-                    $params = $this->processParams($route, array_combine($names, $values));
+
+                    $params = array();
+                    if (!empty($names) && !empty($values)) {
+                        $params = $this->processParams($route, array_combine($names, $values));
+                    }
 
                     $request->setParams($params);
 

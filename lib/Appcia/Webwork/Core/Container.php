@@ -23,7 +23,7 @@ class Container
      */
     public function __construct()
     {
-        $this->values = new Config();
+        $this->values = array();
     }
 
     /**
@@ -36,7 +36,7 @@ class Container
      */
     public function get($key)
     {
-        if (!$this->values->has($key)) {
+        if (!$this->has($key)) {
             throw new \OutOfBoundsException(sprintf("Container service or parameter '%s' does not exist.", $key));
         }
 
@@ -52,7 +52,7 @@ class Container
      */
     public function keys()
     {
-        return $this->values->getKeys();
+        return array_keys($this->values);
     }
 
     /**
@@ -64,7 +64,7 @@ class Container
      */
     public function has($key)
     {
-        return $this->values->has($key);
+        return array_key_exists($key, $this->values);
     }
 
     /**
@@ -126,7 +126,7 @@ class Container
      */
     public function extend($key, \Closure $callable)
     {
-        if (!$this->values->has($key)) {
+        if (!$this->has($key)) {
             throw new \OutOfBoundsException(sprintf("Container service or parameter '%s' does not exist.", $key));
         }
 

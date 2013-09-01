@@ -155,7 +155,9 @@ class Response
      */
     public function clean()
     {
-        ob_clean();
+        if (ob_get_contents()) {
+            ob_clean();
+        }
 
         return $this;
     }

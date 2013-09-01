@@ -18,13 +18,17 @@ class Date extends Helper
      */
     public function date($value = null, $format = '%Y-%m-%d %H:%M:%S')
     {
-        if (Value::isEmpty($value)) {
-            return null;
-        }
-
-        $value = Value::getDate($value);
         if ($value === null) {
-            return null;
+            $value = new \DateTime();
+        } else {
+            if (Value::isEmpty($value)) {
+                return null;
+            }
+
+            $value = Value::getDate($value);
+            if ($value === null) {
+                return null;
+            }
         }
 
         $result = strftime($format, $value->getTimestamp());
