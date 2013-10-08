@@ -429,11 +429,7 @@ class Dispatcher
     {
         $moduleName = $this->getRoute()
             ->getModule();
-
-        $app = $this->app->getModule('app');
         $module = $this->app->getModule($moduleName);
-
-        $app->run();
         $module->run();
 
         return $module;
