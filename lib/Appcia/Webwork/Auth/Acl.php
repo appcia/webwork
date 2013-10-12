@@ -102,6 +102,24 @@ class Acl extends Auth
     }
 
     /**
+     * Compile route pattern to regular expression
+     *
+     * @param string $route Route name with wildcards ('*')
+     *
+     * @return string
+     */
+    protected function compileRoute($route)
+    {
+        $parts = explode(static::WILDCARD, $route);
+        foreach ($parts as $p => $part) {
+            $parts[$p] = preg_quote($part);
+        }
+        $regexp = '/^' . implode('(.*)', $parts) . '$/';
+
+        return $regexp;
+    }
+
+    /**
      * Verify access to route with extra expressions
      *
      * @param string     $test  Route to be tested
@@ -120,16 +138,8 @@ class Acl extends Auth
         }
 
         foreach ($this->acl[$group] as $route) {
-            $wildcard = substr($route, -1);
-
-            if ($wildcard !== self::WILDCARD) {
-                continue;
-            }
-
-            $route = rtrim($route, self::WILDCARD);
-            $pos = strpos($test, $route);
-
-            if ($pos === 0) {
+            $regExp = $this->compileRoute($route);
+            if (preg_match($regExp, $test)) {
                 return true;
             }
         }

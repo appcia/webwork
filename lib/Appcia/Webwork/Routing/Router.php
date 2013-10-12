@@ -90,10 +90,13 @@ class Router
         }
 
         $name = $route->getName();
+        if (isset($this->routes[$name])) {
+            throw new \LogicException(sprintf("Route name '%s' is already used.", $name));
+        }
+
         $this->routes[$name] = $route;
 
         $alias = $route->getAlias();
-
         if ($alias !== null) {
             if (isset($this->routes[$alias])) {
                 throw new \LogicException(sprintf("Route alias '%s' is already used.", $alias));
