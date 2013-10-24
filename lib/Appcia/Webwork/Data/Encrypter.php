@@ -49,10 +49,6 @@ class Encrypter
      */
     public function __construct($method = self::SHA256, $salt = null)
     {
-        if ($salt === null) {
-            $salt = $this->generateSalt();
-        }
-
         $this->setMethod($method);
         $this->setSalt($salt);
     }

@@ -1,6 +1,7 @@
 <?
 
 namespace Appcia\Webwork\System;
+use Appcia\Webwork\Data\Encrypter;
 
 /**
  * Filesystem directory representation.
@@ -90,7 +91,7 @@ class Dir
      *
      * @param string $path Path
      *
-     * @return Dir
+     * @return $this
      */
     public function getRelative($path)
     {
@@ -104,7 +105,7 @@ class Dir
     /**
      * Get root directory
      *
-     * @return Dir
+     * @return $this
      */
     public function getRoot()
     {
@@ -120,7 +121,7 @@ class Dir
     /**
      * Get parent directory
      *
-     * @return Dir
+     * @return $this
      */
     public function getParent()
     {
@@ -132,7 +133,7 @@ class Dir
     /**
      * Get current working directory
      *
-     * @return Dir
+     * @return $this
      */
     public static function getCurrent()
     {
@@ -144,7 +145,7 @@ class Dir
     /**
      * Get home directory
      *
-     * @return Dir
+     * @return $this
      */
     public static function getHome()
     {
@@ -159,10 +160,26 @@ class Dir
      * @param int     $permission Value for CHMOD
      * @param boolean $recursive  Create also parent directories
      *
-     * @return Dir
+     * @return $this
+     * @throws \ErrorException
      */
     public function create($permission = 0777, $recursive = true)
     {
+        if ($this->exists()) {
+            return $this;
+        }
+
+        $parentPath = $this->getParent()
+            ->getPath();
+
+        if (!is_writable($parentPath)) {
+            throw new \ErrorException(sprintf(
+                "Directory '%s' cannot be created in '%s' because it is not writable.",
+                $this->getName(),
+                $parentPath
+            ));
+        }
+
         mkdir($this->path, $permission, $recursive);
 
         return $this;
@@ -174,7 +191,7 @@ class Dir
      * @param array $paths      Paths
      * @param int   $permission Value for CHMOD
      *
-     * @return Dir
+     * @return $this
      */
     public function flush(array $paths, $permission = 0777)
     {
@@ -196,7 +213,7 @@ class Dir
      *
      * @param boolean $recursive Deletes all subdirectories and files
      *
-     * @return Dir
+     * @return $this
      */
     public function remove($recursive = true)
     {
@@ -251,7 +268,7 @@ class Dir
      * @param Dir|string $dir         Dir object or path
      * @param boolean    $createPaths Create paths (if does not exist)
      *
-     * @return Dir
+     * @return $this
      * @throws \InvalidArgumentException
      */
     public function symlink($dir, $createPaths = true)
@@ -296,27 +313,54 @@ class Dir
      *
      * @return File
      */
-    public function generateRandomFile($extension = null, $prefix = null, $suffix = null)
+    public function randFile($extension = null, $prefix = null, $suffix = null)
     {
         do {
             $path = $this->path . '/';
 
             if ($prefix !== null) {
-                $path .= (string) $prefix;
+                $path .= (string)$prefix;
             }
 
             $path .= uniqid('', true);
 
             if ($suffix !== null) {
-                $path .= (string) $suffix;
+                $path .= (string)$suffix;
             }
 
             if ($extension !== null) {
-                $path .= '.' . (string) $extension;
+                $path .= '.' . (string)$extension;
             }
         } while (file_exists($path));
 
         return new File($path);
+    }
+
+    /**
+     * Generate hashed filename with same extension
+     *
+     * @param string    $source    Path
+     * @param Encrypter $encrypter Encrypter
+     *
+     * @return File
+     */
+    public function hashFile($source, Encrypter $encrypter = null)
+    {
+        if (!$source instanceof File) {
+            $source = new File($source);
+        }
+
+        if ($encrypter === null) {
+            $encrypter = new Encrypter();
+        }
+
+        $hash = $encrypter->crypt($source->getAbsolutePath());
+        $path = $this->getPath();
+        $ext = $source->getExtension();
+
+        $target = new File($path . '/' . $hash . '.' . $ext);
+
+        return $target;
     }
 
     /**

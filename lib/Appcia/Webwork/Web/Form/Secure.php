@@ -159,8 +159,8 @@ class Secure extends Form
      */
     public function tokenize($salt = null)
     {
-        if ($salt !== null && !is_string($salt) && !is_numeric($salt)) {
-            throw new \InvalidArgumentException('Form token key should be a number or a string.');
+        if ($salt === null) {
+            $salt = $this->encryter->generateSalt();
         }
 
         $value = implode('', array_keys($this->fields));
