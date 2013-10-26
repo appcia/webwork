@@ -15,21 +15,17 @@ class RouteUrl extends Helper
      *
      * @return string|null
      */
-    public function routeUrl($name = null, $params = null)
+    public function routeUrl($name = null, $params = array())
     {
         $name = Value::getString($name);
         if ($name === null) {
             return null;
         }
 
-        if (!is_array($params)) {
-            $params = array();
-        }
-
         $url = $this->getView()
             ->getApp()
             ->getRouter()
-            ->assemble($name, $params);
+            ->assemble($name, (array) $params);
 
         return $url;
     }
