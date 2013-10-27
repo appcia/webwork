@@ -123,7 +123,7 @@ class View
      */
     public function setTemplate($template)
     {
-        $this->template = (string) $template;
+        $this->template = (string)$template;
 
         return $this;
     }
@@ -161,7 +161,7 @@ class View
      * Get template file path
      *
      * @param string $template Template
-     * @param array  $paths    Search paths
+     * @param array $paths Search paths
      *
      * @return string
      * @throws \InvalidArgumentException
@@ -172,8 +172,13 @@ class View
             $template = $this->template;
         }
 
-        $paths[] = $this->getModulePath();
+        if (file_exists($template)) {
+            return $template;
+        }
 
+        $paths = (array) $paths;
+
+        // Handle '[module name]:[template path]' notation
         if (strpos($template, self::MODULE_DELIMITER) !== false) {
             $parts = explode(self::MODULE_DELIMITER, $template);
 
@@ -185,24 +190,25 @@ class View
             }
 
             list ($module, $template) = $parts;
-            $path = $this->getModulePath($module);
-
-            array_unshift($paths, $path);
+            array_unshift($paths, $this->getModulePath($module));
         }
 
-        if (!file_exists($template)) {
-            foreach (array_reverse($paths) as $path) {
-                $file = $path . '/' . $template;
+        // For sure, add current module path
+        array_unshift($paths, $this->getModulePath());
 
-                if (file_exists($file)) {
-                    return $file;
-                }
+        // Last added on stack are most important
+        $paths = array_reverse(array_unique($paths));
+
+        // Search for template
+        foreach ($paths as $path) {
+            $file = $path . '/' . $template;
+
+            if (file_exists($file)) {
+                return $file;
             }
-
-            throw new \InvalidArgumentException(sprintf("Template file not found: '%s'", $template));
         }
 
-        return $template;
+        throw new \InvalidArgumentException(sprintf("Template file not found: '%s'", $template));
     }
 
     /**
