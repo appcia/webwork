@@ -299,12 +299,16 @@ class Form extends Component
 
     /**
      * Filter field values
+     *
+     * @return $this
      */
     public function filter()
     {
         foreach ($this->fields as $field) {
             $field->filter();
         }
+
+        return $this;
     }
 
     /**

@@ -1,6 +1,8 @@
 <?
 
-namespace Appcia\Webwork\Util;
+namespace Appcia\Webwork\Web\Lister;
+
+use Appcia\Webwork\Web\Lister;
 
 /**
  * Pagination helper
@@ -34,18 +36,6 @@ abstract class Pagination
         $this->lister = $lister;
         $this->first = true;
         $this->last= true;
-    }
-
-    /**
-     * @param Lister $lister
-     *
-     * @return $this
-     */
-    public function setLister($lister)
-    {
-        $this->lister = $lister;
-
-        return $this;
     }
 
     /**

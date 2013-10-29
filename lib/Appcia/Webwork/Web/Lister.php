@@ -1,6 +1,6 @@
 <?
 
-namespace Appcia\Webwork\Util;
+namespace Appcia\Webwork\Web;
 
 /**
  * Listing helper

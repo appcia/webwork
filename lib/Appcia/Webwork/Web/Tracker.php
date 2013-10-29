@@ -1,14 +1,12 @@
 <?
 
-namespace Appcia\Webwork\Util;
+namespace Appcia\Webwork\Web;
 
 use Appcia\Webwork\Storage\Session\Space;
 use Appcia\Webwork\Web\Request;
 
 /**
  * Stores previously visited URL's in session storage
- *
- * @package Appcia\Webwork\Util
  */
 class Tracker
 {

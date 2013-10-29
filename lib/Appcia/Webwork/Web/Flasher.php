@@ -1,17 +1,15 @@
 <?
 
-namespace Appcia\Webwork\Util;
+namespace Appcia\Webwork\Web;
 
 use Appcia\Webwork\Storage\Session\Space;
 
 /**
- * Basic flash messenger
+ * Flash messenger
  *
  * Is using session space as storage
- *
- * @package Appcia\Webwork\Util
  */
-class Flash
+class Flasher
 {
     const SUCCESS = 'success';
     const INFO = 'info';

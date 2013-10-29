@@ -33,16 +33,17 @@ class Length extends Validator
         $args = func_get_args();
 
         switch (count($args)) {
-            case 1:
-                $this->min = $args[0];
-                $this->max = $args[0];
-                break;
-            case 2:
-                $this->min = $args[0];
-                $this->max = $args[1];
-                break;
-            default:
-                throw new \InvalidArgumentException('Length validator parameter count should be 1 or 2.');
+        case 1:
+            $this->setMin($args[0]);
+            $this->setMax($args[0]);
+            break;
+        case 2:
+            $this->setMin($args[0]);
+            $this->setMax($args[1]);
+            break;
+        default:
+            throw new \InvalidArgumentException('Length validator parameter count should be 1 or 2.');
+            break;
         }
     }
 
@@ -68,4 +69,43 @@ class Length extends Validator
         return $flag;
     }
 
+    /**
+     * @param int $max
+     *
+     * @return $this
+     */
+    public function setMax($max)
+    {
+        $this->max = (int)$max;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMax()
+    {
+        return $this->max;
+    }
+
+    /**
+     * @param int $min
+     *
+     * @return $this
+     */
+    public function setMin($min)
+    {
+        $this->min = (int)$min;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getMin()
+    {
+        return $this->min;
+    }
 }

@@ -7,9 +7,7 @@ use Appcia\Webwork\View\Renderer;
 use Appcia\Webwork\Web\App;
 
 /**
- * Output data model
- *
- * @package Appcia\Webwork\View
+ * Handles data binding with presentation files
  */
 class View
 {
@@ -161,7 +159,7 @@ class View
      * Get template file path
      *
      * @param string $template Template
-     * @param array $paths Search paths
+     * @param array  $paths    Search paths
      *
      * @return string
      * @throws \InvalidArgumentException
@@ -176,7 +174,7 @@ class View
             return $template;
         }
 
-        $paths = (array) $paths;
+        $paths = (array)$paths;
 
         // Handle '[module name]:[template path]' notation
         if (strpos($template, self::MODULE_DELIMITER) !== false) {

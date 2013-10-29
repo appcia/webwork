@@ -145,6 +145,24 @@ abstract class Field
     }
 
     /**
+     * Check whether component (filter or validator) is used
+     *
+     * @param string $component Component name (last part of class name)
+     * @param array  $classes   Component classes to be searched
+     *
+     * @return bool
+     */
+    protected function hasComponent($component, array $classes)
+    {
+        $names = array_map(function ($class) {
+            return mb_strtolower(substr($class, strrpos($class, '\\') + 1));
+        }, $classes);
+        $flag = in_array(mb_strtolower($component), $names);
+
+        return $flag;
+    }
+
+    /**
      * Get filtered value
      *
      * @return mixed
@@ -404,6 +422,40 @@ abstract class Field
                 $this->name
             ));
         }
+
+        return $flag;
+    }
+
+    /**
+     * Check whether validator with specified name is used
+     *
+     * @param string $name Validator name
+     *
+     * @return bool
+     */
+    public function isValidated($name = null)
+    {
+        if ($name === null) {
+            return !empty($this->validators);
+        }
+        $flag = $this->hasComponent($name, array_keys($this->validators));
+
+        return $flag;
+    }
+
+    /**
+     * Check whether filter with specified name is used
+     *
+     * @param string $name Validator name
+     *
+     * @return bool
+     */
+    public function isFiltered($name = null)
+    {
+        if ($name === null) {
+            return !empty($this->filters);
+        }
+        $flag = $this->hasComponent($name, array_keys($this->validators));
 
         return $flag;
     }
