@@ -188,4 +188,20 @@ abstract class Lister implements \IteratorAggregate, \Countable
     {
         return $this->getCount();
     }
+
+    /**
+     * Setup before fetching elements
+     *
+     * @param array $data Data from request
+     *
+     * @return $this
+     */
+    public function populate(array $data)
+    {
+        if (isset($data['page'])) {
+            $this->pagination->setPageNum($data['page']);
+        }
+
+        return $this;
+    }
 }

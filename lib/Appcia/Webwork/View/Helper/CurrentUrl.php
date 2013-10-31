@@ -9,9 +9,11 @@ class CurrentUrl extends Helper
     /**
      * Caller
      *
+     * @param array $params Params to be overridden
+     *
      * @return string
      */
-    public function currentUrl()
+    public function currentUrl($params = array())
     {
         $app = $this->getView()
             ->getApp();
@@ -22,8 +24,10 @@ class CurrentUrl extends Helper
         $name = $dispatcher->getRoute()
             ->getName();
 
-        $params = $app->getRequest()
-                ->getUriParams();
+        $params = array_merge(
+            $app->getRequest()->getUriParams(),
+            $params
+        );
 
         $url = $router->assemble($name, $params);
 

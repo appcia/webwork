@@ -13,6 +13,7 @@ class Pagination implements \IteratorAggregate
      * @var int
      */
     protected $pagePer;
+
     /**
      * @var int
      */
@@ -27,7 +28,7 @@ class Pagination implements \IteratorAggregate
     {
         $this->lister = $lister;
         $this->pageNum = 1;
-        $this->pagePer = 2;
+        $this->pagePer = 30;
     }
 
     /**

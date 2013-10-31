@@ -55,4 +55,20 @@ abstract class Arr
 
         return $max;
     }
+
+    /**
+     * Get array value by key even it does not exist
+     *
+     * @param array $arr     Array
+     * @param mixed $key     Key
+     * @param mixed $default Default value
+     *
+     * @return null
+     */
+    public static function value(array $arr, $key, $default = null)
+    {
+        return array_key_exists($key, $arr)
+            ? $arr[$key]
+            : $default;
+    }
 }
