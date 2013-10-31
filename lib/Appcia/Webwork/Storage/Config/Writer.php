@@ -18,7 +18,7 @@ abstract class Writer extends Object
      * @return $this
      * @throws \InvalidArgumentException
      */
-    public static function create($data, $args = array())
+    public static function objectify($data, $args = array())
     {
         if (is_string($data)) {
             $target = new File($data);
@@ -32,7 +32,7 @@ abstract class Writer extends Object
             }
         }
 
-        return parent::create($data, $args);
+        return parent::objectify($data, $args);
     }
 
     /**

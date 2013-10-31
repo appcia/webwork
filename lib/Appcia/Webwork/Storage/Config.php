@@ -5,7 +5,6 @@ namespace Appcia\Webwork\Storage;
 use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Storage\Config\Reader;
 use Appcia\Webwork\Storage\Config\Writer;
-use Appcia\Webwork\System\File;
 
 /**
  * Aggregator for related data
@@ -15,18 +14,8 @@ use Appcia\Webwork\System\File;
  *
  * @package Appcia\Webwork\Storage
  */
-class Config extends Objector implements \Iterator, \ArrayAccess
+class Config extends Objector
 {
-    /**
-     * Get keys
-     *
-     * @return array
-     */
-    public function getKeys()
-    {
-        return array_keys($this->data);
-    }
-
     /**
      * Load data from supported source
      * Reader is determined automatically
@@ -38,7 +27,7 @@ class Config extends Objector implements \Iterator, \ArrayAccess
      */
     public function load($source)
     {
-        $reader = Reader::create($source);
+        $reader = Reader::objectify($source);
         $config = $reader->read($source);
 
         $this->extend($config);
@@ -111,7 +100,7 @@ class Config extends Objector implements \Iterator, \ArrayAccess
      */
     public function save($target)
     {
-        $writer = Writer::create($target);
+        $writer = Writer::objectify($target);
         $writer->write($this, $target);
 
         return $this;
@@ -207,64 +196,6 @@ class Config extends Objector implements \Iterator, \ArrayAccess
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function valid()
-    {
-        $key = key($this->data);
-
-        return ($key !== null) && ($key !== false);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function next()
-    {
-        return next($this->data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function rewind()
-    {
-        return reset($this->data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function current()
-    {
-        return current($this->data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function key()
-    {
-        return key($this->data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function reset()
-    {
-        return reset($this->data);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function offsetExists($offset)
-    {
-        return $this->has($offset);
-    }
-
-    /**
      * Check whether key exists
      *
      * @param string $key Key in dot notation
@@ -287,14 +218,6 @@ class Config extends Objector implements \Iterator, \ArrayAccess
         }
 
         return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function offsetGet($offset)
-    {
-        return $this->get($offset);
     }
 
     /**
@@ -321,16 +244,6 @@ class Config extends Objector implements \Iterator, \ArrayAccess
         }
 
         return $data;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function offsetSet($offset, $value)
-    {
-        $this->set($offset, $value);
-
-        return $this;
     }
 
     /**
@@ -372,16 +285,6 @@ class Config extends Objector implements \Iterator, \ArrayAccess
         }
 
         $data = $value;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function offsetUnset($offset)
-    {
-        $this->remove($offset);
 
         return $this;
     }

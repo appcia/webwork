@@ -87,7 +87,7 @@ class Route extends Object
      *
      * @return $this
      */
-    public static function create($data, $args = array())
+    public static function objectify($data, $args = array())
     {
         if (!isset($data['name'])) {
             $data['name'] = self::generateName(
@@ -97,7 +97,7 @@ class Route extends Object
             );
         }
 
-        return parent::create($data, $args);
+        return parent::objectify($data, $args);
     }
 
     /**

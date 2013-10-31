@@ -130,7 +130,7 @@ class Space implements \ArrayAccess
     /**
      * Data clean check
      *
-     * @return booleanean
+     * @return boolean
      */
     public function isClean()
     {

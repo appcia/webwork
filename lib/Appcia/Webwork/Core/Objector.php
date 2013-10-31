@@ -4,38 +4,9 @@ namespace Appcia\Webwork\Core;
 
 /**
  * Object configurator
- *
- * @package Appcia\Webwork\Core
  */
-class Objector
+class Objector extends Data
 {
-    /**
-     * Manipulation data
-     *
-     * @var array
-     */
-    protected $data;
-
-    /**
-     * Constructor
-     *
-     * @param array $data Data
-     */
-    public function __construct(array $data = array())
-    {
-        $this->data = $data;
-    }
-
-    /**
-     * Get data
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
     /**
      * Set data
      *
@@ -43,7 +14,7 @@ class Objector
      *
      * @return $this
      */
-    public function setData(array $data)
+    public function setData($data = array())
     {
         // Deterministic injecting
         ksort($data);
@@ -186,7 +157,7 @@ class Objector
      *
      * @return mixed
      */
-    public static function create($config = null, $args = array(), $base = null)
+    public static function objectify($config = null, $args = array(), $base = null)
     {
         if (is_string($config)) {
             $config = new self(array('class' => $config));

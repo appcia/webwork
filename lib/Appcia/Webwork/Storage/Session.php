@@ -77,7 +77,7 @@ class Session
     public function setHandler($handler)
     {
         if (!$handler instanceof Handler) {
-            $handler = Handler::create($handler);
+            $handler = Handler::objectify($handler);
         }
 
         $this->handler = $handler;

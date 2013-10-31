@@ -353,7 +353,7 @@ class Manager
         $class = $config['processor']['class'];
 
         if (!isset($this->processors[$class])) {
-            $this->processors[$class] = Config::create($config['processor'], array($this));
+            $this->processors[$class] = Config::objectify($config['processor'], array($this));
         }
 
         return $this->processors[$class];
@@ -381,7 +381,7 @@ class Manager
         $class = $config['provider']['class'];
 
         if (!isset($this->providers[$class])) {
-            $this->providers[$class] = Config::create($config['provider'], null, array($this));
+            $this->providers[$class] = Config::objectify($config['provider'], null, array($this));
         }
 
         return $this->providers[$class];

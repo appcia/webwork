@@ -80,7 +80,7 @@ class Context
     public function setLocale($locale)
     {
         if (!$locale instanceof Locale) {
-            $locale = Locale::create($locale, array($this));
+            $locale = Locale::objectify($locale, array($this));
         }
 
         $this->locale = $locale;
@@ -104,7 +104,7 @@ class Context
     public function setTranslator($translator)
     {
         if (!$translator instanceof Translator) {
-            $translator = Translator::create($translator, array($this));
+            $translator = Translator::objectify($translator, array($this));
         }
 
         $this->translator = $translator;

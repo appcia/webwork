@@ -86,7 +86,7 @@ class Router
     public function addRoute($route)
     {
         if (!$route instanceof Route) {
-            $route = Route::create($route);
+            $route = Route::objectify($route);
         }
 
         $name = $route->getName();

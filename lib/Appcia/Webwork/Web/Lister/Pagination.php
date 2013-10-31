@@ -6,25 +6,17 @@ use Appcia\Webwork\Web\Lister;
 
 /**
  * Pagination helper
- *
- * @package Appcia\Webwork\Util
  */
-abstract class Pagination
+class Pagination implements \IteratorAggregate
 {
     /**
-     * @var Lister
+     * @var int
      */
-    protected $lister;
-
+    protected $pagePer;
     /**
-     * @var boolean
+     * @var int
      */
-    protected $first;
-
-    /**
-     * @var boolean
-     */
-    protected $last;
+    protected $pageNum;
 
     /**
      * Constructor
@@ -34,8 +26,8 @@ abstract class Pagination
     public function __construct(Lister $lister)
     {
         $this->lister = $lister;
-        $this->first = true;
-        $this->last= true;
+        $this->pageNum = 1;
+        $this->pagePer = 2;
     }
 
     /**
@@ -53,18 +45,96 @@ abstract class Pagination
      */
     public function getPages()
     {
-        $pages = $this->lister->getPageCount();
-        $current = $this->lister->getPageNum();
+        $count = $this->getPageCount();
 
-        $res = array();
-        for ($p = 1; $p <= $pages; $p++) {
-            $res[$p] = array(
+        $pages = array();
+        for ($p = 1; $p <= $count; $p++) {
+            $pages[$p] = array(
                 'first' => ($p == 1),
-                'last' => ($p == $pages),
-                'current' => ($p == $current)
+                'last' => ($p == $count),
+                'current' => ($p == $this->pageNum)
             );
         }
 
-        return $res;
+        return $pages;
+    }
+
+    /**
+     * Get page count
+     *
+     * @return int
+     */
+    public function getPageCount()
+    {
+        $total = $this->lister->getTotalCount();
+        $count = (int) ($this->pagePer == 0)
+            ? 0
+            : ceil($total / $this->pagePer);
+
+        return $count;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPageNum()
+    {
+        return $this->pageNum;
+    }
+
+    /**
+     * @param mixed $pageNum
+     *
+     * @return $this
+     */
+    public function setPageNum($pageNum)
+    {
+        $this->pageNum = max(1, $pageNum);
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPagePer()
+    {
+        return $this->pagePer;
+    }
+
+    /**
+     * @param int $pagePer
+     *
+     * @return $this
+     */
+    public function setPagePer($pagePer)
+    {
+        $this->pagePer = max(0, $pagePer);
+
+        return $this;
+    }
+
+    /**
+     * Get result offset
+     *
+     * @return int
+     */
+    public function getOffset()
+    {
+        $offset = ($this->pagePer == 0)
+            ? 0
+            : ($this->pageNum - 1) * $this->pagePer;
+
+        return $offset;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIterator()
+    {
+        $pages = $this->getPages();
+
+        return new \ArrayIterator($pages);
     }
 }

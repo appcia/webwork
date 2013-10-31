@@ -146,7 +146,7 @@ class View
     public function setRenderer($renderer)
     {
         if (!$renderer instanceof Renderer) {
-            $renderer = Renderer::create($renderer);
+            $renderer = Renderer::objectify($renderer);
         }
 
         $renderer->setView($this);
