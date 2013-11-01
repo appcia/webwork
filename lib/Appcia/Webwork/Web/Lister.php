@@ -45,8 +45,7 @@ abstract class Lister implements \IteratorAggregate, \Countable
     public function __construct()
     {
         $this->pagination = new Pagination($this);
-        $this->filters = array();
-        $this->sorters = array();
+        $this->options = array();
         $this->elements = null;
         $this->totalCount = null;
     }
@@ -277,18 +276,18 @@ abstract class Lister implements \IteratorAggregate, \Countable
             $this->pagination->setPageNum($data['page']);
         }
 
-        if (!empty($data['per-page'])) {
-            $this->pagination->setPerPage($data['per-page']);
+        if (!empty($data['perPage'])) {
+            $this->pagination->setPerPage($data['perPage']);
         }
 
-        if (!empty($data['filter-option']) && !empty($data['filter-value'])) {
-            $option = $this->getOption($data['filter-option']);
-            $option->setFilter($data['filter-value']);
+        if (!empty($data['filterOption']) && !empty($data['filterValue'])) {
+            $option = $this->getOption($data['filterOption']);
+            $option->setFilter($data['filterValue']);
         }
 
-        if (!empty($data['sorter-option']) && !empty($data['sorter-dir'])) {
-            $option = $this->getOption($data['sorter-option']);
-            $option->setDir($data['sorter-dir']);
+        if (!empty($data['sorterOption']) && !empty($data['sorterDir'])) {
+            $option = $this->getOption($data['sorterOption']);
+            $option->setDir($data['sorterDir']);
         }
 
         return $this;
