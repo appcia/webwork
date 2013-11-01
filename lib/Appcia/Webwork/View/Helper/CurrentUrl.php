@@ -9,11 +9,12 @@ class CurrentUrl extends Helper
     /**
      * Caller
      *
-     * @param array $params Params to be overridden
+     * @param array $params   Params to be overridden
+     * @param array $excludes Params to be excluded
      *
      * @return string
      */
-    public function currentUrl($params = array())
+    public function currentUrl($params = array(), $excludes = array())
     {
         $app = $this->getView()
             ->getApp();
@@ -28,6 +29,10 @@ class CurrentUrl extends Helper
             $app->getRequest()->getUriParams(),
             $params
         );
+
+        foreach ($excludes as $param) {
+            unset($params[$param]);
+        }
 
         $url = $router->assemble($name, $params);
 

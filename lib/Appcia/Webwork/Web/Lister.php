@@ -2,9 +2,9 @@
 
 namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Web\Lister\Filters;
+use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Web\Lister\Option;
 use Appcia\Webwork\Web\Lister\Pagination;
-use Appcia\Webwork\Web\Lister\Sorters;
 
 /**
  * Listing helper
@@ -12,21 +12,14 @@ use Appcia\Webwork\Web\Lister\Sorters;
 abstract class Lister implements \IteratorAggregate, \Countable
 {
     /**
-     * Filters applied
+     * Customizable options
      *
-     * @var Filters
+     * @var Option[]
      */
-    protected $filters;
+    protected $options;
 
     /**
-     * Sorters applied
-     *
-     * @var Sorters
-     */
-    protected $sorters;
-
-    /**
-     * Pagination helper
+     * Pagination
      *
      * @var Pagination
      */
@@ -52,8 +45,8 @@ abstract class Lister implements \IteratorAggregate, \Countable
     public function __construct()
     {
         $this->pagination = new Pagination($this);
-        $this->filters = new Filters();
-        $this->sorters = new Sorters();
+        $this->filters = array();
+        $this->sorters = array();
         $this->elements = null;
         $this->totalCount = null;
     }
@@ -80,55 +73,28 @@ abstract class Lister implements \IteratorAggregate, \Countable
     abstract public function countElements();
 
     /**
-     * Get current element count
-     *
-     * @return int
+     * @return Option[]
      */
-    public function getCount()
+    public function getOptions()
     {
-        $elements = $this->getElements();
-        $count = count($elements);
-
-        return $count;
+        return $this->options;
     }
 
     /**
-     * Get lazy loaded elements
-     *
-     * @return array
-     */
-    public function getElements()
-    {
-        if ($this->elements === null) {
-            $this->elements = $this->fetchElements();
-        }
-
-        return $this->elements;
-    }
-
-    /**
-     * Fetch elements from database or other data source
-     *
-     * @return mixed
-     */
-    abstract public function fetchElements();
-
-    /**
-     * @return Filters
-     */
-    public function getFilters()
-    {
-        return $this->filters;
-    }
-
-    /**
-     * @param Filters $filters
+     * @param Option[] $options
      *
      * @return $this
      */
-    public function setFilters(Filters $filters)
+    public function setOptions($options)
     {
-        $this->filters = $filters;
+        $this->options = array();
+        foreach ($options as $name => $option) {
+            if (!$option instanceof Option) {
+                $option = Option::objectify($option, array($name));
+            }
+
+            $this->options[$name] = $option;
+        }
 
         return $this;
     }
@@ -154,32 +120,33 @@ abstract class Lister implements \IteratorAggregate, \Countable
     }
 
     /**
-     * @return Sorters
-     */
-    public function getSorters()
-    {
-        return $this->sorters;
-    }
-
-    /**
-     * @param Sorters $sorters
-     *
-     * @return $this
-     */
-    public function setSorters(Sorters $sorters)
-    {
-        $this->sorters = $sorters;
-
-        return $this;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getIterator()
     {
         return new \ArrayIterator($this->getElements());
     }
+
+    /**
+     * Get lazy loaded elements
+     *
+     * @return array
+     */
+    public function getElements()
+    {
+        if ($this->elements === null) {
+            $this->elements = $this->fetchElements();
+        }
+
+        return $this->elements;
+    }
+
+    /**
+     * Fetch elements from database or other data source
+     *
+     * @return mixed
+     */
+    abstract public function fetchElements();
 
     /**
      * {@inheritdoc}
@@ -190,18 +157,157 @@ abstract class Lister implements \IteratorAggregate, \Countable
     }
 
     /**
-     * Setup before fetching elements
+     * Get current element count
      *
-     * @param array $data Data from request
+     * @return int
+     */
+    public function getCount()
+    {
+        $elements = $this->getElements();
+        $count = count($elements);
+
+        return $count;
+    }
+
+    /**
+     * Get filter value
+     * If option not specified, returns first option filter value
+     *
+     * @param string|null $option Option name
+     *
+     * @return string|null
+     */
+    public function getFilter($option = null)
+    {
+        $filters = $this->getFilters();
+        $value = $this->getValue($option, $filters);
+
+        return $value;
+    }
+
+    /**
+     * Get values from all active filters
+     *
+     * @return array
+     */
+    public function getFilters()
+    {
+        $filters = array();
+        foreach ($this->options as $option) {
+            if ($option->getFilter() !== null) {
+                $filters[$option->getName()] = $option->getFilter();
+            }
+        }
+
+        return $filters;
+    }
+
+    /**
+     * Helper function for getting option value
+     *
+     * @param string|null $option Option name
+     * @param array       $values Possible values
+     *
+     * @return null
+     */
+    protected function getValue($option = null, array $values)
+    {
+        if ($option === null) {
+            if (empty($values)) {
+                return null;
+            } else {
+                list($option) = array_keys($values);
+            }
+        } elseif ($option instanceof Option) {
+            $option = $option->getName();
+        }
+
+        $value = isset($values[$option])
+            ? $values[$option]
+            : null;
+
+        return $value;
+    }
+
+    /**
+     * Get sorter direction
+     * If option not specified, returns first sorter direction
+     *
+     * @param string|null $option Option name
+     *
+     * @return string|null
+     */
+    public function getSorter($option = null)
+    {
+        $sorters = $this->getSorters();
+        $dir = $this->getValue($option, $sorters);
+
+        return $dir;
+    }
+
+    /**
+     * Get directions from all active sorters
+     *
+     * @return array
+     */
+    public function getSorters()
+    {
+        $sorters = array();
+        foreach ($this->options as $option) {
+            if ($option->getDir() !== null) {
+                $sorters[$option->getName()] = $option->getDir();
+            }
+        }
+
+        return $sorters;
+    }
+
+    /**
+     * Setup before fetching elements
+     * Override if predefined keys must be changed
+     *
+     * @param array $data Data from request (GET, POST, session ...)
      *
      * @return $this
+     * @throws \InvalidArgumentException
      */
-    public function populate(array $data)
+    public function populate($data)
     {
-        if (isset($data['page'])) {
+        if (!empty($data['page'])) {
             $this->pagination->setPageNum($data['page']);
         }
 
+        if (!empty($data['per-page'])) {
+            $this->pagination->setPerPage($data['per-page']);
+        }
+
+        if (!empty($data['filter-option']) && !empty($data['filter-value'])) {
+            $option = $this->getOption($data['filter-option']);
+            $option->setFilter($data['filter-value']);
+        }
+
+        if (!empty($data['sorter-option']) && !empty($data['sorter-dir'])) {
+            $option = $this->getOption($data['sorter-option']);
+            $option->setDir($data['sorter-dir']);
+        }
+
         return $this;
+    }
+
+    /**
+     * Get option by name
+     *
+     * @param string $option Option name
+     *
+     * @return Option
+     * @throws \InvalidArgumentException
+     */
+    public function getOption($option)
+    {
+        if (!isset($this->options[$option])) {
+            throw new \InvalidArgumentException(sprintf("Lister option '%s' does not exist.", $option));
+        }
+
+        return $this->options[$option];
     }
 }

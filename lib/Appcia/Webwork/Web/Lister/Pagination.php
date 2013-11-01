@@ -12,7 +12,7 @@ class Pagination implements \IteratorAggregate
     /**
      * @var int
      */
-    protected $pagePer;
+    protected $perPage;
 
     /**
      * @var int
@@ -28,7 +28,8 @@ class Pagination implements \IteratorAggregate
     {
         $this->lister = $lister;
         $this->pageNum = 1;
-        $this->pagePer = 30;
+        $this->perPage = 30;
+        $this->perPages = array(10, 30, 100, 200, 500);
     }
 
     /**
@@ -68,9 +69,9 @@ class Pagination implements \IteratorAggregate
     public function getPageCount()
     {
         $total = $this->lister->getTotalCount();
-        $count = (int) ($this->pagePer == 0)
+        $count = (int) ($this->perPage == 0)
             ? 0
-            : ceil($total / $this->pagePer);
+            : ceil($total / $this->perPage);
 
         return $count;
     }
@@ -98,9 +99,9 @@ class Pagination implements \IteratorAggregate
     /**
      * @return mixed
      */
-    public function getPagePer()
+    public function getPerPage()
     {
-        return $this->pagePer;
+        return $this->perPage;
     }
 
     /**
@@ -108,11 +109,31 @@ class Pagination implements \IteratorAggregate
      *
      * @return $this
      */
-    public function setPagePer($pagePer)
+    public function setPerPage($pagePer)
     {
-        $this->pagePer = max(0, $pagePer);
+        $this->perPage = max(0, $pagePer);
 
         return $this;
+    }
+
+    /**
+     * @param int[] $perPages
+     *
+     * @return $this
+     */
+    public function setPerPages($perPages)
+    {
+        $this->perPages = (array) $perPages;
+
+        return $this;
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getPerPages()
+    {
+        return $this->perPages;
     }
 
     /**
@@ -122,9 +143,9 @@ class Pagination implements \IteratorAggregate
      */
     public function getOffset()
     {
-        $offset = ($this->pagePer == 0)
+        $offset = ($this->perPage == 0)
             ? 0
-            : ($this->pageNum - 1) * $this->pagePer;
+            : ($this->pageNum - 1) * $this->perPage;
 
         return $offset;
     }
