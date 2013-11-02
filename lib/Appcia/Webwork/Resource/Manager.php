@@ -26,9 +26,145 @@ class Manager
     protected $config;
 
     /**
+     * Temporary files directory
+     *
      * @var Dir
      */
     protected $tempDir;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->config = array();
+        $this->tempDir = new Dir(sys_get_temp_dir());
+    }
+
+    /**
+     * @param Dir $dir
+     *
+     * @return $this
+     */
+    public function setTempDir($dir)
+    {
+        if (!$dir instanceof Dir) {
+            $dir = new Dir($dir);
+        }
+
+        $this->tempDir = $dir;
+
+        return $this;
+    }
+
+    /**
+     * @return Dir
+     */
+    public function getTempDir()
+    {
+        return $this->tempDir;
+    }
+
+    /**
+     * Get configuration (for type by names)
+     *
+     * @param string|null $resource
+     * @param string|null $type
+     *
+     * @return array
+     * @throws \InvalidArgumentException
+     */
+    public function getConfig($resource = null, $type = null)
+    {
+        $config = $this->config;
+
+        if ($resource !== null) {
+            $config = $config[$resource];
+
+            if (!isset($config['path'])) {
+                throw new \InvalidArgumentException(sprintf(
+                    "Resource manager config for type '%s' does not have path specified.",
+                    $resource
+                ));
+            }
+
+            if (!isset($config['types'])) {
+                $config['types'] = array();
+            }
+        }
+
+        if ($type !== null) {
+            $config = $config['types'];
+
+            if (!isset($config[$type])) {
+                throw new \InvalidArgumentException(sprintf(
+                    "Resource manager config for type '%s' does not exist.",
+                    $type
+                ));
+            }
+
+            $config = $config[$type];
+
+            if (!isset($config['path'])) {
+                throw new \InvalidArgumentException(sprintf(
+                    "Resource manager config for sub type '%s' does not have path specified.",
+                    $type
+                ));
+            }
+        }
+
+        return $config;
+    }
+
+    /**
+     * Set configuration
+     *
+     * @param array $config Config data
+     *
+     * @return $this
+     */
+    public function setConfig($config)
+    {
+        $this->config = (array) $config;
+
+        return $this;
+    }
+
+    /**
+     * Normalize uploaded file data
+     *
+     * @param array $data Data
+     *
+     * @return array|null
+     * @throws \InvalidArgumentException
+     */
+    public function normalizeUpload($data)
+    {
+        if (!is_array($data)) {
+            throw new \InvalidArgumentException('Uploaded data is not an array.' . PHP_EOL
+                . 'Propably you just forget to add enctype multipart/form-data to form.');
+        }
+
+        // Trim empty values to null
+        if (empty($data['tmp_name'])) {
+            return null;
+        }
+
+        // Normalize for multiple files
+        if (is_array($data['tmp_name'])) {
+            $result = array();
+
+            foreach ($data as $key => $all) {
+                foreach ($all as $i => $val) {
+                    $result[$i][$key] = $val;
+                }
+            }
+
+            return $result;
+        }
+
+        return $data;
+    }
 
     /**
      * Upload resource
@@ -109,78 +245,5 @@ class Manager
         $resource = new Resource($this, $name, $params);
 
         return $resource;
-    }
-
-    /**
-     * @param string|null $resource
-     * @param string|null $type
-     *
-     * @return array
-     */
-    public function getConfig($resource = null, $type = null)
-    {
-        $config = $this->config;
-
-        if ($resource !== null) {
-            $config = $config[$resource];
-        }
-
-        if ($type !== null) {
-            $config = isset($config['types'])
-                ? $config['types']
-                : array();
-
-            $config = $config[$type];
-        }
-
-        return $config;
-    }
-
-    /**
-     * @param array $config
-     *
-     * @return $this
-     */
-    public function setConfig($config)
-    {
-        $this->config = (array) $config;
-
-        return $this;
-    }
-
-    /**
-     * Normalize uploaded file data
-     *
-     * @param array $data Data
-     *
-     * @return array|null
-     * @throws \InvalidArgumentException
-     */
-    public function normalizeUpload($data)
-    {
-        if (!is_array($data)) {
-            throw new \InvalidArgumentException('Uploaded data is not an array.' . PHP_EOL
-                . 'Propably you just forget to add enctype multipart/form-data to form.');
-        }
-
-        // Trim empty values to null
-        if (empty($data['tmp_name'])) {
-            return null;
-        }
-
-        // Normalize for multiple files
-        if (is_array($data['tmp_name'])) {
-            $result = array();
-
-            foreach ($data as $key => $all) {
-                foreach ($all as $i => $val) {
-                    $result[$i][$key] = $val;
-                }
-            }
-
-            return $result;
-        }
-
-        return $data;
     }
 }

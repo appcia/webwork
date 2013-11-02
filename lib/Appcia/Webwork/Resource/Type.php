@@ -5,6 +5,7 @@ namespace Appcia\Webwork\Resource;
 use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Model\Template;
+use Appcia\Webwork\Resource\Service\Processor;
 use Appcia\Webwork\System\File;
 
 /**
@@ -25,15 +26,31 @@ class Type implements Object
     protected $name;
 
     /**
+     * Allowed extensions for producing this type
+     *
+     * @var string[]
+     */
+    protected $extensions;
+
+    /**
+     * Producer
+     *
+     * @var Processor
+     */
+    protected $processor;
+
+    /**
      * Constructor
      *
      * @param Resource $resource
-     * @param string   $path
+     * @param string   $name
      */
     public function __construct(Resource $resource, $name)
     {
         $this->resource = $resource;
         $this->name = $name;
+
+        $this->extensions = array();
     }
 
     /**
@@ -53,17 +70,22 @@ class Type implements Object
     }
 
     /**
+     * Shorthand getting path to file
+     *
      * @return string
      */
-    public function getName()
-    {
-        return $this->name;
+    public function __toString() {
+        $file = (string) $this->getFile();
+
+        return $file;
     }
 
     /**
+     * @param boolean $process
+     *
      * @return File
      */
-    public function getFile()
+    public function getFile($process = true)
     {
         $config = $this->resource->getManager()
             ->getConfig($this->resource->getName(), $this->name);
@@ -73,7 +95,19 @@ class Type implements Object
         $file = new File($path);
         $file->guess();
 
+        if ($process && !$file->exists() && in_array($file->getExtension(), $this->extensions)) {
+            $this->processor->run($this);
+        }
+
         return $file;
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 
     /**
@@ -94,12 +128,48 @@ class Type implements Object
     }
 
     /**
-     * Shorthand getting path to file
+     * @param string[] $extensions
      *
-     * @return string
+     * @return $this
      */
-    public function __toString()
+    public function setExtensions($extensions)
     {
-        return (string) $this->getFile();
+        $this->extensions = (array) $extensions;
+
+        return $this;
     }
+
+    /**
+     * @return string[]
+     */
+    public function getExtensions()
+    {
+        return $this->extensions;
+    }
+
+    /**
+     * @param Processor $processor
+     *
+     * @return $this
+     */
+    public function setProcessor($processor)
+    {
+        if (!$processor instanceof Processor) {
+            $processor = Processor::objectify($processor, array($this));
+        }
+
+        $this->processor = $processor;
+
+        return $this;
+    }
+
+    /**
+     * @return Processor
+     */
+    public function getProcessor()
+    {
+        return $this->processor;
+    }
+
+
 }

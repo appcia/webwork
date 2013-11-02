@@ -114,9 +114,11 @@ class Resource extends Type
     }
 
     /**
+     * @param null $process
+     *
      * @return File
      */
-    public function getFile()
+    public function getFile($process = null)
     {
         $config = $this->manager->getConfig($this->name);
         $path = $this->compilePath($config['path']);

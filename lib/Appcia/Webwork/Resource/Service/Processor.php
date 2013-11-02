@@ -2,9 +2,8 @@
 
 namespace Appcia\Webwork\Resource\Service;
 
-use Appcia\Webwork\Resource\Manager;
-use Appcia\Webwork\Resource\Resource;
 use Appcia\Webwork\Resource\Service;
+use Appcia\Webwork\Resource\Type;
 use Appcia\Webwork\System\File;
 
 /**
@@ -13,31 +12,33 @@ use Appcia\Webwork\System\File;
 abstract class Processor extends Service
 {
     /**
-     * Base resource
+     * Base type
      *
      * @var Resource
      */
-    protected $resource;
+    protected $type;
 
     /**
      * Constructor
      *
-     * @param Manager  $manager
-     * @param Resource $resource
+     * @param Type $type
      */
-    public function __construct(Manager $manager, Resource $resource)
+    public function __construct(Type $type)
     {
+        $manager = $type->getResource()
+            ->getManager();
+
         parent::__construct($manager);
 
-        $this->resource = $resource;
+        $this->type = $type;
     }
 
     /**
      * @return Resource
      */
-    public function getResource()
+    public function getType()
     {
-        return $this->resource;
+        return $this->type;
     }
 
     /**
