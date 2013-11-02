@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\Intl;
 
 use Appcia\Webwork\Core\Object;
-use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Web\Context;
 
 /**
@@ -11,7 +11,7 @@ use Appcia\Webwork\Web\Context;
  *
  * @package Appcia\Webwork\Intl
  */
-class Locale extends Object
+class Locale implements  Object
 {
     /**
      * @var Context
@@ -66,6 +66,14 @@ class Locale extends Object
         setlocale(LC_ALL, $locale);
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function objectify($data, $args = array())
+    {
+        return Objector::objectify($data, $args, get_called_class());
     }
 
     /**

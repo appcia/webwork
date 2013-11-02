@@ -4,8 +4,7 @@ namespace Appcia\Webwork\Core;
 
 use Appcia\Webwork\Storage\Config;
 
-abstract class Object {
-
+interface Object {
     /**
      * Object creator from various arguments
      *
@@ -14,9 +13,6 @@ abstract class Object {
      *
      * @return $this
      */
-    public static function objectify($data, $args = array())
-    {
-        return Config::objectify($data, $args, get_called_class());
-    }
+    public static function objectify($data, $args = array());
 }
 

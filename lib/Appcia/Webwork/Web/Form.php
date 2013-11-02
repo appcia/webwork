@@ -314,7 +314,7 @@ class Form extends Component
     /**
      * Filter and validate form at the same time
      *
-     * @return boolean
+     * @return $this
      */
     public function process()
     {
@@ -328,7 +328,7 @@ class Form extends Component
             }
         }
 
-        return $this->valid;
+        return $this;
     }
 
     /**

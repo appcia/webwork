@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Resource\Service;
 
+use Appcia\Webwork\Resource\Manager;
 use Appcia\Webwork\Resource\Resource;
 use Appcia\Webwork\Resource\Service;
 use Appcia\Webwork\System\File;
@@ -19,58 +20,24 @@ abstract class Processor extends Service
     protected $resource;
 
     /**
-     * Runtime settings
+     * Constructor
      *
-     * @var mixed
-     */
-    protected $settings;
-
-    /**
-     * Set base resource
-     *
+     * @param Manager  $manager
      * @param Resource $resource
-     *
-     * @return $this
      */
-    public function setResource(Resource $resource)
+    public function __construct(Manager $manager, Resource $resource)
     {
-        $this->resource = $resource;
+        parent::__construct($manager);
 
-        return $this;
+        $this->resource = $resource;
     }
 
     /**
-     * Get resource to be processed
-     *
      * @return Resource
      */
     public function getResource()
     {
         return $this->resource;
-    }
-
-    /**
-     * Set runtime settings
-     *
-     * @param mixed $settings
-     *
-     * @return $this
-     */
-    public function setSettings($settings)
-    {
-        $this->settings = $settings;
-
-        return $this;
-    }
-
-    /**
-     * Get runtime settings
-     *
-     * @return mixed
-     */
-    public function getSettings()
-    {
-        return $this->settings;
     }
 
     /**

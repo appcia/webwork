@@ -2,10 +2,10 @@
 
 namespace Appcia\Webwork\Web;
 
+use Appcia\Webwork\Data\Arr;
+
 /**
  * Web request
- *
- * @package Appcia\Webwork\Web
  */
 class Request
 {
@@ -18,33 +18,17 @@ class Request
      * Methods
      */
     const POST = 'post';
+
     const GET = 'get';
 
     /**
      * Protocols
      */
     const HTTP_10 = 'HTTP/1.0';
+
     const HTTP_11 = 'HTTP/1.1';
+
     const HTTPS = 'HTTPS';
-
-    /**
-     * @var array
-     */
-    protected static $methods = array(
-        self::POST,
-        self::GET
-    );
-
-    /**
-     * Protocol names with prefixes
-     *
-     * @var array
-     */
-    protected static $protocols = array(
-        self::HTTP_10 => 'http://',
-        self::HTTP_11 => 'http://',
-        self::HTTPS => 'https://'
-    );
 
     /**
      * Source URI
@@ -121,7 +105,7 @@ class Request
      *
      * @var array
      */
-    protected $files;
+    protected $file;
 
     /**
      * Data passed by GET method
@@ -153,19 +137,9 @@ class Request
         $this->params = array();
         $this->post = array();
         $this->get = array();
-        $this->files = array();
+        $this->file = array();
         $this->ajax = false;
         $this->ip = '0.0.0.0';
-    }
-
-    /**
-     * Get known protocol list
-     *
-     * @return array
-     */
-    public static function getProtocols()
-    {
-        return self::$protocols;
     }
 
     /**
@@ -175,7 +149,10 @@ class Request
      */
     public static function getMethods()
     {
-        return self::$methods;
+        return array(
+            static::POST,
+            static::GET
+        );
     }
 
     /**
@@ -203,16 +180,6 @@ class Request
     }
 
     /**
-     * Get server name
-     *
-     * @return string
-     */
-    public function getServer()
-    {
-        return $this->server;
-    }
-
-    /**
      * Get server URL
      *
      * @return string
@@ -224,6 +191,45 @@ class Request
         $url = $protocol . $server;
 
         return $url;
+    }
+
+    /**
+     * Get protocol url prefix
+     *
+     * @return string|null
+     */
+    public function getProtocolPrefix()
+    {
+        $protocols = static::getProtocols();
+        $prefix = isset($protocols[$this->protocol])
+            ? $protocols[$this->protocol]
+            : null;
+
+        return $prefix;
+    }
+
+    /**
+     * Get known protocol list
+     *
+     * @return array
+     */
+    public static function getProtocols()
+    {
+        return array(
+            static::HTTP_10 => 'http://',
+            static::HTTP_11 => 'http://',
+            static::HTTPS => 'https://'
+        );
+    }
+
+    /**
+     * Get server name
+     *
+     * @return string
+     */
+    public function getServer()
+    {
+        return $this->server;
     }
 
     /**
@@ -344,23 +350,15 @@ class Request
      */
     public function setProtocol($protocol)
     {
-        if (!isset(self::$protocols[$protocol])) {
-            throw new \InvalidArgumentException(sprintf("Unrecognized request protocol: '%s'", $protocol));
+        $protocols = static::getProtocols();
+
+        if (!isset($protocols[$protocol])) {
+            throw new \InvalidArgumentException(sprintf("Unrecognized request protocol: '%s'.", $protocol));
         }
 
         $this->protocol = (string) $protocol;
 
         return $this;
-    }
-
-    /**
-     * Get protocol url prefix
-     *
-     * @return string
-     */
-    public function getProtocolPrefix()
-    {
-        return self::$protocols[$this->protocol];
     }
 
     /**
@@ -519,11 +517,16 @@ class Request
     /**
      * Get data provided by 'post' method
      *
+     * @param mixed $key     Key
+     * @param mixed $default Value if key not found
+     *
      * @return array
      */
-    public function getPost()
+    public function getPost($key = null, $default = null)
     {
-        return $this->post;
+        return ($key === null)
+            ? $this->post
+            : Arr::value($this->get, $key, $default);
     }
 
     /**
@@ -544,11 +547,16 @@ class Request
     /**
      * Get data provided by 'get' method
      *
+     * @param mixed $key     Key
+     * @param mixed $default Value if key not found
+     *
      * @return array
      */
-    public function getGet()
+    public function getGet($key = null, $default = null)
     {
-        return $this->get;
+        return ($key === null)
+            ? $this->get
+            : Arr::value($this->get, $key, $default);
     }
 
     /**
@@ -569,11 +577,16 @@ class Request
     /**
      * Get uploaded files data
      *
+     * @param mixed $key     Key
+     * @param mixed $default Value if key not found
+     *
      * @return array
      */
-    public function getFiles()
+    public function getFile($key = null, $default = null)
     {
-        return $this->files;
+        return ($key === null)
+            ? $this->file
+            : Arr::value($this->file, $key, $default);
     }
 
     /**
@@ -583,9 +596,9 @@ class Request
      *
      * @return $this
      */
-    public function setFiles($files)
+    public function setFile($files)
     {
-        $this->files = $files;
+        $this->file = $files;
         $this->data = array_merge($this->data, $files);
 
         return $this;

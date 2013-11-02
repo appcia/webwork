@@ -1,6 +1,7 @@
 <?
 
 namespace Appcia\Webwork\Resource;
+use Appcia\Webwork\System\File;
 
 /**
  * General file / URL representation for images, videos, anything...
@@ -15,43 +16,57 @@ class Resource extends Type
     protected $manager;
 
     /**
-     * Name
+     * Sub types
      *
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * Loaded types
-     *
-     * @var array
+     * @var Type[]
      */
     protected $types;
 
     /**
-     * Registered processors
+     * Mapping parameters
      *
      * @var array
      */
-    protected $processors;
+    protected $params;
 
     /**
      * Constructor
      *
-     * @param Manager      $manager Manager
-     * @param string       $name    Name
-     * @param string|array $params  Parameters
+     * @param Manager $manager Manager
+     * @param string  $name    Name
+     * @param array   $params  Mapping parameters
      */
-    public function __construct(Manager $manager, $name, array $params)
+    public function __construct(Manager $manager, $name, $params = array())
     {
+        parent::__construct($this, $name);
+
         $this->manager = $manager;
-        $this->name = $name;
-        $this->processors = array();
-        $this->types = null;
+        $this->params = (array) $params;
 
-        $config = $manager->getConfig($name);
+        $this->loadTypes();
+    }
 
-        parent::__construct($this, $config['path'], $params);
+    /**
+     *
+     * @return $this
+     */
+    protected function loadTypes()
+    {
+        $config = $this->manager->getConfig($this->name);
+        $types = isset($config['types'])
+            ? (array) $config['types']
+            : array();
+
+        $this->types = array();
+        foreach ($types as $name => $type) {
+            if (!$type instanceof Type) {
+                $type = Type::objectify($type, array($this, $name));
+            }
+
+            $this->types[$name] = $type;
+        }
+
+        return $this;
     }
 
     /**
@@ -63,25 +78,51 @@ class Resource extends Type
     }
 
     /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * Get all types
-     *
-     * @return array
+     * @return Type[]
      */
     public function getTypes()
     {
-        if ($this->types === null) {
-            $this->types = $this->loadTypes();
+        return $this->types;
+    }
+
+    /**
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
+
+    /**
+     * @return $this
+     */
+    public function remove()
+    {
+        foreach ($this->types as $type) {
+            $type->getFile()
+                ->remove();
         }
 
-        return $this->types;
+        $this->getFile()
+            ->remove();
+
+        $this->getFile()
+            ->getDir()
+            ->remove();
+
+        return $this;
+    }
+
+    /**
+     * @return File
+     */
+    public function getFile()
+    {
+        $config = $this->manager->getConfig($this->name);
+        $path = $this->compilePath($config['path']);
+        $file = new File($path);
+
+        return $file;
     }
 
     /**
@@ -94,10 +135,6 @@ class Resource extends Type
      */
     public function getType($type)
     {
-        if ($this->types === null) {
-            $this->types = $this->loadTypes();
-        }
-
         if (!isset($this->types[$type])) {
             throw new \OutOfBoundsException(sprintf("Resource type '%s' does not exist.", $type));
         }
@@ -106,91 +143,7 @@ class Resource extends Type
     }
 
     /**
-     * Create subtypes basing on original resource
-     *
-     * @return $this
-     * @throws \ErrorException
-     */
-    public function createTypes()
-    {
-        $config = $this->manager->getConfig($this->name);
-        if (empty($config['type'])) {
-            return $this;
-        }
-
-        $types = array();
-        $configs = $config['type'];
-        foreach ($configs as $name => $config) {
-            $processor = $this->manager->getProcessor($name, $config);
-
-            $settings = null;
-            if (!empty($config['processor']['settings'])) {
-                $settings = $config['processor']['settings'];
-            }
-
-            $file = $processor->setResource($this)
-                ->setSettings($settings)
-                ->run($this, $settings);
-
-            $params = $this->getParams();
-            $params['type'] = $name;
-
-            $type = new Type($this, $config['path'], $params);
-            $types[$name] = $type;
-
-            $target = $type->getFile();
-            if ($target->exists()) {
-                $target->remove();
-            }
-
-            $file->move($target);
-        }
-
-        $this->types = $types;
-
-        return $this;
-    }
-
-    /**
-     * Get processed types
-     *
-     * @return array
-     */
-    public function loadTypes()
-    {
-        $config = $this->manager->getConfig($this->name);
-
-        if (empty($config['type'])) {
-            return array();
-        }
-
-        $types = array();
-        $configs = $config['type'];
-        foreach ($configs as $name => $config) {
-            $params = $this->getParams();
-            $params['type'] = $name;
-
-            $type = new Type($this, $config['path'], $params);
-            $types[$name] = $type;
-        }
-
-        return $types;
-    }
-
-    /**
-     * Remove files using manager
-     *
-     * @return $this
-     */
-    public function remove()
-    {
-        $this->manager->remove($this->name, $this->params);
-
-        return $this;
-    }
-
-    /**
-     * Save files using manager
+     * Save (update) resource file
      *
      * @param mixed $source Source file
      *
@@ -198,22 +151,52 @@ class Resource extends Type
      */
     public function save($source)
     {
-        $this->manager->save($this->name, $this->params, $source);
+        $source = $this->extract($source);
+        $target = $this->getFile();
+
+        $source->copy($target);
 
         return $this;
     }
 
     /**
-     * Check existing whether associated file exists
+     * Extract file from various sources
      *
-     * @return boolean
+     * @param mixed $source
+     *
+     * @return File|null
+     * @throws \InvalidArgumentException
      */
-    public function exists()
+    protected function extract($source)
     {
-        $file = $this->getFile();
-        $flag = ($file !== null) && $file->exists();
+        $file = null;
 
-        return $flag;
+        if (is_string($source)) {
+            $file = new File($source);
+        }
+        elseif ($source instanceof self) {
+            $file = $source->getFile();
+        }
+        elseif (!$source instanceof File) {
+            throw new \InvalidArgumentException(sprintf(
+                "Invalid source file type to be extracted: '%s'.",
+                gettype($source)
+            ));
+        }
+
+        return $file;
+    }
+
+    /**
+     * Shorthand get type
+     *
+     * @param string $type Type name
+     *
+     * @return Type
+     */
+    public function __get($type)
+    {
+        return $this->getType($type);
     }
 }
 

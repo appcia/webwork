@@ -1,14 +1,13 @@
 <?
 
 namespace Appcia\Webwork\System;
+
 use Appcia\Webwork\Data\Encrypter;
 
 /**
  * Filesystem directory representation.
  *
  * Does not necessarily refer to an existing directory.
- *
- * @package Appcia\Webwork\System
  */
 class Dir
 {
@@ -40,97 +39,6 @@ class Dir
     }
 
     /**
-     * Get path (optionally with filename)
-     *
-     * @param string $filename File name
-     *
-     * @return string
-     */
-    public function getPath($filename = null)
-    {
-        if ($filename === null) {
-            return $this->path;
-        }
-
-        $path = $this->path . '/' . $filename;
-
-        return $path;
-    }
-
-    /**
-     * Get a name
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        $name = basename($this->path);
-
-        return $name;
-    }
-
-    /**
-     * Get an absolute path
-     * Returns null if cannot be determined
-     *
-     * @return string|null
-     */
-    public function getAbsolutePath()
-    {
-        $path = realpath($this->path);
-
-        if ($path === false) {
-            return null;
-        }
-
-        return $path;
-    }
-
-    /**
-     * Get relative directory
-     *
-     * @param string $path Path
-     *
-     * @return $this
-     */
-    public function getRelative($path)
-    {
-        if (!empty($path)) {
-            $path = $this->path . '/' . $path;
-        }
-
-        return new self($path);
-    }
-
-    /**
-     * Get root directory
-     *
-     * @return $this
-     */
-    public function getRoot()
-    {
-        $paths = explode('/', $this->path);
-
-        if (empty($paths)) {
-            return null;
-        }
-
-        return new self($paths[0]);
-    }
-
-    /**
-     * Get parent directory
-     *
-     * @return $this
-     */
-    public function getParent()
-    {
-        $path = dirname($this->path);
-
-        return new self($path);
-    }
-
-    /**
      * Get current working directory
      *
      * @return $this
@@ -155,34 +63,19 @@ class Dir
     }
 
     /**
-     * Creates a directory
+     * Get relative directory
      *
-     * @param int     $permission Value for CHMOD
-     * @param boolean $recursive  Create also parent directories
+     * @param string $path Path
      *
      * @return $this
-     * @throws \ErrorException
      */
-    public function create($permission = 0777, $recursive = true)
+    public function getRelativePath($path)
     {
-        if ($this->exists()) {
-            return $this;
+        if (!empty($path)) {
+            $path = $this->path . '/' . $path;
         }
 
-        $parentPath = $this->getParent()
-            ->getPath();
-
-        if (!is_writable($parentPath)) {
-            throw new \ErrorException(sprintf(
-                "Directory '%s' cannot be created in '%s' because it is not writable.",
-                $this->getName(),
-                $parentPath
-            ));
-        }
-
-        mkdir($this->path, $permission, $recursive);
-
-        return $this;
+        return new self($path);
     }
 
     /**
@@ -263,6 +156,100 @@ class Dir
     }
 
     /**
+     * Get root directory
+     *
+     * @return $this
+     */
+    public function getRoot()
+    {
+        $paths = explode('/', $this->path);
+
+        if (empty($paths)) {
+            return null;
+        }
+
+        return new self($paths[0]);
+    }
+
+    /**
+     * Creates a directory
+     *
+     * @param int     $permission Value for CHMOD
+     * @param boolean $recursive  Create also parent directories
+     *
+     * @return $this
+     * @throws \ErrorException
+     */
+    public function create($permission = 0777, $recursive = true)
+    {
+        if ($this->exists()) {
+            return $this;
+        }
+
+        if (!@mkdir($this->path, $permission, $recursive)) {
+            throw new \ErrorException(sprintf(
+                "Directory '%s' cannot be created in '%s' because probably it is not writable.",
+                $this->getName(),
+                $this->getParent()->getPath()
+            ));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Check whether it really exist
+     *
+     * @return boolean
+     */
+    public function exists()
+    {
+        return is_dir($this->path);
+    }
+
+    /**
+     * Get a name
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        $name = basename($this->path);
+
+        return $name;
+    }
+
+    /**
+     * Get path (optionally with filename)
+     *
+     * @param string $filename File name
+     *
+     * @return string
+     */
+    public function getPath($filename = null)
+    {
+        if ($filename === null) {
+            return $this->path;
+        }
+
+        $path = $this->path . '/' . $filename;
+
+        return $path;
+    }
+
+    /**
+     * Get parent directory
+     *
+     * @return $this
+     */
+    public function getParent()
+    {
+        $path = dirname($this->path);
+
+        return new self($path);
+    }
+
+    /**
      * Create a symlink pointing to this directory
      *
      * @param Dir|string $dir         Dir object or path
@@ -305,6 +292,33 @@ class Dir
     }
 
     /**
+     * Check whether is a symbolic link
+     *
+     * @return boolean
+     */
+    public function isLink()
+    {
+        return is_link($this->path);
+    }
+
+    /**
+     * Get an absolute path
+     * Returns null if cannot be determined
+     *
+     * @return string|null
+     */
+    public function getAbsolutePath()
+    {
+        $path = realpath($this->path);
+
+        if ($path === false) {
+            return null;
+        }
+
+        return $path;
+    }
+
+    /**
      * Generate non-existing file (optionally with specified extension)
      *
      * @param string|null $extension Extension
@@ -319,17 +333,17 @@ class Dir
             $path = $this->path . '/';
 
             if ($prefix !== null) {
-                $path .= (string)$prefix;
+                $path .= (string) $prefix;
             }
 
             $path .= uniqid('', true);
 
             if ($suffix !== null) {
-                $path .= (string)$suffix;
+                $path .= (string) $suffix;
             }
 
             if ($extension !== null) {
-                $path .= '.' . (string)$extension;
+                $path .= '.' . (string) $extension;
             }
         } while (file_exists($path));
 
@@ -384,26 +398,6 @@ class Dir
     }
 
     /**
-     * Check whether it really exist
-     *
-     * @return boolean
-     */
-    public function exists()
-    {
-        return is_dir($this->path);
-    }
-
-    /**
-     * Check whether is a symbolic link
-     *
-     * @return boolean
-     */
-    public function isLink()
-    {
-        return is_link($this->path);
-    }
-
-    /**
      * Check whether is writable
      *
      * @return boolean
@@ -414,14 +408,68 @@ class Dir
     }
 
     /**
+     * Get all files in directory
+     *
+     * @return File[]
+     */
+    public function getFiles()
+    {
+        $contents = $this->getContents();
+        $files = array_filter($contents, function ($content) {
+            return $content instanceof File;
+        });
+
+        return $files;
+    }
+
+    /**
+     * Get all contents (files and directories)
+     *
+     * @return array
+     */
+    public function getContents()
+    {
+        $contents = scandir($this->path);
+        $contents = array_diff($contents, array('.', '..'));
+
+        foreach ($contents as $key => $content) {
+            $path = $this->path . '/' . $content;
+
+            if (is_file($path)) {
+                $contents[$key] = new File($content);
+            } elseif (is_dir($path)) {
+                $contents[$key] = new Dir($content);
+            } else {
+                unset($contents[$key]);
+            }
+        }
+
+        return $contents;
+    }
+
+    /**
+     * Get all sub directories
+     *
+     * @return $this[]
+     */
+    public function getDirs()
+    {
+        $contents = $this->getContents();
+        $dirs = array_filter($contents, function ($content) {
+            return $content instanceof self;
+        });
+
+        return $dirs;
+    }
+
+    /**
      * Check whether is empty
      *
      * @return boolean
      */
     public function isEmpty()
     {
-        $contents = scandir($this->path);
-        $contents = array_diff($contents, array('.', '..'));
+        $contents = $this->getContents();
         $empty = empty($contents);
 
         return $empty;

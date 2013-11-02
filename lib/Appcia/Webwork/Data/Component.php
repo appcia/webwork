@@ -2,16 +2,15 @@
 
 namespace Appcia\Webwork\Data;
 
-use Appcia\Webwork\Core\Object;
 use Appcia\Webwork\Core\Context;
+use Appcia\Webwork\Core\Object;
+use Appcia\Webwork\Core\Objector;
 
 /**
  * Context related object
  * Base for view helpers, data forms, validators and filters
- *
- * @package Appcia\Webwork\Core
  */
-abstract class Component extends Object
+abstract class Component implements Object
 {
     /**
      * Use context
@@ -28,6 +27,14 @@ abstract class Component extends Object
     public function __construct(Context $context)
     {
         $this->setContext($context);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function objectify($data, $args = array())
+    {
+        return Objector::objectify($data, $args, get_called_class());
     }
 
     /**

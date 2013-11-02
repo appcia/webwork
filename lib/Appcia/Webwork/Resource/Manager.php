@@ -2,12 +2,11 @@
 
 namespace Appcia\Webwork\Resource;
 
-use Appcia\Webwork\Resource\Resource;
-use Appcia\Webwork\Resource\Service\Processor;
-use Appcia\Webwork\Resource\Service\Provider;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\File;
+use Appcia\Webwork\System\Php;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Resource manager with path mapping and subtype processing
@@ -20,11 +19,11 @@ class Manager
     const UPLOAD = 'upload';
 
     /**
-     * Resource map
+     * Configuration map
      *
      * @var array
      */
-    protected $resources;
+    protected $config;
 
     /**
      * @var Dir
@@ -32,110 +31,80 @@ class Manager
     protected $tempDir;
 
     /**
-     * @var Processor[]
+     * Upload resource
+     *
+     * @param array $data    File data
+     * @param array $params  Path parameters
+     * @param bool  $useTemp Use temporary state
+     *
+     * @throws \InvalidArgumentException
+     * @throws \ErrorException
+     * @return Resource|null
      */
-    protected $processors;
-
-    /**
-     * @var Provider[]
-     */
-    protected $providers;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
+    public function upload($data, $params = array(), $useTemp = true)
     {
-        $this->resources = array();
-        $this->processors = array();
-        $this->providers = array();
-    }
-
-    /**
-     * Get resources
-     *
-     * @return array
-     */
-    public function getResources()
-    {
-        return $this->resources;
-    }
-
-    /**
-     * Get resources
-     *
-     * @param array $map Config map
-     *
-     * @return $this
-     */
-    public function setResources($map)
-    {
-        $this->resources = $map;
-
-        return $this;
-    }
-
-    /**
-     * Get directory for temporary files
-     *
-     * @return Dir
-     */
-    public function getTempDir()
-    {
-        return $this->tempDir;
-    }
-
-    /**
-     * Set directory for temporary files
-     *
-     * @param Dir|string $dir Path
-     *
-     * @return $this
-     */
-    public function setTempDir($dir)
-    {
-        if (!$dir instanceof Dir) {
-            $dir = new Dir($dir);
+        if (empty($data)) {
+            throw new \InvalidArgumentException("File to be uploaded is empty.");
         }
 
-        if (!$dir->exists()) {
-            $dir->create();
+        $source = new File($data['name']);
+        $temp = new File($data['tmp_name']);
+
+        $params = array_merge(array(
+            'filename' => $source->getFileName(),
+            'extension' => $source->getExtension()
+        ), $params);
+
+        $resource = $this->map(static::UPLOAD, $params);
+        $target = $resource->getFile();
+        $path = $source->getPath();
+
+        switch ($data['error']) {
+        case UPLOAD_ERR_OK:
+            $temp->move($target);
+            break;
+        case UPLOAD_ERR_NO_FILE:
+            if (!$useTemp) {
+                throw new \ErrorException("File has not been uploaded");
+            }
+            break;
+        case UPLOAD_ERR_INI_SIZE:
+            throw new \ErrorException(sprintf(
+                "Uploaded file '%s' size exceeds server limit: %d MB",
+                $path,
+                Php::get('upload_max_filesize')
+            ));
+            break;
+        case UPLOAD_ERR_FORM_SIZE:
+            throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds form limit", $path));
+            break;
+        case UPLOAD_ERR_PARTIAL:
+            throw new \ErrorException(sprintf("Uploaded file '%s' is only partially completed", $path));
+            break;
+        case UPLOAD_ERR_NO_TMP_DIR:
+            throw new \ErrorException(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
+            break;
+        case UPLOAD_ERR_CANT_WRITE:
+            throw new \ErrorException(sprintf("Failed to write uploaded file to disk: '%s'", $path));
+            break;
+        case UPLOAD_ERR_EXTENSION:
+        default:
+            throw new \ErrorException(sprintf("Unknown upload error: '%s'", $path));
+            break;
         }
 
-        $this->tempDir = $dir;
-
-        return $this;
+        return $resource;
     }
 
     /**
-     * Remove resource and sub types
+     * Get mapped resource
      *
-     * @param string $name   Resource name
-     * @param array  $params Path parameters
-     *
-     * @return $this
-     */
-    public function remove($name, array $params)
-    {
-        $resource = $this->load($name, $params);
-        $this->removeFile($resource->getFile());
-
-        foreach ($resource->getTypes() as $type) {
-            $this->removeFile($type->getFile());
-        }
-
-        return $this;
-    }
-
-    /**
-     * Get resource representation (could be non-existing)
-     *
-     * @param string $name   Resource name
-     * @param array  $params Path parameters
+     * @param string $name
+     * @param array  $params
      *
      * @return Resource
      */
-    public function load($name, array $params)
+    public function map($name, $params = array())
     {
         $resource = new Resource($this, $name, $params);
 
@@ -143,248 +112,40 @@ class Manager
     }
 
     /**
-     * Safely remove file and also directory if empty
+     * @param string|null $resource
+     * @param string|null $type
      *
-     * @param File|null $file File
-     *
-     * @return $this
+     * @return array
      */
-    protected function removeFile($file)
+    public function getConfig($resource = null, $type = null)
     {
-        if ($file === null) {
-            return $this;
+        $config = $this->config;
+
+        if ($resource !== null) {
+            $config = $config[$resource];
         }
 
-        if ($file->exists()) {
-            $file->remove();
-        }
+        if ($type !== null) {
+            $config = isset($config['types'])
+                ? $config['types']
+                : array();
 
-        $dir = $file->getDir();
-        if ($dir->isEmpty()) {
-            $dir->remove();
-        }
-
-        return $this;
-    }
-
-    /**
-     * Get resource configuration by name
-     *
-     * @param string $name Name
-     *
-     * @return mixed
-     * @throws \OutOfBoundsException
-     * @throws \InvalidArgumentException
-     */
-    public function getConfig($name)
-    {
-        if (!isset($this->resources[$name])) {
-            throw new \OutOfBoundsException(sprintf("Resource '%s' configuration not found.", $name));
-        }
-
-        $config = $this->resources[$name];
-
-        if (!isset($config['path'])) {
-            throw new \InvalidArgumentException(sprintf("Resource '%s' path is not specified"));
+            $config = $config[$type];
         }
 
         return $config;
     }
 
     /**
-     * Upload resource to temporary path
+     * @param array $config
      *
-     * @param array $data   File data
-     * @param array $params Path parameters
-     *
-     * @return Resource
-     * @throws \InvalidArgumentException
-     * @throws \ErrorException
+     * @return $this
      */
-    public function upload($data, array $params)
+    public function setConfig($config)
     {
-        if (empty($data)) {
-            throw new \InvalidArgumentException('Invalid uploaded file data.');
-        }
+        $this->config = (array) $config;
 
-        $path = $data['name'];
-        $sizeLimit = ini_get('upload_max_filesize');
-
-        if ($data['error'] != UPLOAD_ERR_OK) {
-            switch ($data['error']) {
-            case UPLOAD_ERR_INI_SIZE:
-                throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds server limit: %d MB", $path, $sizeLimit));
-                break;
-            case UPLOAD_ERR_FORM_SIZE:
-                throw new \ErrorException(sprintf("Uploaded file '%s' size exceeds form limit", $path));
-                break;
-            case UPLOAD_ERR_PARTIAL:
-                throw new \ErrorException(sprintf("Uploaded file '%s' is only partially completed", $path));
-                break;
-            case UPLOAD_ERR_NO_FILE:
-                throw new \ErrorException("File has not been uploaded");
-                break;
-            case UPLOAD_ERR_NO_TMP_DIR:
-                throw new \ErrorException(sprintf("Missing temporary directory for uploaded file: '%s'", $path));
-                break;
-            case UPLOAD_ERR_CANT_WRITE:
-                throw new \ErrorException(sprintf("Failed to write uploaded file to disk: '%s'", $path));
-                break;
-            case UPLOAD_ERR_EXTENSION:
-            default:
-                throw new \ErrorException(sprintf("Unknown upload error: '%s'", $path));
-                break;
-            }
-        }
-
-        $source = new File($data['name']);
-        $temp = new File($data['tmp_name']);
-
-        if (!isset($params['ext'])) {
-            $params['ext'] = $source->getExtension();
-        }
-
-        $resource = $this->save(
-            Manager::UPLOAD,
-            $params,
-            $temp
-        );
-
-        return $resource;
-    }
-
-    /**
-     * Save resource
-     *
-     * @param string $name   Resource name
-     * @param array  $params Path parameters
-     * @param mixed  $source Source file
-     *
-     * @return Resource|null
-     */
-    public function save($name, array $params, $source)
-    {
-        // Remove non-existing resource (hook for editing)
-        if ($source instanceof Resource && !$source->exists()) {
-            $source->remove();
-
-            return null;
-        }
-
-        // Set static parameters
-        $source = $this->retrieveFile($source);
-
-        if (!isset($params['ext'])) {
-            $params['ext'] = $source->getExtension();
-        }
-
-        $params['resource'] = $name;
-
-        // Target location determining
-        $resource = new Resource($this, $name, $params);
-        $target = $resource->getFile();
-
-        // Copy / download resource (only when it is required)
-        if ($source->equals($target)) {
-            return $resource;
-        }
-
-        $source->copy($target);
-
-        // Run processing based on origin resource
-        $resource->createTypes();
-
-        return $resource;
-    }
-
-    /**
-     * Retrieve file from various arguments
-     *
-     * @param mixed $resource
-     *
-     * @return File
-     * @throws \InvalidArgumentException
-     */
-    public function retrieveFile($resource)
-    {
-        $file = null;
-
-        if (empty($resource)) {
-            throw new \InvalidArgumentException('Resource file is not specified.');
-        } else {
-            if ($resource instanceof Type) {
-                $file = $resource->getFile();
-            } elseif ($resource instanceof File) {
-                $file = $resource;
-            } elseif (is_string($resource)) {
-                $file = new File($resource);
-            } else {
-                throw new \InvalidArgumentException('Resource has unsupported type.');
-            }
-        }
-
-        if ($file === null) {
-            throw new \InvalidArgumentException(sprintf("Resource file does not exist."));
-        }
-
-        return $file;
-    }
-
-    /**
-     * Get processor for creating derivative types basing on original resource
-     *
-     * @param string $type   Type name
-     * @param array  $config Configuration for type
-     *
-     * @return Processor
-     * @throws \InvalidArgumentException
-     * @throws \ErrorException
-     */
-    public function getProcessor($type, array $config)
-    {
-        if (empty($config['processor'])) {
-            throw new \InvalidArgumentException(sprintf("Processor configuration not found for resource type '%s'.", $type));
-        }
-
-        if (empty($config['processor']['class'])) {
-            throw new \InvalidArgumentException(sprintf("Processor class not found for resource type '%s'.", $type));
-        }
-
-        $class = $config['processor']['class'];
-
-        if (!isset($this->processors[$class])) {
-            $this->processors[$class] = Config::objectify($config['processor'], array($this));
-        }
-
-        return $this->processors[$class];
-    }
-
-    /**
-     * Get provider for getting resources from different sources
-     *
-     * @param string $type   Type name
-     * @param array  $config Configuration
-     *
-     * @return Provider
-     * @throws \InvalidArgumentException
-     */
-    public function getProvider($type, array $config)
-    {
-        if (empty($config['provider'])) {
-            throw new \InvalidArgumentException(sprintf("Provider configuration not found for resource type '%s'.", $type));
-        }
-
-        if (empty($config['provider']['class'])) {
-            throw new \InvalidArgumentException(sprintf("Provider class not found for resource type '%s'.", $type));
-        }
-
-        $class = $config['provider']['class'];
-
-        if (!isset($this->providers[$class])) {
-            $this->providers[$class] = Config::objectify($config['provider'], null, array($this));
-        }
-
-        return $this->providers[$class];
+        return $this;
     }
 
     /**
@@ -399,7 +160,7 @@ class Manager
     {
         if (!is_array($data)) {
             throw new \InvalidArgumentException('Uploaded data is not an array.' . PHP_EOL
-            . 'Propably you just forget to add enctype multipart/form-data to form.');
+                . 'Propably you just forget to add enctype multipart/form-data to form.');
         }
 
         // Trim empty values to null

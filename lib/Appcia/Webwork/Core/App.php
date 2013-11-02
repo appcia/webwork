@@ -4,6 +4,7 @@ namespace Appcia\Webwork\Core;
 
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\System\Dir;
+use Appcia\Webwork\System\Php;
 use Appcia\Webwork\Web\Response;
 
 /**
@@ -16,17 +17,6 @@ abstract class App extends Container
     const DEVELOPMENT = 'dev';
     const TEST = 'test';
     const PRODUCTION = 'prod';
-
-    /**
-     * Available environments
-     *
-     * @var array
-     */
-    protected static $environments = array(
-        self::DEVELOPMENT,
-        self::TEST,
-        self::PRODUCTION
-    );
 
     /**
      * @var Config
@@ -115,7 +105,11 @@ abstract class App extends Container
      */
     public static function getEnvironments()
     {
-        return self::$environments;
+        return array(
+            static::DEVELOPMENT,
+            static::TEST,
+            static::PRODUCTION
+        );
     }
 
     /**
@@ -139,15 +133,7 @@ abstract class App extends Container
     public function setPhp(array $settings)
     {
         foreach ($settings as $name => $value) {
-            if (ini_get($name) === false) {
-                throw new \InvalidArgumentException(sprintf(
-                    "Setting '%s' is invalid or unsupported in current PHP version (%s).",
-                    $name,
-                    PHP_VERSION
-                ));
-            }
-
-            ini_set($name, $value);
+            Php::set($name, $value);
         }
 
         $this->php = $settings;

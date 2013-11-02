@@ -3,7 +3,7 @@
 namespace Appcia\Webwork\Storage\Session;
 
 use Appcia\Webwork\Core\Object;
-use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Storage\Session;
 
 /**
@@ -11,7 +11,7 @@ use Appcia\Webwork\Storage\Session;
  *
  * @package Appcia\Webwork\Storage\Session
  */
-abstract class Handler extends Object implements \ArrayAccess
+abstract class Handler implements Object, \ArrayAccess
 {
     /**
      * Stored data
@@ -26,6 +26,14 @@ abstract class Handler extends Object implements \ArrayAccess
     public function __construct()
     {
         $this->data = array();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function objectify($data, $args = array())
+    {
+        return Objector::objectify($data, $args, get_called_class());
     }
 
     /**

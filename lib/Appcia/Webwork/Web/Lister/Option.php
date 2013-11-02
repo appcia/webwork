@@ -3,9 +3,10 @@
 namespace Appcia\Webwork\Web\Lister;
 
 use Appcia\Webwork\Core\Object;
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Web\Lister;
 
-class Option extends Object
+class Option implements Object
 {
     /**
      * Sorting directions
@@ -53,14 +54,11 @@ class Option extends Object
     }
 
     /**
-     * @return array
+     * {@inheritdoc}
      */
-    public static function getDirs()
+    public static function objectify($data, $args = array())
     {
-        return array(
-            static::ASC => 'ascending',
-            static::DESC => 'descending'
-        );
+        return Objector::objectify($data, $args, get_called_class());
     }
 
     /**
@@ -69,6 +67,14 @@ class Option extends Object
     public function getName()
     {
         return $this->name;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLabel()
+    {
+        return $this->label;
     }
 
     /**
@@ -84,11 +90,11 @@ class Option extends Object
     }
 
     /**
-     * @return mixed
+     * @return null|string
      */
-    public function getLabel()
+    public function getFilter()
     {
-        return $this->label;
+        return $this->filter;
     }
 
     /**
@@ -106,9 +112,9 @@ class Option extends Object
     /**
      * @return null|string
      */
-    public function getFilter()
+    public function getDir()
     {
-        return $this->filter;
+        return $this->dir;
     }
 
     /**
@@ -129,11 +135,14 @@ class Option extends Object
     }
 
     /**
-     * @return null|string
+     * @return array
      */
-    public function getDir()
+    public static function getDirs()
     {
-        return $this->dir;
+        return array(
+            static::ASC => 'ascending',
+            static::DESC => 'descending'
+        );
     }
 
     /**

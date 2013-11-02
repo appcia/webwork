@@ -67,7 +67,7 @@ class Template
         foreach ($params as $name => $value)
         {
             if (!array_key_exists($name, $this->params)) {
-                throw new \InvalidArgumentException(sprintf("Template parameter '%s' does not exist.", $name));
+                continue;
             }
 
             $this->params[$name] = $value;

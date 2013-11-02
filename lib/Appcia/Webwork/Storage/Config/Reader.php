@@ -3,11 +3,11 @@
 namespace Appcia\Webwork\Storage\Config;
 
 use Appcia\Webwork\Core\Object;
-use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Storage\Config\Reader\Php;
 use Appcia\Webwork\System\File;
 
-abstract class Reader extends Object
+abstract class Reader implements Object
 {
     /**
      * Creator
@@ -32,7 +32,7 @@ abstract class Reader extends Object
             }
         }
 
-        return parent::objectify($data, $args);
+        return Objector::objectify($data, $args, get_called_class());
     }
 
     /**

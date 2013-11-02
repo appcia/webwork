@@ -3,11 +3,12 @@
 namespace Appcia\Webwork\Storage\Config;
 
 use Appcia\Webwork\Core\Object;
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Storage\Config\Writer\Php;
 use Appcia\Webwork\System\File;
 
-abstract class Writer extends Object
+abstract class Writer implements Object
 {
     /**
      * Creator
@@ -32,7 +33,7 @@ abstract class Writer extends Object
             }
         }
 
-        return parent::objectify($data, $args);
+        return Objector::objectify($data, $args, get_called_class());
     }
 
     /**

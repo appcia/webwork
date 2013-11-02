@@ -3,6 +3,7 @@
 namespace Appcia\Webwork\Model\Mask;
 
 use Appcia\Webwork\Model\Mask;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Mask with named options
@@ -113,6 +114,34 @@ class Options extends Mask implements \ArrayAccess
         $option = $this->map($option);
 
         return parent::set($option, $flag);
+    }
+
+    /**
+     * Push various type value
+     *
+     * @param mixed $value Value
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function push($value)
+    {
+        if ($value instanceof self) {
+            $value = $value->getValue();
+        }
+
+        if (is_numeric($value)) {
+            $this->setValue($value);
+        } elseif (is_array($value)) {
+            $this->setAll($value);
+        } else {
+            throw new \InvalidArgumentException(sprintf(
+                "Options value to be pushed has invalid type: '%s'.",
+                gettype($value)
+            ));
+        }
+
+        return $this;
     }
 
     /**

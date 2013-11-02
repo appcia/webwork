@@ -4,28 +4,23 @@ namespace Appcia\Webwork\Resource;
 
 use Appcia\Webwork\Core\Monitor;
 use Appcia\Webwork\Core\Object;
-use Appcia\Webwork\Storage\Config;
+use Appcia\Webwork\Core\Objector;
 
 /**
  * Resource service
  *
  * @package Appcia\Webwork\Resource
  */
-abstract class Service extends Object {
-
+abstract class Service implements Object
+{
     /**
      * Monitor events
      */
     const BEFORE = 'before';
     const AFTER = 'after';
 
-    protected static $events = array(
-        self::BEFORE,
-        self::AFTER
-    );
-
     /**
-     * Manager
+     * Resource Manager
      *
      * @var Manager
      */
@@ -39,30 +34,43 @@ abstract class Service extends Object {
     protected $monitor;
 
     /**
-     * Configuration
-     *
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * Get monitor events
-     *
-     * @return array
-     */
-    public static function getEvents()
-    {
-        return static::$events;
-    }
-
-    /**
      * Constructor
      */
     public function __construct(Manager $manager)
     {
         $this->manager = $manager;
-        $this->monitor = new Monitor($this, static::$events);
-        $this->config = array();
+        $this->monitor = new Monitor($this, static::getEvents());
+    }
+
+    /**
+     * Get possible monitor events
+     *
+     * @return array
+     */
+    public static function getEvents()
+    {
+        return array(
+            self::BEFORE,
+            self::AFTER
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function objectify($data, $args = array())
+    {
+        return Objector::objectify($data, $args, get_called_class());
+    }
+
+    /**
+     * Get manager
+     *
+     * @return Manager
+     */
+    public function getManager()
+    {
+        return $this->manager;
     }
 
     /**
@@ -80,16 +88,6 @@ abstract class Service extends Object {
     }
 
     /**
-     * Get manager
-     *
-     * @return Manager
-     */
-    public function getManager()
-    {
-        return $this->manager;
-    }
-
-    /**
      * Get event monitor
      *
      * @return Monitor
@@ -97,30 +95,6 @@ abstract class Service extends Object {
     public function getMonitor()
     {
         return $this->monitor;
-    }
-
-    /**
-     * Set configuration
-     *
-     * @param mixed $config
-     *
-     * @return $this
-     */
-    public function setConfig($config)
-    {
-        $this->config = $config;
-
-        return $this;
-    }
-
-    /**
-     * Get configuration
-     *
-     * @return mixed
-     */
-    public function getConfig()
-    {
-        return $this->config;
     }
 
     /**

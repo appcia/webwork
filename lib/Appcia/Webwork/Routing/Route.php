@@ -3,16 +3,15 @@
 namespace Appcia\Webwork\Routing;
 
 use Appcia\Webwork\Core\Object;
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Data\Converter;
-use Appcia\Webwork\Model\Template;
-use Appcia\Webwork\Storage\Config;
 
 /**
  * Associates URI address with action to be executed
  *
  * @package Appcia\Webwork\Routing
  */
-class Route extends Object
+class Route implements Object
 {
     /**
      * Name
@@ -97,8 +96,10 @@ class Route extends Object
             );
         }
 
-        return parent::objectify($data, $args);
+        return Objector::objectify($data, $args, get_called_class());
     }
+
+
 
     /**
      * Generate unique name

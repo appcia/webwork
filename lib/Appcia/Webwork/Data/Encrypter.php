@@ -58,7 +58,7 @@ class Encrypter
      *
      * @return string
      */
-    public static function generateSalt()
+    public static function randSalt()
     {
         mt_srand(microtime(true) * 100000 + memory_get_usage(true));
         $salt = md5(uniqid(mt_rand(), true));

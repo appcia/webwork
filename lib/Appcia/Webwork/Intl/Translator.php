@@ -2,8 +2,8 @@
 
 namespace Appcia\Webwork\Intl;
 
-use Appcia\Webwork\Core\Component;
 use Appcia\Webwork\Core\Object;
+use Appcia\Webwork\Core\Objector;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Context;
 
@@ -12,7 +12,7 @@ use Appcia\Webwork\Web\Context;
  *
  * @package Appcia\Webwork\Intl
  */
-abstract class Translator extends Object
+abstract class Translator implements Object
 {
     /**
      * @var Context
@@ -25,6 +25,14 @@ abstract class Translator extends Object
     public function __construct($context)
     {
         $this->context = $context;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function objectify($data, $args = array())
+    {
+        return Objector::objectify($data, $args, get_called_class());
     }
 
     /**

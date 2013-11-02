@@ -49,6 +49,57 @@ class Php
     }
 
     /**
+     * Set property (only runtime)
+     *
+     * @param string $key   Property name
+     * @param string $value Value
+     *
+     * @throws \OutOfBoundsException
+     */
+    public static function set($key, $value)
+    {
+        if (ini_set($key, $value) === false) {
+            throw new \OutOfBoundsException(sprintf(
+                "Cannot set PHP property. '%s' is invalid or unsupported in current PHP version (%s).",
+                $key,
+                PHP_VERSION
+            ));
+        }
+    }
+
+    /**
+     * Get property
+     *
+     * @param string $key Property name
+     *
+     * @return string
+     * @throws \OutOfBoundsException
+     */
+    public static function get($key)
+    {
+        $value = ini_get($key);
+        if ($value === false) {
+            throw new \OutOfBoundsException(sprintf(
+                "Cannot get PHP property. '%s' is invalid or unsupported in current PHP version (%s).",
+                $key,
+                PHP_VERSION
+            ));
+        }
+
+        return $value;
+    }
+
+    /**
+     * Get PHP binary
+     *
+     * @return File
+     */
+    public function getBin()
+    {
+        return $this->bin;
+    }
+
+    /**
      * Set PHP binary
      *
      * @param string $bin
@@ -65,16 +116,6 @@ class Php
         $this->bin = new File($bin);
 
         return $this;
-    }
-
-    /**
-     * Get PHP binary
-     *
-     * @return File
-     */
-    public function getBin()
-    {
-        return $this->bin;
     }
 
     /**

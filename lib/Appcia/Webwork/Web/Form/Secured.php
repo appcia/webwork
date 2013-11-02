@@ -11,7 +11,7 @@ use Appcia\Webwork\Web\Context;
 /**
  * Secure form with CSRF protection and metadata storage
  */
-class Secure extends Form
+class Secured extends Form
 {
     /**
      * Data keys
@@ -160,7 +160,7 @@ class Secure extends Form
     public function tokenize($salt = null)
     {
         if ($salt === null) {
-            $salt = $this->encryter->generateSalt();
+            $salt = $this->encryter->randSalt();
         }
 
         $value = implode('', array_keys($this->fields));

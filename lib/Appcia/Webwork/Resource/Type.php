@@ -2,17 +2,16 @@
 
 namespace Appcia\Webwork\Resource;
 
+use Appcia\Webwork\Core\Object;
+use Appcia\Webwork\Core\Objector;
+use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\System\File;
 
 /**
  * Subtype of resource (thumbnail, format derivation)
- *
- * @package Appcia\Webwork\Resource
  */
-class Type
+class Type implements Object
 {
-    const EXTENSION_WILDCARD = '*';
-
     /**
      * Base resource
      *
@@ -21,43 +20,31 @@ class Type
     protected $resource;
 
     /**
-     * Path pattern
-     *
      * @var string
      */
-    protected $path;
-
-    /**
-     * Parameters for path generation
-     *
-     * @var array
-     */
-    protected $params;
-
-    /**
-     * Lazy located file
-     *
-     * @var File
-     */
-    protected $file;
+    protected $name;
 
     /**
      * Constructor
      *
-     * @param Resource $resource Resource
-     * @param string   $path     Path
-     * @param array    $params   Parameters for path
+     * @param Resource $resource
+     * @param string   $path
      */
-    public function __construct(Resource $resource, $path, array $params = array())
+    public function __construct(Resource $resource, $name)
     {
         $this->resource = $resource;
-        $this->path = $path;
-        $this->params = $params;
+        $this->name = $name;
     }
 
     /**
-     * Get base resource
-     *
+     * {@inheritdoc}
+     */
+    public static function objectify($data, $args = array())
+    {
+        return Objector::objectify($data, $args, get_called_class());
+    }
+
+    /**
      * @return Resource
      */
     public function getResource()
@@ -66,110 +53,53 @@ class Type
     }
 
     /**
-     * Get path pattern
-     *
      * @return string
      */
-    public function getPath()
+    public function getName()
     {
-        return $this->path;
+        return $this->name;
     }
 
     /**
-     * Get parameters for path generation
-     *
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->params;
-    }
-
-    /**
-     * Get lazy loaded file
-     *
-     * @return $this|null
-     * @throws \ErrorException
+     * @return File
      */
     public function getFile()
     {
-        if ($this->file === null) {
-            $file = $this->determineFile($this->path, $this->params);
+        $config = $this->resource->getManager()
+            ->getConfig($this->resource->getName(), $this->name);
 
-            if ($file !== null) {
-                $this->params['ext'] = $file->getExtension();
-                $this->file = $file;
-            }
-        }
+        $path = $this->compilePath($config['path']);
 
-        return $this->file;
-    }
-
-    /**
-     * Locate file on filesystem using path and parameters
-     * If file extension equals wildcard '*' then it will be guessed using glob
-     *
-     * @param string $path   Path pattern
-     * @param array  $params Parameters for path
-     *
-     * @return $this|null
-     * @throws \InvalidArgumentException
-     */
-    protected function determineFile($path, array $params)
-    {
-        // Extension usually is unknown so use wildcard (except case when saving resource)
-        if (!isset($params['ext'])) {
-            $params['ext'] = self::EXTENSION_WILDCARD;
-        }
-
-        foreach ($params as $key => $value) {
-            if ($value === null) {
-                throw new \InvalidArgumentException(sprintf("Resource parameter '%s' value is not specified.", $key));
-            }
-
-            $params['{' . $key . '}'] = $value;
-            unset($params[$key]);
-        }
-
-        $path = str_replace(
-            array_keys($params),
-            array_values($params),
-            $path
-        );
-
-        // Use glob to know extension
         $file = new File($path);
-
-        if ($file->getExtension() === self::EXTENSION_WILDCARD) {
-            $dir = $file->getDir();
-            $paths = $dir->glob($file->getBaseName());
-            $count = count($paths);
-
-            // Only when exactly one match file name
-            if ($count === 1) {
-                $file->setPath($paths[0]);
-            } else {
-                return null;
-            }
-        }
+        $file->guess();
 
         return $file;
     }
 
     /**
-     * Returns file string representation
+     * @param string $path
+     *
+     * @return string
+     */
+    protected function compilePath($path)
+    {
+        $params = $this->resource->getParams();
+
+        $tpl = new Template($path);
+        $tpl->setParams($params);
+
+        $path = $tpl->render();
+
+        return $path;
+    }
+
+    /**
+     * Shorthand getting path to file
      *
      * @return string
      */
     public function __toString()
     {
-        $file = $this->getFile();
-
-        if ($file === null) {
-            return '';
-        } else {
-            return (string) $file;
-        }
+        return (string) $this->getFile();
     }
-
 }

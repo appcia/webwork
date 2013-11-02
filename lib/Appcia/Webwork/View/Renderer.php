@@ -3,15 +3,14 @@
 namespace Appcia\Webwork\View;
 
 use Appcia\Webwork\Core\Object;
-use Appcia\Webwork\Storage\Config;
-use Appcia\Webwork\View\View;
+use Appcia\Webwork\Core\Objector;
 
 /**
  * Base for view renderer
  *
  * @package Appcia\Webwork\View
  */
-abstract class Renderer extends Object
+abstract class Renderer implements Object
 {
     /**
      * Source view
@@ -19,6 +18,14 @@ abstract class Renderer extends Object
      * @var View
      */
     protected $view;
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function objectify($data, $args = array())
+    {
+        return Objector::objectify($data, $args, get_called_class());
+    }
 
     /**
      * Get view

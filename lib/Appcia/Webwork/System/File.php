@@ -11,6 +11,8 @@ namespace Appcia\Webwork\System;
  */
 class File
 {
+    const WILDCARD = '*';
+
     /**
      * Location path
      *
@@ -93,7 +95,7 @@ class File
      *
      * @return string
      */
-    public function getName()
+    public function getFileName()
     {
         return pathinfo($this->path, PATHINFO_FILENAME);
     }
@@ -152,7 +154,9 @@ class File
      */
     public function remove()
     {
-        unlink($this->path);
+        if ($this->exists()) {
+            unlink($this->path);
+        }
 
         return $this;
     }
@@ -172,24 +176,18 @@ class File
     /**
      * Move file to another location
      *
-     * @param string  $file       Target file
-     * @param boolean $createPath Create a path to target file if does not exist
+     * @param string $file Target file
      *
      * @return File
      */
-    public function move($file, $createPath = true)
+    public function move($file)
     {
         if (!$file instanceof File) {
             $file = new self($file);
         }
 
-        if ($createPath) {
-            $dir = $file->getDir();
-
-            if (!$dir->exists()) {
-                $dir->create();
-            }
-        }
+        $file->getDir()
+            ->create();
 
         rename($this->path, $file->path);
 
@@ -199,24 +197,18 @@ class File
     /**
      * Move file to another location
      *
-     * @param string  $file       Target file
-     * @param boolean $createPath Create a path to target file if does not exist
+     * @param string $file Target file
      *
      * @return File
      */
-    public function copy($file, $createPath = true)
+    public function copy($file)
     {
-        if (!$file instanceof File) {
+        if (!$file instanceof self) {
             $file = new self($file);
         }
 
-        if ($createPath) {
-            $dir = $file->getDir();
-
-            if (!$dir->exists()) {
-                $dir->create();
-            }
-        }
+        $file->getDir()
+            ->create();
 
         if (is_uploaded_file($this->path)) {
             move_uploaded_file($this->path, $file->path);
@@ -246,7 +238,6 @@ class File
         }
 
         $link = new self($file);
-
         if ($link->isLink()) {
             unlink($file);
         }
@@ -261,6 +252,7 @@ class File
      *
      * @return string
      * @throws \LogicException
+     * @throws \IOException
      */
     public function read()
     {
@@ -268,7 +260,10 @@ class File
             throw new \LogicException(sprintf("File '%s' does not exist.", $this->path));
         }
 
-        $data = file_get_contents($this->path);
+        $data = @file_get_contents($this->path);
+        if ($data === false) {
+            throw new \IOException(sprintf("Cannot read content from file '%s'.", $this->path));
+        }
 
         return $data;
     }
@@ -276,19 +271,22 @@ class File
     /**
      * Write data to file
      *
-     * @param mixed   $data      Data
+     * @param mixed   $content   Data
      * @param boolean $overwrite Overwrite file if it does not exist
      *
      * @return File
      * @throws \LogicException
+     * @throws \IOException
      */
-    public function write($data, $overwrite = true)
+    public function write($content, $overwrite = true)
     {
         if (!$overwrite && $this->exists()) {
             throw new \LogicException(sprintf("File '%s' already exists so it cannot be overwritten.", $this->path));
         }
 
-        file_put_contents($this->path, $data);
+        if (!@file_put_contents($this->path, $content)) {
+            throw new \IOException(sprintf("Cannot write content to file '%s'.", $this->path));
+        }
 
         return $this;
     }
@@ -296,18 +294,41 @@ class File
     /**
      * Append data at the end of file
      *
-     * @param mixed $data Data
+     * @param mixed $content Data
      *
      * @return File
      * @throws \LogicException
+     * @throws \IOException
      */
-    public function append($data)
+    public function append($content)
     {
         if (!$this->exists()) {
             throw new \LogicException(sprintf("File '%s' does not exist so data cannot be appended.", $this->path));
         }
 
-        file_put_contents($this->path, $data, FILE_APPEND);
+        if (!@file_put_contents($this->path, $content, FILE_APPEND)) {
+            throw new \IOException(sprintf("Cannot append content to file '%s'.", $this->path));
+        }
+
+        return $this;
+    }
+
+    /**
+     * Guess filename if wildcard is used
+     *
+     * @return $this
+     * @throws \InvalidArgumentException
+     */
+    public function guess()
+    {
+        if ($this->getBaseName() === static::WILDCARD) {
+            $names = $this->getDir()->glob(static::WILDCARD);
+            if (empty($names)) {
+                throw new \InvalidArgumentException(sprintf("File name for path '%s' cannot be guessed.", $this->path));
+            }
+
+            $this->path = reset($names);
+        }
 
         return $this;
     }
@@ -411,7 +432,7 @@ class File
             $file = new self($file);
         }
 
-        $same = $this->getAbsolutePath() === $file->getAbsolutePath();
+        $same = ($this->getAbsolutePath() === $file->getAbsolutePath());
 
         return $same;
     }

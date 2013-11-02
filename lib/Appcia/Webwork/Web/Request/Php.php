@@ -48,7 +48,7 @@ class Php extends Request
 
         $this->setPost($_POST);
         $this->setGet($_GET);
-        $this->setFiles($_FILES);
+        $this->setFile($_FILES);
 
         $this->setScriptFile($_SERVER['SCRIPT_NAME'])
             ->setServer($_SERVER['SERVER_NAME'])
