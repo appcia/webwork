@@ -45,17 +45,6 @@ abstract class Locator
     }
 
     /**
-     * Bind for re-creation or set plain value
-     *
-     * @param string   $id    Identifier
-     * @param callable $value Service
-     */
-    public static function bind($id, \Closure $value)
-    {
-        static::$app->set($id, $value);
-    }
-
-    /**
      * Register as singleton
      *
      * @param string   $id       Identifier
@@ -69,8 +58,8 @@ abstract class Locator
     /**
      * Register service
      *
-     * @param string $id    Identifier
-     * @param mixed  $value Service
+     * @param mixed  $id    Identifier
+     * @param mixed  $value Service or closure
      */
     public static function set($id, $value)
     {
