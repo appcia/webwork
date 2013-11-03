@@ -123,6 +123,7 @@ class Resource extends Type
         $config = $this->manager->getConfig($this->name);
         $path = $this->compilePath($config['path']);
         $file = new File($path);
+        $file->guess();
 
         return $file;
     }

@@ -328,7 +328,7 @@ class Form extends Component
             }
         }
 
-        return $this;
+        return $this->valid;
     }
 
     /**

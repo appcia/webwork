@@ -120,7 +120,7 @@ class Type implements Object
         $params = $this->resource->getParams();
 
         $tpl = new Template($path);
-        $tpl->setParams($params);
+        $tpl->setParams($params, File::WILDCARD);
 
         $path = $tpl->render();
 

@@ -380,18 +380,30 @@ class Dir
     /**
      * Find files that matched specified pattern
      *
-     * @param string $pattern Pattern (with wildcards etc)
+     * @param string  $pattern Pattern (with wildcards etc)
+     * @param boolean $order   Order by creation date
      *
      * @return array
      */
-    public function glob($pattern)
+    public function glob($pattern, $order = true)
     {
         $pattern = $this->path . '/' . $pattern;
-        $files = glob($pattern);
+        $files = (array) glob($pattern);
 
-        // For sure, when result is null (on some systems)
-        if (empty($files)) {
-            return array();
+        if ($order) {
+            $that = $this;
+            usort($files, function ($a, $b) use ($that) {
+                $a = filemtime($that->getPath() . '/' . $a);
+                $b = filemtime($that->getPath() . '/' . $b);
+
+                if ($a === $b) {
+                    return 0;
+                } else {
+                    return ($a < $b)
+                        ? -1
+                        : 1;
+                }
+            });
         }
 
         return $files;

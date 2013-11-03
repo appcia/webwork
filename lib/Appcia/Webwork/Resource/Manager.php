@@ -196,8 +196,10 @@ class Manager
             $temp->move($target);
             break;
         case UPLOAD_ERR_NO_FILE:
-            if (!$useTemp) {
-                throw new \ErrorException("File has not been uploaded");
+            if ($useTemp) {
+                $resource = $this->map(static::UPLOAD, $params);
+            } else {
+                throw new \ErrorException("File has not been uploaded.");
             }
             break;
         case UPLOAD_ERR_INI_SIZE:

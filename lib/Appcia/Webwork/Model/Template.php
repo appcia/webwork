@@ -57,20 +57,18 @@ class Template
     /**
      * Set parameters
      *
-     * @param array $params
+     * @param array $params  Values for parameters
+     * @param mixed $default Default value for unspecified
      *
      * @return $this
      * @throws \InvalidArgumentException
      */
-    public function setParams($params)
+    public function setParams($params, $default = null)
     {
-        foreach ($params as $name => $value)
-        {
-            if (!array_key_exists($name, $this->params)) {
-                continue;
-            }
-
-            $this->params[$name] = $value;
+        foreach ($this->params as $name => $value) {
+            $this->params[$name] = array_key_exists($name, $params)
+                ? $params[$name]
+                : $default;
         }
 
         return $this;

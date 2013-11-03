@@ -2,11 +2,11 @@
 
 namespace Appcia\Webwork\Web\Form;
 
-use Appcia\Webwork\Resource\Resource;
-use Appcia\Webwork\Web\Context;
-use Appcia\Webwork\Storage\Session;
-use Appcia\Webwork\Web\Form;
 use Appcia\Webwork\Resource\Manager;
+use Appcia\Webwork\Storage\Session;
+use Appcia\Webwork\Web\Context;
+use Appcia\Webwork\Web\Form;
+use Appcia\Webwork\Web\Form\Field\File;
 
 /**
  * Form uploader
@@ -58,47 +58,12 @@ class Uploader extends Secured
             return $this;
         }
 
-        $token = $this->getMetadata(static::CSRF);
-        if ($token === null) {
-            throw new \LogicException('Form CSRF protection must be enabled to use uploader.');
-        }
+        foreach ($files as $name => $data) {
+            $field = $this->getField($name);
 
-        $params = array('token' => $token);
-
-        foreach ($files as $key => $data) {
-            $field = $this->getField($key);
-
-            $data = $this->manager->normalizeUpload($data);
-            if ($data === null) {
-                continue;
+            if ($field instanceof File) {
+                $field->upload($data);
             }
-
-            $params['key'] = $key;
-            $resource = $this->manager->upload($data, $params);
-
-            if ($resource !== null && $resource->getFile()->exists()) {
-                $field->setValue($resource);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * Remove uploaded file
-     *
-     * @param string $field Field name
-     *
-     * @return $this
-     */
-    public function unload($field)
-    {
-        $field = $this->getField($field);
-        $resource = $field->getValue();
-
-        if ($resource instanceof Resource) {
-            $resource->remove();
-            $field->setValue(null);
         }
 
         return $this;

@@ -321,13 +321,11 @@ class File
      */
     public function guess()
     {
-        if ($this->getBaseName() === static::WILDCARD) {
+        if (strpos($this->getBaseName(), static::WILDCARD) !== false) {
             $names = $this->getDir()->glob(static::WILDCARD);
-            if (empty($names)) {
-                throw new \InvalidArgumentException(sprintf("File name for path '%s' cannot be guessed.", $this->path));
+            if (!empty($names)) {
+                $this->path = reset($names);
             }
-
-            $this->path = reset($names);
         }
 
         return $this;
