@@ -15,12 +15,12 @@ class Converter
      *
      * @return string
      */
-    public function camelToDashed($value, $firstUpper = false)
+    public static function camelToDashed($value, $firstUpper = false)
     {
-        $value = strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $value));
-        $value = $firstUpper ? ucfirst($value) : lcfirst($value);
+        $dashed = mb_strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $value));
+        $dashed = $firstUpper ? ucfirst($dashed) : lcfirst($dashed);
 
-        return $value;
+        return $dashed;
     }
 
     /**
@@ -31,11 +31,11 @@ class Converter
      *
      * @return string
      */
-    public function dashedToCamel($value, $firstUpper = false)
+    public static function dashedToCamel($value, $firstUpper = false)
     {
-        $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
-        $value = $firstUpper ? ucfirst($value) : lcfirst($value);
+        $camel = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
+        $camel = $firstUpper ? ucfirst($camel) : lcfirst($camel);
 
-        return $value;
+        return $camel;
     }
 }

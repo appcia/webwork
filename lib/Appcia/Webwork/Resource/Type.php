@@ -62,22 +62,18 @@ class Type implements Object
     }
 
     /**
-     * @return Resource
-     */
-    public function getResource()
-    {
-        return $this->resource;
-    }
-
-    /**
      * Shorthand getting path to file
      *
      * @return string
      */
     public function __toString() {
-        $file = (string) $this->getFile();
-
-        return $file;
+        try {
+            return (string) $this->getFile();
+        } catch (\Exception $e) {
+            error_log($e->getMessage());
+            error_log($e->getTraceAsString());
+            return '';
+        }
     }
 
     /**
@@ -95,7 +91,7 @@ class Type implements Object
         $file = new File($path);
         $file->guess();
 
-        if ($process && !$file->exists() && in_array($file->getExtension(), $this->extensions)) {
+        if ($process && $this->isProcessable()) {
             $this->processor->run($this);
         }
 
@@ -128,6 +124,45 @@ class Type implements Object
     }
 
     /**
+     * Check whether is processable (e.g thumbnail can be created)
+     * If type file already exist also returns false
+     *
+     * @return boolean
+     */
+    protected function isProcessable()
+    {
+        $target = $this->getFile(false);
+        $source = $this->getResource()
+            ->getFile();
+
+        if (!$source->exists() || $target->exists()) {
+            return false;
+        }
+
+        if (!in_array($source->getExtension(), $this->extensions)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return Resource
+     */
+    public function getResource()
+    {
+        return $this->resource;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getExtensions()
+    {
+        return $this->extensions;
+    }
+
+    /**
      * @param string[] $extensions
      *
      * @return $this
@@ -140,11 +175,11 @@ class Type implements Object
     }
 
     /**
-     * @return string[]
+     * @return Processor
      */
-    public function getExtensions()
+    public function getProcessor()
     {
-        return $this->extensions;
+        return $this->processor;
     }
 
     /**
@@ -161,14 +196,6 @@ class Type implements Object
         $this->processor = $processor;
 
         return $this;
-    }
-
-    /**
-     * @return Processor
-     */
-    public function getProcessor()
-    {
-        return $this->processor;
     }
 
 

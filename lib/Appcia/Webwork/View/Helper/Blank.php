@@ -19,7 +19,7 @@ class Blank extends Helper
     public function blank($value, $arg1, $arg2 = null)
     {
         $value = Value::getString($value);
-        if ($value === null) {
+        if (strlen($value) === 0) {
             if ($arg2 !== null) {
                 return $arg2;
             } else {
