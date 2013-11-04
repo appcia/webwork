@@ -25,6 +25,9 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.8.3**
+* resource management rewritten, new asset manager
+
 **0.8.2**
 * routes with: optional fragments, custom regular expression per parameter
 
