@@ -17,8 +17,6 @@ PHP Framework, codename 'Webwork'
 * website with documentation, http://appcia.pl/webwork , available soon
 * updated quickstart
 
-Planned release date: september 2013
-
 #### Contact, cooperation
 
 Please send me messages on priv.
