@@ -105,10 +105,18 @@ class Encoder
      *
      * @param string $value Value
      *
+     * @throws \InvalidArgumentException
      * @return mixed
      */
     public function decode($value)
     {
+        if (!is_scalar($value)) {
+            throw new \InvalidArgumentException(sprintf(
+                "Encoder value type '%s' is not supported.",
+                gettype($value)
+            ));
+        }
+
         $data = null;
 
         switch ($this->encoding) {

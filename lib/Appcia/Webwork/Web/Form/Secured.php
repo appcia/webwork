@@ -31,7 +31,7 @@ class Secured extends Form
      *
      * @var Encrypter
      */
-    protected $encryter;
+    protected $encrypter;
 
     /**
      * Token session storage
@@ -55,7 +55,7 @@ class Secured extends Form
         parent::__construct($context);
 
         $this->encoder = new Encoder();
-        $this->encryter = new Encrypter();
+        $this->encrypter = new Encrypter();
         $this->session = new Session();
         $this->metadata = new Field\Plain($this, self::METADATA, $this->encoder->encode(array()));
     }
@@ -89,9 +89,9 @@ class Secured extends Form
      *
      * @return Encrypter
      */
-    public function getEncryter()
+    public function getEncrypter()
     {
-        return $this->encryter;
+        return $this->encrypter;
     }
 
     /**
@@ -101,9 +101,9 @@ class Secured extends Form
      *
      * @return $this
      */
-    public function setEncryter(Encrypter $encryter)
+    public function setEncrypter(Encrypter $encryter)
     {
-        $this->encryter = $encryter;
+        $this->encrypter = $encryter;
 
         return $this;
     }
@@ -160,11 +160,11 @@ class Secured extends Form
     public function tokenize($salt = null)
     {
         if ($salt === null) {
-            $salt = $this->encryter->randSalt();
+            $salt = $this->encrypter->randSalt();
         }
 
         $value = implode('', array_keys($this->fields));
-        $token = $this->encryter->crypt($value, $salt);
+        $token = $this->encrypter->crypt($value, $salt);
 
         return $token;
     }
@@ -222,5 +222,29 @@ class Secured extends Form
         $this->metadata->setValue($data);
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function suck($source, $except = array())
+    {
+        if (!in_array(static::METADATA, $except)) {
+            $except[] = static::METADATA;
+        }
+
+        return parent::suck($source, $except);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function inject($object, $except = array())
+    {
+        if (!in_array(static::METADATA, $except)) {
+            $except[] = static::METADATA;
+        }
+
+        return parent::inject($object, $except);
     }
 }
