@@ -23,6 +23,9 @@ Please send me messages on priv.
 Also it would be great, if you like this project and wanna cooperate. 
 
 #### News
+**0.9.3**
+* form object binding (dynamically created fields)
+
 **0.9.2**
 * resource management rewritten, new asset manager
 
