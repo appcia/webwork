@@ -52,12 +52,12 @@ class Secured extends Form
      */
     public function __construct(Context $context)
     {
+        parent::__construct($context);
+
         $this->encoder = new Encoder();
         $this->encryter = new Encrypter();
         $this->session = new Session();
         $this->metadata = new Field\Plain($this, self::METADATA, $this->encoder->encode(array()));
-
-        parent::__construct($context);
     }
 
     /**
@@ -222,31 +222,5 @@ class Secured extends Form
         $this->metadata->setValue($data);
 
         return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function populate(array $data)
-    {
-        parent::populate($data);
-
-        if (isset($data[self::METADATA])) {
-            $this->metadata->setValue($data[self::METADATA]);
-        }
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getField($name)
-    {
-        if ($name === self::METADATA) {
-            return $this->metadata;
-        }
-
-        return parent::getField($name);
     }
 }

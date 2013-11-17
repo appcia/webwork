@@ -2,15 +2,17 @@
 
 namespace Appcia\Webwork\Web;
 
+use Appcia\Webwork\Data\Arr;
 use Appcia\Webwork\Data\Component;
-use Appcia\Webwork\Web\Form\Field;
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\Model\Template;
-use Appcia\Webwork\Web\Context;
+use Appcia\Webwork\Web\Form\Bind;
+use Appcia\Webwork\Web\Form\Field;
 
 /**
  * General utility for servicing web forms (data manipulation)
  */
-class Form extends Component
+class Form extends Component implements \IteratorAggregate, \Countable
 {
     /**
      * Use context
@@ -27,6 +29,11 @@ class Form extends Component
     protected $fields;
 
     /**
+     * @var Bind[]
+     */
+    protected $binds;
+
+    /**
      * Validation result
      *
      * @var boolean
@@ -40,6 +47,7 @@ class Form extends Component
     {
         $this->context = $context;
         $this->fields = array();
+        $this->binds = array();
         $this->valid = true;
 
         $this->build();
@@ -152,7 +160,7 @@ class Form extends Component
                 $match[] = $field;
 
                 $fields = Arr::nest($match);
-                $result = array_merge_recursive($result, $fields);
+                $result = array_replace_recursive($result, $fields);
             }
         }
 
@@ -239,18 +247,10 @@ class Form extends Component
             }
         }
 
-        $this->service();
+        foreach ($this->binds as $bind) {
+            $bind->update();
+        }
 
-        return $this;
-    }
-
-    /**
-     * Service populated data quietly
-     *
-     * @return $this
-     */
-    protected function service()
-    {
         return $this;
     }
 
@@ -379,8 +379,8 @@ class Form extends Component
     /**
      * Suck values from object using getters or direct from array
      *
-     * @param object|array $source  Source object or array
-     * @param array        $except  Excluded field names
+     * @param object|array $source Source object or array
+     * @param array        $except Excluded field names
      *
      * @throws \InvalidArgumentException
      * @return $this
@@ -420,18 +420,22 @@ class Form extends Component
     }
 
     /**
-     * Magic getter for $form->{fieldName}
-     * Useful in view templates
+     * Magic getter handler
      *
-     * @param string $name Field name
+     * @param string $name Field or bind name
      *
-     * @return Field
+     * @return Bind|Field
+     * @throws \OutOfBoundsException
      */
     public function __get($name)
     {
-        $field = $this->getField($name);
-
-        return $field;
+        if (isset($this->binds[$name])) {
+            return $this->binds[$name];
+        } elseif (isset($this->fields[$name])) {
+            return $this->fields[$name];
+        } else {
+            throw new \OutOfBoundsException(sprintf("Form field or bind named '%s' not found.", $name));
+        }
     }
 
     /**
@@ -453,5 +457,62 @@ class Form extends Component
         }
 
         return $field;
+    }
+
+    /**
+     * Add new data binding
+     *
+     * @param Bind $bind Data bind
+     *
+     * @return $this
+     * @throws \LogicException
+     */
+    public function addBind(Bind $bind)
+    {
+        $name = $bind->getName();
+        if (isset($this->binds[$name])) {
+            throw new \LogicException(sprintf("Form bind '%s' already exist.", $name));
+        }
+
+        $bind->create();
+        $this->binds[$name] = $bind;
+
+        return $this;
+    }
+
+    /**
+     * Get data binding by name
+     *
+     * @param string $name Unique name
+     *
+     * @return Bind
+     * @throws \OutOfBoundsException
+     */
+    public function getBind($name)
+    {
+        if (isset($this->binds[$name])) {
+            throw new \OutOfBoundsException(sprintf("Form bind '%s' does not exist.", $name));
+        }
+
+        $bind = $this->binds[$name];
+        $bind->update();
+
+        return $bind;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->fields);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function count()
+    {
+        return count($this->fields);
     }
 }

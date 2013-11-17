@@ -71,4 +71,16 @@ abstract class Arr
             ? $arr[$key]
             : $default;
     }
+
+    /**
+     * Check whether data can be used in 'foreach' loop
+     *
+     * @param mixed $data Data
+     *
+     * @return boolean
+     */
+    public static function traversable($data)
+    {
+        return is_array($data) || ($data instanceof \Traversable);
+    }
 }

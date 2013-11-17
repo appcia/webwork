@@ -34,6 +34,13 @@ abstract class Field
     protected $value;
 
     /**
+     * Unfiltered value
+     *
+     * @var mixed
+     */
+    protected $rawValue;
+
+    /**
      * Registered validators
      *
      * @var Validator[]
@@ -55,19 +62,12 @@ abstract class Field
     protected $valid;
 
     /**
-     * Unfiltered value
-     *
-     * @var mixed
-     */
-    protected $rawValue;
-
-    /**
      * Additional data useful in views
      * KV storage
      *
      * @var
      */
-    protected $data;
+    protected $binds;
 
     /**
      * Constructor
@@ -82,7 +82,7 @@ abstract class Field
         $this->validators = array();
         $this->filters = array();
         $this->valid = true;
-        $this->data = array();
+        $this->binds = array();
 
         $this->setName($name);
         $this->setValue($value);
@@ -142,24 +142,6 @@ abstract class Field
         );
 
         return $components;
-    }
-
-    /**
-     * Check whether component (filter or validator) is used
-     *
-     * @param string $component Component name (last part of class name)
-     * @param array  $classes   Component classes to be searched
-     *
-     * @return bool
-     */
-    protected function hasComponent($component, array $classes)
-    {
-        $names = array_map(function ($class) {
-            return mb_strtolower(substr($class, strrpos($class, '\\') + 1));
-        }, $classes);
-        $flag = in_array(mb_strtolower($component), $names);
-
-        return $flag;
     }
 
     /**
@@ -303,35 +285,51 @@ abstract class Field
     }
 
     /**
-     * Get additional data
+     * Get field related object (bind) by name
      *
-     * @param string $key Key
+     * @param string $name Key
      *
      * @return mixed
      * @throws \OutOfBoundsException
      */
-    public function get($key)
+    public function getBind($name)
     {
-        if (!array_key_exists($key, $this->data)) {
-            throw new \OutOfBoundsException(sprintf("Field data '%s' does not exist.", $key));
+        if (!array_key_exists($name, $this->binds)) {
+            throw new \OutOfBoundsException(sprintf("Field bind '%s' does not exist.", $name));
         }
 
-        return $this->data[$key];
+        return $this->binds[$name];
     }
 
     /**
-     * Set additional data
+     * @see getBind()
+     */
+    public function __get($name)
+    {
+        return $this->getBind($name);
+    }
+
+    /**
+     * Bind related object to field
      *
      * @param string $key   Key
      * @param mixed  $value Value
      *
      * @return $this
      */
-    public function set($key, $value)
+    public function setBind($key, $value)
     {
-        $this->data[$key] = $value;
+        $this->binds[$key] = $value;
 
         return $this;
+    }
+
+    /**
+     * @see setBind()
+     */
+    public function __set($key, $value)
+    {
+        return $this->setBind($key, $value);
     }
 
     /**
@@ -427,6 +425,24 @@ abstract class Field
     }
 
     /**
+     * Check whether component (filter or validator) is used
+     *
+     * @param string $component Component name (last part of class name)
+     * @param array  $classes   Component classes to be searched
+     *
+     * @return bool
+     */
+    protected function hasComponent($component, array $classes)
+    {
+        $names = array_map(function ($class) {
+            return mb_strtolower(substr($class, strrpos($class, '\\') + 1));
+        }, $classes);
+        $flag = in_array(mb_strtolower($component), $names);
+
+        return $flag;
+    }
+
+    /**
      * Check whether validator with specified name is used
      *
      * @param string $name Validator name
@@ -455,7 +471,7 @@ abstract class Field
         if ($name === null) {
             return !empty($this->filters);
         }
-        $flag = $this->hasComponent($name, array_keys($this->validators));
+        $flag = $this->hasComponent($name, array_keys($this->filters));
 
         return $flag;
     }
