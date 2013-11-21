@@ -91,6 +91,21 @@ class File
     }
 
     /**
+     * Change only extension
+     *
+     * @param string $extension
+     *
+     * @return File
+     */
+    public function setExtension($extension)
+    {
+        $parts = pathinfo($this->path);
+        $this->path = $parts['dirname'] . '/' . $parts['filename'] . '.' . $extension;
+
+        return $this;
+    }
+
+    /**
      * Get file name without extension
      *
      * @return string
@@ -98,6 +113,21 @@ class File
     public function getFileName()
     {
         return pathinfo($this->path, PATHINFO_FILENAME);
+    }
+
+    /**
+     * Change only file name
+     *
+     * @param string $name
+     *
+     * @return File
+     */
+    public function setFileName($name)
+    {
+        $parts = pathinfo($this->path);
+        $this->path = $parts['dirname'] . '/' . $name . '.' . $parts['extension'];
+
+        return $this;
     }
 
     /**
@@ -125,6 +155,25 @@ class File
     public function getDir()
     {
         return new Dir(dirname($this->path));
+    }
+
+    /**
+     * Change only directory
+     *
+     * @param string $dir
+     *
+     * @return File
+     */
+    public function setDir($dir)
+    {
+        if ($dir instanceof Dir) {
+            $dir = $dir->getPath();
+        }
+
+        $parts = pathinfo($this->path);
+        $this->path = $dir . '/' . $parts['filename'] . '.' . $parts['extension'];
+
+        return $this;
     }
 
     /**

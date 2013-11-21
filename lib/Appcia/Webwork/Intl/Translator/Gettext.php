@@ -7,8 +7,6 @@ use Appcia\Webwork\Web\Context;
 
 /**
  * Gettext module translator
- *
- * @package Appcia\Webwork\Intl\Translator
  */
 class Gettext extends Translator
 {
@@ -30,7 +28,8 @@ class Gettext extends Translator
 
         $this->setDomain(array(
             'name' => 'messages',
-            'path' => 'locale'
+            'path' => 'locale',
+            'invalidate' => null,
         ));
     }
 
@@ -55,6 +54,8 @@ class Gettext extends Translator
     /**
      * @param array $domain
      *
+     * @link http://www.php.net/manual/en/function.gettext.php#110735
+     *
      * @return $this
      * @throws \InvalidArgumentException
      */
@@ -66,6 +67,10 @@ class Gettext extends Translator
 
         if (!isset($domain['path'])) {
             throw new \InvalidArgumentException('Gettext domain path not specified');
+        }
+
+        if (isset($domain['invalidate'])) {
+            bindtextdomain($domain['name'], $domain['invalidate']);
         }
 
         bindtextdomain($domain['name'], $domain['path']);
