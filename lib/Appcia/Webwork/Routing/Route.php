@@ -99,8 +99,6 @@ class Route implements Object
         return Objector::objectify($data, $args, get_called_class());
     }
 
-
-
     /**
      * Generate unique name
      *

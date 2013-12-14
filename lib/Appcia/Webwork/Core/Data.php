@@ -32,6 +32,16 @@ class Data implements \IteratorAggregate, \ArrayAccess
     }
 
     /**
+     * Get keys
+     *
+     * @return array
+     */
+    public function getKeys()
+    {
+        return array_keys($this->data);
+    }
+
+    /**
      * Set data
      *
      * @param array $data Data
@@ -135,7 +145,11 @@ class Data implements \IteratorAggregate, \ArrayAccess
             ? $this->data[$key]
             : null;
 
-        return $data;
+        if (is_array($data)) {
+            return new self($data);
+        } else {
+            return $data;
+        }
     }
 
     /**
@@ -146,5 +160,21 @@ class Data implements \IteratorAggregate, \ArrayAccess
     public function getIterator()
     {
         return new \ArrayIterator($this->data);
+    }
+
+    /**
+     * @see get()
+     */
+    public function __get($key)
+    {
+        return $this->get($key);
+    }
+
+    /**
+     * @see set()
+     */
+    public function __set($key, $value)
+    {
+        $this->set($key, $value);
     }
 }

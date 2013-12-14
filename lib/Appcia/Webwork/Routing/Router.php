@@ -313,17 +313,15 @@ class Router
      */
     public function getRoute($route)
     {
-        if (is_string($route)) {
-            if (!isset($this->routes[$route])) {
-                throw new \OutOfBoundsException(sprintf("Route by name '%s' does not exist.", $route));
-            }
-
-            $route = $this->routes[$route];
-
-            return $route;
-        } elseif (!$route instanceof Route) {
+        if (!is_string($route)) {
             throw new \InvalidArgumentException('Route should be an existing route name or object.');
         }
+
+        if (!isset($this->routes[$route])) {
+            throw new \OutOfBoundsException(sprintf("Route by name '%s' does not exist.", $route));
+        }
+
+        $route = $this->routes[$route];
 
         return $route;
     }

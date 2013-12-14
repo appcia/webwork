@@ -2,6 +2,7 @@
 
 namespace Appcia\Webwork\Auth;
 
+use Appcia\Webwork\Data\RegExp;
 use Appcia\Webwork\Exception\Exception;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\Storage\Session\Space;
@@ -102,24 +103,6 @@ class Acl extends Auth
     }
 
     /**
-     * Compile route pattern to regular expression
-     *
-     * @param string $route Route name with wildcards ('*')
-     *
-     * @return string
-     */
-    protected function compileRoute($route)
-    {
-        $parts = explode(static::WILDCARD, $route);
-        foreach ($parts as $p => $part) {
-            $parts[$p] = preg_quote($part);
-        }
-        $regexp = '/^' . implode('(.*)', $parts) . '$/';
-
-        return $regexp;
-    }
-
-    /**
      * Verify access to route with extra expressions
      *
      * @param string     $test  Route to be tested
@@ -138,7 +121,7 @@ class Acl extends Auth
         }
 
         foreach ($this->acl[$group] as $route) {
-            $regExp = $this->compileRoute($route);
+            $regExp = RegExp::wildcard($route);
             if (preg_match($regExp, $test)) {
                 return true;
             }
