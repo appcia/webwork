@@ -225,7 +225,7 @@ class Config extends Objector
      *
      * @param string $key Key in dot notation
      *
-     * @return mixed
+     * @return self|$this
      * @throws \InvalidArgumentException
      */
     public function get($key)
@@ -235,7 +235,9 @@ class Config extends Objector
         }
 
         $data = & $this->data;
-        foreach (explode('.', $key) as $section) {
+        $sections = explode('.', $key);
+
+        foreach ($sections as $section) {
             if (!is_array($data) || !array_key_exists($section, $data)) {
                 throw new \InvalidArgumentException(sprintf("Config key '%s' does not exist.", $key));
             }

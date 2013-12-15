@@ -11,11 +11,6 @@ use Appcia\Webwork\Intl\Translator;
 class Context
 {
     /**
-     * @var App
-     */
-    protected $app;
-
-    /**
      * Character encoding
      *
      * @var string
@@ -35,20 +30,11 @@ class Context
     /**
      * Constructor
      */
-    public function __construct(App $app)
+    public function __construct()
     {
-        $this->app = $app;
         $this->charset = 'UTF-8';
         $this->locale = new Locale($this);
         $this->translator = new Translator\Php($this);
-    }
-
-    /**
-     * @return App
-     */
-    public function getApp()
-    {
-        return $this->app;
     }
 
     /**

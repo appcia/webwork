@@ -44,7 +44,7 @@ class App extends Base
         parent::__construct($config);
 
         $this->dispatcher = new Dispatcher($this);
-        $this->context = new Context($this);
+        $this->context = new Context();
         $this->router = new Router();
     }
 

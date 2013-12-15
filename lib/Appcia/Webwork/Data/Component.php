@@ -24,8 +24,12 @@ abstract class Component implements Object
      *
      * @param Context $context
      */
-    public function __construct(Context $context)
+    public function __construct(Context $context = null)
     {
+        if ($context === null) {
+            $content = new Context();
+        }
+
         $this->setContext($context);
     }
 

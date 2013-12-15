@@ -49,9 +49,9 @@ class Context extends Base {
     /**
      * Constructor
      */
-    public function __construct(App $app)
+    public function __construct()
     {
-        parent::__construct($app);
+        parent::__construct();
 
         $this->domain = 'localhost';
         $this->baseUrl = '';
