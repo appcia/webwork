@@ -64,7 +64,7 @@ class Php extends Request
         }
 
         if (isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-            $this->setAjax($_SERVER['HTTP_X_REQUESTED_WITH'] == 'xmlhttprequest');
+            $this->setAjax(strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
         }
 
         return $this;

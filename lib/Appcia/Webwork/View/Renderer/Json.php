@@ -14,6 +14,15 @@ use Appcia\Webwork\View\Renderer;
 class Json extends Renderer
 {
     /**
+     * Status codes
+     */
+    const UNKNOWN = 0;
+
+    const SUCCESS = 1;
+
+    const ERROR = -1;
+
+    /**
      * Encoding options
      *
      * @var int

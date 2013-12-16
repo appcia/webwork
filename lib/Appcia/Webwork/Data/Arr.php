@@ -73,14 +73,29 @@ abstract class Arr
     }
 
     /**
-     * Check whether data can be used in 'foreach' loop
+     * Containment checker
      *
-     * @param mixed $data Data
+     * @param mixed $value Value
+     * @param mixed $set   Set
      *
      * @return boolean
      */
-    public static function traversable($data)
+    public static function contains($value, $set)
     {
-        return is_array($data) || ($data instanceof \Traversable);
+        if (Value::isEmpty($value) || !Value::isArray($set)) {
+            return false;
+        }
+
+        if (is_array($set)) {
+            return in_array($value, $set);
+        } else {
+            foreach ($set as $val) {
+                if ($value == $val) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

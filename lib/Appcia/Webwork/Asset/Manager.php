@@ -4,7 +4,6 @@ namespace Appcia\Webwork\Asset;
 
 use Appcia\Webwork\Core\App;
 use Appcia\Webwork\System\Dir;
-use Core\Asset\Filter;
 
 class Manager
 {
@@ -102,7 +101,6 @@ class Manager
     public function getFilter($name)
     {
         if (!isset($this->filters[$name])) {
-
             $config = $this->app->getConfig()
                 ->grab('am.filter')
                 ->set('class', $name);

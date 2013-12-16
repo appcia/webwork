@@ -2,10 +2,10 @@
 
 namespace Appcia\Webwork\Web\Form;
 
-use Appcia\Webwork\Data\Arr;
 use Appcia\Webwork\Data\Component\Filter;
 use Appcia\Webwork\Data\Component;
 use Appcia\Webwork\Data\Component\Validator;
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Form;
 
@@ -70,7 +70,7 @@ class Bind implements \IteratorAggregate, \Countable
     {
         $this->form = $form;
         $this->name = $name;
-        $this->values = Arr::traversable($values) ? $values : (array) $values;
+        $this->values = Value::isArray($values) ? $values : (array) $values;
 
         if (!is_callable($creator)) {
             throw new \InvalidArgumentException(sprintf("Form bind '%s' creator is not callable.", $this->name));
