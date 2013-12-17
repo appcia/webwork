@@ -11,7 +11,7 @@ use Appcia\Webwork\Web\Context;
  *
  * @package Appcia\Webwork\Intl
  */
-class Locale implements  Object
+class Locale implements Object
 {
     /**
      * @var Context

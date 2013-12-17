@@ -2,11 +2,10 @@
 
 namespace Appcia\Webwork\Routing;
 
-use Appcia\Webwork\Routing\Group;
-use Appcia\Webwork\Routing\Route;
+use Appcia\Webwork\Data\Arr;
+use Appcia\Webwork\Model\Template;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\Web\Request;
-use Appcia\Webwork\Model\Template;
 
 /**
  * Processor which is matching request to route
@@ -204,10 +203,10 @@ class Router
                     $values = array_values($values);
                     $names = array_keys($segment->getParams());
 
-                    $params = array();
-                    if (!empty($names) && !empty($values)) {
-                        $params = $this->processParams($route, array_combine($names, $values));
-                    }
+                    $params = !empty($names) && (count($names) == count($values))
+                        ? array_combine($names, $values)
+                        : array();
+                    $params = $this->processParams($route, $params);
 
                     $request->setParams($params);
 
@@ -232,23 +231,22 @@ class Router
     {
         $config = $route->getParams();
 
-        foreach ($params as $name => $value) {
-            if (!isset($config[$name])) {
-                continue;
+        foreach ($config as $name => $data) {
+            // Apply default value if not specified (optional segment)
+            if (!array_key_exists($name, $params) && array_key_exists('default', $data)) {
+                $params[$name] = $data['default'];
             }
 
-            $data = $config[$name];
-
             // Reverse map parameter names
-            if (isset($data['map'])) {
+            if (array_key_exists($name, $params) && isset($data['map'])) {
                 $map = $data['map'];
+                $value = $params[$name];
 
                 if (!is_array($map)) {
                     throw new \InvalidArgumentException('Route parameter map should be an array.');
                 }
 
                 $param = array_search($value, $map);
-
                 if ($param !== false) {
                     $params[$name] = $param;
                 }
@@ -342,7 +340,6 @@ class Router
 
         foreach ($segments as $segment) {
             $diff = array_diff_key($segment->getParams(), $params);
-
             if (empty($diff)) {
                 return $segment;
             }

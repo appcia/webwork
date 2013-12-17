@@ -112,6 +112,18 @@ class Path extends Template
             $segments[$key] = new Template($segment);
         }
 
+        // Order by max parameter count (for best assembled path)
+        usort($segments, function (Template $a, Template $b) {
+            $c = count($a->getParams());
+            $d = count($b->getParams());
+
+            return ($c == $d)
+                ? 0
+                : ($c > $d)
+                    ? -1
+                    : 1;
+        });
+
         $this->segments = $segments;
 
         return $this;

@@ -181,6 +181,10 @@ class Asset
      */
     protected function prepare()
     {
+        if (empty($this->filters)) {
+            $this->filters[] = $this->manager->getFilter($this->source->getExtension());
+        }
+
         foreach ($this->filters as $filter) {
             $filter->prepare($this);
         }
@@ -195,10 +199,6 @@ class Asset
      */
     protected function filter()
     {
-        if (empty($this->filters)) {
-            $this->filters[] = $this->manager->getFilter($this->source->getExtension());
-        }
-
         $this->content = $this->getSource()
             ->read();
         foreach ($this->filters as $filter) {

@@ -30,6 +30,18 @@ abstract class Arr
     }
 
     /**
+     * Check whether two arrays have same keys
+     *
+     * @param array $arr1
+     * @param array $arr2
+     *
+     * @return bool
+     */
+    public static function equalKeys($arr1, $arr2) {
+        return !array_diff_key($arr1, $arr2) && !array_diff_key($arr2, $arr1);
+    }
+
+    /**
      * Calculate depth
      *
      * @param array $data Data
