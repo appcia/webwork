@@ -136,14 +136,15 @@ class Data implements \IteratorAggregate, \ArrayAccess
      * Get value by key
      *
      * @param mixed $key
+     * @param mixed $default
      *
-     * @return null
+     * @return mixed
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         $data = $this->has($key)
             ? $this->data[$key]
-            : null;
+            : $default;
 
         if (is_array($data)) {
             return new self($data);

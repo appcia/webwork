@@ -223,12 +223,13 @@ class Config extends Objector
     /**
      * Get a value
      *
-     * @param string $key Key in dot notation
+     * @param string $key     Key in dot notation
+     * @param mixed  $default Value if key not found
      *
-     * @return self|$this
      * @throws \InvalidArgumentException
+     * @return self|$this
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         if (empty($key)) {
             throw new \InvalidArgumentException('Config key cannot be empty.');
@@ -239,7 +240,7 @@ class Config extends Objector
 
         foreach ($sections as $section) {
             if (!is_array($data) || !array_key_exists($section, $data)) {
-                throw new \InvalidArgumentException(sprintf("Config key '%s' does not exist.", $key));
+                return $default;
             }
 
             $data = & $data[$section];
