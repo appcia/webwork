@@ -353,7 +353,7 @@ abstract class App extends Container
      * @throws \InvalidArgumentException
      * @throws \ErrorException
      */
-    protected function loadModule($name, array $config)
+    protected function loadModule($name, $config)
     {
         if (!isset($config['path'])) {
             throw new \InvalidArgumentException(sprintf("Module '%s' does not have path specified.", $name));

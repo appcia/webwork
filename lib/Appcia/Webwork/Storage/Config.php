@@ -246,7 +246,15 @@ class Config extends Objector
             $data = & $data[$section];
         }
 
-        return $data;
+        $value = $data;
+        /*
+         * TODO not working, array as chainable config
+        $value = is_array($data)
+            ? new static($data)
+            : $data;
+        */
+
+        return $value;
     }
 
     /**
@@ -330,5 +338,23 @@ class Config extends Objector
         }
 
         return $this;
+    }
+
+    /**
+     * Allows iterating with foreach loop
+     * Make nested configs from array values
+     *
+     * @return \ArrayIterator
+     */
+    public function getIterator()
+    {
+        $data = $this->data;
+        $data = array_map(function ($value) {
+            return is_array($value)
+                ? new static($value)
+                : $value;
+        }, $data);
+
+        return new \ArrayIterator($data);
     }
 }
