@@ -71,14 +71,19 @@ class Manager
      * @param string|null $resource
      * @param string|null $type
      *
-     * @return array
+     * @throws \OutOfBoundsException
      * @throws \InvalidArgumentException
+     * @return Config
      */
     public function getConfig($resource = null, $type = null)
     {
         $config = $this->config;
 
         if ($resource !== null) {
+            if (!isset($config[$resource])) {
+                throw new \OutOfBoundsException(sprintf("Resource manager config '%s' does not exist.", $resource));
+            }
+
             $config = $config[$resource];
 
             if (!isset($config['path'])) {
