@@ -246,13 +246,9 @@ class Config extends Objector
             $data = & $data[$section];
         }
 
-        $value = $data;
-        /*
-         * TODO not working, array as chainable config
         $value = is_array($data)
             ? new static($data)
             : $data;
-        */
 
         return $value;
     }

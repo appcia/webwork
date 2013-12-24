@@ -390,6 +390,7 @@ abstract class App extends Container
             $config['path']
         );
 
+        // TODO first autoload all modules, then init (cross module dependencies)
         $module->autoload()
             ->init();
 
