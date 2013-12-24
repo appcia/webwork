@@ -16,9 +16,6 @@ class Objector extends Data
      */
     public function setData($data = array())
     {
-        // Deterministic injecting
-        ksort($data);
-
         $this->data = $data;
 
         return $this;
@@ -33,7 +30,12 @@ class Objector extends Data
      */
     public function inject($object)
     {
-        foreach ($this->data as $property => $value) {
+        $data = $this->data;
+
+        // Deterministic injecting
+        ksort($data);
+
+        foreach ($data as $property => $value) {
             foreach (array('add', 'set') as $prefix) {
                 $method = $prefix . ucfirst($property);
                 $callback = array($object, $method);

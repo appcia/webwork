@@ -5,18 +5,41 @@ namespace Appcia\Webwork\Core;
 use Appcia\Webwork\Storage\Config;
 use Appcia\Webwork\System\Dir;
 use Appcia\Webwork\System\Php;
-use Appcia\Webwork\Web\Response;
 
 /**
  * Base for modular application
- *
- * @package Appcia\Webwork\Core
  */
 abstract class App extends Container
 {
+    /**
+     * Environments
+     */
     const DEVELOPMENT = 'dev';
+
     const TEST = 'test';
+
     const PRODUCTION = 'prod';
+
+    /**
+     * Monitor events
+     */
+    const BOOTSTRAPPED = 'bootstrapped';
+
+    const RUNNING = 'running';
+
+    /**
+     * Event monitor
+     *
+     * @var Monitor
+     */
+    protected $monitor;
+
+    /**
+     * Error handler
+     *
+     * @var Exception\Handler
+     */
+    protected $handler;
 
     /**
      * @var Config
@@ -38,7 +61,7 @@ abstract class App extends Container
     protected $autoloader;
 
     /**
-     * PHP settings
+     * Adjusted PHP settings
      *
      * @var array
      */
@@ -59,25 +82,12 @@ abstract class App extends Container
     protected $modules;
 
     /**
-     * Exception handlers
-     *
-     * @var array
-     */
-    protected $handlers;
-
-    /**
-     * Default error handler
-     *
-     * @var \Closure|NULL
-     */
-    protected $errorHandler;
-
-    /**
      * Constructor
      */
     public function __construct(Config $config)
     {
-        $this->registerHandler(true);
+        $this->errorHandler = new Exception\Handler();
+        $this->errorHandler->register(true);
 
         parent::__construct();
 
@@ -90,12 +100,12 @@ abstract class App extends Container
             ->inject($this);
     }
 
-    /**
-     * Destructor
-     */
-    public function __destruct()
+    public static function getEvents()
     {
-        $this->registerHandler(false);
+        return array(
+            static::BOOTSTRAPPED,
+            static::RUNNING
+        );
     }
 
     /**
@@ -110,6 +120,28 @@ abstract class App extends Container
             static::TEST,
             static::PRODUCTION
         );
+    }
+
+    /**
+     * Bootstrap
+     *
+     * @return $this
+     */
+    abstract public function bootstrap();
+
+    /**
+     * Run
+     *
+     * @return $this
+     */
+    abstract public function run();
+
+    /**
+     * Destructor
+     */
+    public function __destruct()
+    {
+        $this->errorHandler->register(false);
     }
 
     /**
@@ -142,18 +174,20 @@ abstract class App extends Container
     }
 
     /**
-     * Run
+     * Executor
      *
      * @return $this
      */
-    abstract public function run();
+    public function execute()
+    {
+        $this->bootstrap();
+        $this->monitor->notify(static::BOOTSTRAPPED);
 
-    /**
-     * Bootstrap
-     *
-     * @return $this
-     */
-    abstract public function bootstrap();
+        $this->run();
+        $this->monitor->notify(static::RUNNING);
+
+        return $this;
+    }
 
     /**
      * @return Config
@@ -284,7 +318,7 @@ abstract class App extends Container
     }
 
     /**
-     * Find existing sub-paths in all modules
+     * Find existing library sub directories in all modules
      *
      * @param string  $subPath   Sub path
      * @param boolean $namespace Use namespace as path prefix
@@ -299,7 +333,6 @@ abstract class App extends Container
         }
 
         $paths = array();
-
         foreach ($this->modules as $module) {
             $path = $module->getPath();
 
@@ -390,7 +423,10 @@ abstract class App extends Container
             $config['path']
         );
 
-        // TODO first autoload all modules, then init (cross module dependencies)
+        if (!$module instanceof Module) {
+            throw new \ErrorException(sprintf("Module '%s' does not extend valid class.", $className));
+        }
+
         $module->autoload()
             ->init();
 
@@ -425,117 +461,22 @@ abstract class App extends Container
     }
 
     /**
-     * Callback for throwing exception on error
-     *
-     * @param int    $no      Error number
-     * @param string $message Error Message
-     * @param string $path    File path
-     * @param int    $line    Line number
-     *
-     * @throws \ErrorException
-     */
-    public function throwHandler($no, $message, $path, $line)
-    {
-        throw new \ErrorException($message, $no, 0, $path, $line);
-    }
-
-    /**
-     * Enable or disable exception triggering on error
-     *
-     * @param boolean $flag Toggle
+     * @param Exception\Handler $handler
      *
      * @return $this
      */
-    public function registerHandler($flag)
+    public function setErrorHandler($handler)
     {
-        if (!$flag && $this->errorHandler) {
-            set_error_handler($this->errorHandler);
-        }
-
-        if ($flag) {
-            $this->errorHandler = set_error_handler(array($this, 'throwHandler'));
-        }
+        $this->errorHandler = $handler;
 
         return $this;
     }
 
     /**
-     * Register exception handler
-     *
-     * Exception could be:
-     * - class name for example: Appcia\Webwork\NotFound
-     * - object     for example: new Appcia\Webwork\Exception\NotFound()
-     * - boolean    if should always / never handle any type of exception
-     *
-     * @param mixed    $exception Exception to be handled, see description!
-     * @param callable $callback  Callback function
-     *
-     * @return $this
-     * @throws \InvalidArgumentException
+     * @return Exception\Handler
      */
-    public function handle($exception, \Closure $callback)
+    public function getErrorHandler()
     {
-        if (!is_callable($callback)) {
-            throw new \InvalidArgumentException('Handler callback is invalid');
-        }
-
-        if (is_object($exception)) {
-            if (!$exception instanceof \Exception) {
-                throw new \InvalidArgumentException('Invalid exception to be handled');
-            }
-
-            $exception = get_class($exception);
-        }
-
-        $this->handlers[] = array(
-            'exception' => $exception,
-            'callback' => $callback
-        );
-
-        return $this;
-    }
-
-    /**
-     * React when exception occurred
-     *
-     * @param \Exception $e Exception
-     *
-     * @return Response
-     * @throws \Exception
-     */
-    public function react($e)
-    {
-        // Look for most detailed exception handler
-        $exception = get_class($e);
-        $specificHandler = null;
-        $allHandler = null;
-
-        foreach ($this->handlers as $handler) {
-            if ($handler['exception'] === true) {
-                $allHandler = $handler;
-            }
-
-            if ($handler['exception'] === $exception) {
-                $specificHandler = $handler;
-            }
-        }
-
-        $handler = $allHandler;
-        if ($specificHandler !== null) {
-            $handler = $specificHandler;
-        }
-
-        if ($handler === null) {
-            throw $e;
-        }
-
-        // Call for new response
-        $response = call_user_func($handler['callback'], $this);
-
-        if (!$response instanceof Response) {
-            throw new \ErrorException('Error handler callback should return response object.');
-        }
-
-        return $response;
+        return $this->errorHandler;
     }
 }

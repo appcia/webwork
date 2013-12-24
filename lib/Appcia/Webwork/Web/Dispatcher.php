@@ -25,7 +25,7 @@ class Dispatcher
     const AFTER = 'after';
 
     /**
-     * Available events for listening
+     * Monitor events
      */
     const STARTED = 'dispatch started';
     const RESPONSE_CREATED = 'response created';
