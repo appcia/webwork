@@ -102,7 +102,7 @@ class Manager
     {
         if (!isset($this->filters[$name])) {
             $config = $this->app->getConfig()
-                ->grab('am.filter')
+                ->grab('asset.filter')
                 ->set('class', $name);
 
             $filter = Filter::objectify($config);

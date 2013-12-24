@@ -229,7 +229,8 @@ class Dispatcher
 
             // Create proper response
             $this->monitor->notify(self::EXCEPTION_CAUGHT);
-            $response = $this->app->react($e);
+            $response = $this->app->getErrorHandler()
+                ->react($e);
             $this->monitor->notify(self::EXCEPTION_HANDLED);
         }
 
