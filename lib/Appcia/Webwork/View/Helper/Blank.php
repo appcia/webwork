@@ -16,10 +16,10 @@ class Blank extends Helper
      *
      * @return mixed
      */
-    public function blank($value, $arg1, $arg2 = null)
+    public function blank($value, $arg1 = null, $arg2 = null)
     {
         $value = Value::getString($value);
-        if (strlen($value) === 0) {
+        if (mb_strlen($value) === 0) {
             if ($arg2 !== null) {
                 return $arg2;
             } else {
