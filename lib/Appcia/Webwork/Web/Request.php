@@ -617,15 +617,15 @@ class Request
     /**
      * Get request parameter
      *
-     * @param string $key Parameter name
+     * @param string $key     Parameter name
+     * @param mixed  $default Default value
      *
      * @return mixed
-     * @throws \InvalidArgumentException
      */
-    public function get($key)
+    public function get($key, $default = null)
     {
         if (!$this->has($key)) {
-            throw new \InvalidArgumentException(sprintf("Request parameter '%s' is not specified.", $key));
+            return $default;
         }
 
         return $this->data[$key];

@@ -37,7 +37,8 @@ abstract class Arr
      *
      * @return bool
      */
-    public static function equalKeys($arr1, $arr2) {
+    public static function equalKeys($arr1, $arr2)
+    {
         return !array_diff_key($arr1, $arr2) && !array_diff_key($arr2, $arr1);
     }
 
