@@ -19,6 +19,20 @@ abstract class Lister implements \IteratorAggregate, \Countable
     protected $options;
 
     /**
+     * Default filters
+     *
+     * @var array
+     */
+    protected $filters;
+
+    /**
+     * Default filters
+     *
+     * @var array
+     */
+    protected $sorters;
+
+    /**
      * Pagination
      *
      * @var Pagination
@@ -46,6 +60,9 @@ abstract class Lister implements \IteratorAggregate, \Countable
     {
         $this->pagination = new Pagination($this);
         $this->options = array();
+        $this->filters = array();
+        $this->sorters = array();
+
         $this->elements = null;
         $this->totalCount = null;
     }
@@ -198,7 +215,25 @@ abstract class Lister implements \IteratorAggregate, \Countable
             }
         }
 
+        if (empty($filters)) {
+            $filters = $this->filters;
+        }
+
         return $filters;
+    }
+
+    /**
+     * Set default filters
+     *
+     * @param array $filters
+     *
+     * @return $this
+     */
+    public function setFilters($filters)
+    {
+        $this->filters = $filters;
+
+        return $this;
     }
 
     /**
@@ -258,7 +293,25 @@ abstract class Lister implements \IteratorAggregate, \Countable
             }
         }
 
+        if (empty($sorters)) {
+            $sorters = $this->sorters;
+        }
+
         return $sorters;
+    }
+
+    /**
+     * Set default sorters
+     *
+     * @param array $sorters
+     *
+     * @return $this
+     */
+    public function setSorters($sorters)
+    {
+        $this->sorters = $sorters;
+
+        return $this;
     }
 
     /**

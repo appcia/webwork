@@ -12,6 +12,75 @@ namespace Appcia\Webwork\Model;
 class Mask
 {
     /**
+     * Bit values
+     */
+    const N0 = 1;
+
+    const N1 = 2;
+
+    const N2 = 4;
+
+    const N3 = 8;
+
+    const N4 = 16;
+
+    const N5 = 32;
+
+    const N6 = 64;
+
+    const N7 = 128;
+
+    const N8 = 256;
+
+    const N9 = 512;
+
+    const N10 = 1024;
+
+    const N11 = 2048;
+
+    const N12 = 4096;
+
+    const N13 = 8192;
+
+    const N14 = 16384;
+
+    const N15 = 32768;
+
+    const N16 = 65536;
+
+    const N17 = 131072;
+
+    const N18 = 262144;
+
+    const N19 = 524288;
+
+    const N20 = 1048576;
+
+    const N21 = 2097152;
+
+    const N22 = 4194304;
+
+    const N23 = 8388608;
+
+    const N24 = 16777216;
+
+    const N25 = 33554432;
+
+    const N26 = 67108864;
+
+    const N27 = 134217728;
+
+    const N28 = 268435456;
+
+    const N29 = 536870912;
+
+    const N30 = 1073741824;
+
+    const N31 = 2147483648;
+
+    const N32 = 4294967296;
+
+    /**
      * Plain integer value
      *
      * @var int
