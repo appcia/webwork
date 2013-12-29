@@ -3,10 +3,8 @@
 namespace Appcia\Webwork\Web;
 
 use Appcia\Webwork\Core\App as Base;
-use Appcia\Webwork\Core\Bootstrap;
 use Appcia\Webwork\Routing\Router;
 use Appcia\Webwork\Storage\Config;
-use Appcia\Webwork\Web\Dispatcher;
 
 /**
  * Web application

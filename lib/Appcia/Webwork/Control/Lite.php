@@ -5,14 +5,14 @@ namespace Appcia\Webwork\Control;
 use Appcia\Webwork\Web\App;
 
 /**
- * Skeleton control, only essentials
+ * Fasade for application control, only essentials
  */
 abstract class Lite
 {
     /**
      * @var App
      */
-    private $app;
+    protected $app;
 
     /**
      * Constructor
@@ -29,7 +29,7 @@ abstract class Lite
      *
      * @return App
      */
-    protected function getApp()
+    public function getApp()
     {
         return $this->app;
     }
@@ -41,7 +41,7 @@ abstract class Lite
      *
      * @return mixed
      */
-    protected function get($key)
+    public function get($key)
     {
         $service = $this->app->get($key);
 

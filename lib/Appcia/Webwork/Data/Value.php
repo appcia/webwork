@@ -101,4 +101,60 @@ abstract class Value
 
         return $flag;
     }
+
+    /**
+     * Test some condition
+     *
+     * @param bool  $flag    Evaluated condition
+     * @param mixed $arg1    Returned if value is empty and second argument is not specified
+     * @param mixed $arg2    Returned if 2 arguments specified and value is empty
+     * @param mixed $default Default value
+     *
+     * @internal param mixed $value Value to be checked
+     * @return mixed
+     */
+    public static function test($flag, $arg1 = null, $arg2 = null, $default = null)
+    {
+        if ($arg1 === null && $arg2 === null) {
+            return $flag;
+        }
+
+        if ($flag) {
+            if ($arg2 !== null) {
+                return $arg2;
+            } else {
+                return $arg1;
+            }
+        }
+
+        return $default;
+    }
+
+    /**
+     * Check whether text is empty
+     *
+     * @param mixed $value Value to be checked
+     * @param mixed $arg1  Returned if value is empty and second argument is not specified
+     * @param mixed $arg2  Returned if 2 arguments specified and value is empty
+     *
+     * @return mixed
+     */
+    public static function blank($value, $arg1 = null, $arg2 = null)
+    {
+        $blank = (mb_strlen($value) === 0);
+
+        return static::test($blank, $arg1, $arg2, $value);
+    }
+
+    /**
+     * Compare two strings
+     *
+     * @see test()
+     */
+    public static function compare($value, $compare, $arg1 = null, $arg2 = null)
+    {
+        $same = (trim($value) == trim($compare));
+
+        return static::test($same, $arg1, $arg2);
+    }
 }

@@ -21,7 +21,7 @@ abstract class Fat extends Lite
      *
      * @return Request
      */
-    protected function getRequest()
+    public function getRequest()
     {
         return $this->getApp()
             ->getRequest();
@@ -30,7 +30,7 @@ abstract class Fat extends Lite
     /**
      * @return Config
      */
-    protected function getConfig()
+    public function getConfig()
     {
         return $this->getApp()
             ->getConfig();
@@ -39,7 +39,7 @@ abstract class Fat extends Lite
     /**
      * @return Context
      */
-    protected function getContext()
+    public function getContext()
     {
         return $this->getApp()
             ->getContext();
@@ -50,7 +50,7 @@ abstract class Fat extends Lite
      *
      * @return View
      */
-    protected function getView()
+    public function getView()
     {
         return $this->getApp()
             ->getDispatcher()
@@ -65,7 +65,7 @@ abstract class Fat extends Lite
      * @return void
      * @throws Error
      */
-    protected function goError($message = null)
+    public function goError($message = null)
     {
         throw new Error($message);
     }
@@ -78,7 +78,7 @@ abstract class Fat extends Lite
      * @return void
      * @throws NotFound
      */
-    protected function goNotFound($message = null)
+    public function goNotFound($message = null)
     {
         throw new NotFound($message);
     }
@@ -88,7 +88,7 @@ abstract class Fat extends Lite
      *
      * @return void
      */
-    protected function goRefresh()
+    public function goRefresh()
     {
         $route = $this->getApp()
             ->getDispatcher()
@@ -110,7 +110,7 @@ abstract class Fat extends Lite
      *
      * @return void
      */
-    protected function goRoute($route, array $params = array())
+    public function goRoute($route, array $params = array())
     {
         $url = $this->generateUrl($route, $params);
         $this->goRedirect($url);
@@ -124,7 +124,7 @@ abstract class Fat extends Lite
      *
      * @return string
      */
-    protected function generateUrl($route, array $params = array())
+    public function generateUrl($route, array $params = array())
     {
         return $this->getApp()
             ->getRouter()
@@ -138,7 +138,7 @@ abstract class Fat extends Lite
      *
      * @return void
      */
-    protected function goRedirect($url)
+    public function goRedirect($url)
     {
         $this->getResponse()
             ->redirect($url);
@@ -149,7 +149,7 @@ abstract class Fat extends Lite
      *
      * @return Response
      */
-    protected function getResponse()
+    public function getResponse()
     {
         return $this->getApp()
             ->getDispatcher()
@@ -163,7 +163,7 @@ abstract class Fat extends Lite
      *
      * @return $this
      */
-    protected function setContent($content)
+    public function setContent($content)
     {
         $this->getDispatcher()
             ->setAutoRender(false);
@@ -177,7 +177,7 @@ abstract class Fat extends Lite
     /**
      * @return Dispatcher
      */
-    protected function getDispatcher()
+    public function getDispatcher()
     {
         return $this->getApp()
             ->getDispatcher();

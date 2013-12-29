@@ -172,12 +172,12 @@ class Resource extends Type
      */
     protected function extract($source)
     {
-        $file = null;
+        $file = $source;
 
         if (is_string($source)) {
             $file = new File($source);
         }
-        elseif ($source instanceof self) {
+        elseif ($source instanceof static) {
             $file = $source->getFile();
         }
         elseif (!$source instanceof File) {

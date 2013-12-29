@@ -9,7 +9,6 @@ use Appcia\Webwork\Data\Converter;
 use Appcia\Webwork\Exception\NotFound;
 use Appcia\Webwork\Routing\Route;
 use Appcia\Webwork\View\View;
-use Appcia\Webwork\Web\Response;
 
 /**
  * Unit which is processing a route from request and producing a response
@@ -22,19 +21,28 @@ class Dispatcher
      * Control callback names
      */
     const BEFORE = 'before';
+
     const AFTER = 'after';
 
     /**
      * Monitor events
      */
     const STARTED = 'dispatch started';
+
     const RESPONSE_CREATED = 'response created';
+
     const ROUTE_FOUND = 'route found';
+
     const VIEW_CREATED = 'view created';
+
     const ACTION_INVOKED = 'action invoked';
+
     const RESPONSE_PROCESSED = 'response processed';
+
     const EXCEPTION_CAUGHT = 'exception caught';
+
     const EXCEPTION_HANDLED = 'exception handled';
+
     const ENDED = 'dispatch ended';
 
     /**
@@ -81,6 +89,13 @@ class Dispatcher
      * @var View
      */
     protected $view;
+
+    /**
+     * Control unit
+     *
+     * @var Lite
+     */
+    protected $control;
 
     /**
      * View auto rendering
@@ -160,7 +175,7 @@ class Dispatcher
      */
     public function setAutoRender($flag)
     {
-        $this->autoRender = (bool)$flag;
+        $this->autoRender = (bool) $flag;
 
         return $this;
     }
@@ -203,8 +218,10 @@ class Dispatcher
             $this->view = $view;
             $this->monitor->notify(self::VIEW_CREATED);
 
-            $data = $this->invokeAction();
-            $view->addData($data);
+            $this->runModule();
+            $this->invokeControl();
+
+            $view->addData($this->getData());
             $this->monitor->notify(self::ACTION_INVOKED);
 
             if ($this->autoRender && !$response->hasContent()) {
@@ -214,7 +231,6 @@ class Dispatcher
             $this->monitor->notify(self::RESPONSE_PROCESSED);
 
         } catch (\Exception $e) {
-
             // Clean buffers for sure
             if ($response !== null) {
                 $response->clean();
@@ -266,9 +282,9 @@ class Dispatcher
     /**
      * Get template path
      *
-     * @param string|null $module     Module name
+     * @param string|null $module  Module name
      * @param string|null $control Control name
-     * @param string|null $action     Action name
+     * @param string|null $action  Action name
      *
      * @return string
      */
@@ -363,40 +379,15 @@ class Dispatcher
     /**
      * Invoke control action
      *
-     * @return array
+     * @return $this
      * @throws \ErrorException
      */
-    protected function invokeAction()
+    protected function invokeControl()
     {
-        $class = $this->getControlClass();
-        $method = $this->getControlMethod();
-
-        if (!class_exists($class)) {
-            throw new \ErrorException(sprintf(
-                "Control '%s' could not be loaded. Check paths and autoloader configuration",
-                $class
-            ));
+        if ($this->route === null) {
+            throw new \ErrorException("Control cannot be created until route is not dispatched.");
         }
 
-        $module = $this->runModule();
-        $control = new $class($this->app);
-
-        $this->addData($this->invokeMethod($control, static::BEFORE, false));
-        $this->addData($this->invokeMethod($control, $method, true));
-        $this->addData($this->invokeMethod($control, static::AFTER, false));
-
-        $data = $this->getData();
-
-        return $data;
-    }
-
-    /**
-     * Get control class name basing on current route
-     *
-     * @return string
-     */
-    protected function getControlClass()
-    {
         $parts = explode('/', $this->route->getControl());
         foreach ($parts as $key => $part) {
             $parts[$key] = ucfirst($part);
@@ -406,7 +397,29 @@ class Dispatcher
         $class = ucfirst($this->route->getModule())
             . '\\Control\\' . $control . 'Control';
 
-        return $class;
+        if (!class_exists($class)) {
+            throw new \ErrorException(sprintf(
+                "Control '%s' could not be loaded. Check paths and autoloader configuration",
+                $class
+            ));
+        }
+        $control = new $class($this->app);
+
+        $this->addData($this->invokeMethod($control, static::BEFORE, false));
+        $this->addData($this->invokeMethod($control, $this->getControlMethod(), true));
+        $this->addData($this->invokeMethod($control, static::AFTER, false));
+
+        $this->control = $control;
+
+        return $this;
+    }
+
+    /**
+     * @return Lite
+     */
+    public function getControl()
+    {
+        return $this->control;
     }
 
     /**
@@ -464,13 +477,13 @@ class Dispatcher
      * Invoke control method
      *
      * @param Lite    $control Control
-     * @param string  $method     Method name
-     * @param boolean $verbose    Error when method does not exist
+     * @param string  $method  Method name
+     * @param boolean $verbose Error when method does not exist
      *
      * @return array
      * @throws \ErrorException
      */
-    protected function invokeMethod($control, $method, $verbose)
+    protected function invokeMethod(Lite $control, $method, $verbose)
     {
         $action = array($control, $method);
         $class = get_class($control);
@@ -490,8 +503,9 @@ class Dispatcher
             }
         } elseif ($verbose) {
             throw new \ErrorException(sprintf(
-                "Could not dispatch '%s''. Check whether control method really exist.",
-                $name
+                "Could not dispatch '%s''. Check whether control method '%s' really exist.",
+                $name,
+                $method
             ));
         }
 
