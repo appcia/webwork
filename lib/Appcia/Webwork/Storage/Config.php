@@ -345,11 +345,11 @@ class Config extends Objector
     public function getIterator()
     {
         $data = $this->data;
-        $data = array_map(function ($value) {
-            return is_array($value)
-                ? new self($value)
-                : $value;
-        }, $data);
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = new static($value);
+            }
+        }
 
         return new \ArrayIterator($data);
     }
