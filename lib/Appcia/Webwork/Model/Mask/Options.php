@@ -102,6 +102,23 @@ class Options extends Mask implements \ArrayAccess
     }
 
     /**
+     * Enable or disable multiple options at once
+     *
+     * @param array   $options
+     * @param boolean $flag
+     *
+     * @return $this
+     */
+    public function apply(array $options, $flag = true)
+    {
+        foreach ($options as $option) {
+            $this->set($option, $flag);
+        }
+
+        return $this;
+    }
+
+    /**
      * Set option by name or integer
      *
      * @param string|int $option
