@@ -347,7 +347,7 @@ class Config extends Objector
         $data = $this->data;
         $data = array_map(function ($value) {
             return is_array($value)
-                ? new static($value)
+                ? new self($value)
                 : $value;
         }, $data);
 
