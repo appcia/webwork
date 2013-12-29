@@ -2,7 +2,7 @@
 
 namespace Appcia\Webwork\Web;
 
-use Appcia\Webwork\Controller\Lite;
+use Appcia\Webwork\Control\Lite;
 use Appcia\Webwork\Core\Module;
 use Appcia\Webwork\Core\Monitor;
 use Appcia\Webwork\Data\Converter;
@@ -19,7 +19,7 @@ use Appcia\Webwork\Web\Response;
 class Dispatcher
 {
     /**
-     * Controller callback names
+     * Control callback names
      */
     const BEFORE = 'before';
     const AFTER = 'after';
@@ -267,14 +267,14 @@ class Dispatcher
      * Get template path
      *
      * @param string|null $module     Module name
-     * @param string|null $controller Controller name
+     * @param string|null $control Control name
      * @param string|null $action     Action name
      *
      * @return string
      */
-    public function getTemplatePath($module = null, $controller = null, $action = null)
+    public function getTemplatePath($module = null, $control = null, $action = null)
     {
-        $template = $this->getModulePath($module) . '/view/' . $this->getControllerPath($controller)
+        $template = $this->getModulePath($module) . '/view/' . $this->getControlPath($control)
             . '/' . $this->getTemplateFilename($action);
 
         return $template;
@@ -301,20 +301,20 @@ class Dispatcher
     }
 
     /**
-     * Get controller path basing on current route
-     * If not specified, dispatched controller name is used
+     * Get control path basing on current route
+     * If not specified, dispatched control name is used
      *
-     * @param null $controller Controller name
+     * @param null $control Control name
      *
      * @return string
      */
-    public function getControllerPath($controller = null)
+    public function getControlPath($control = null)
     {
-        if ($controller === null) {
-            $controller = $this->route->getController();
+        if ($control === null) {
+            $control = $this->route->getControl();
         }
 
-        $path = $this->getPath($controller);
+        $path = $this->getPath($control);
 
         return $path;
     }
@@ -343,7 +343,7 @@ class Dispatcher
     /**
      * Get view template filename basing on current route
      * If template name contains '*' it will be replaced by route action
-     * If action not specified, dispatched controller name is used
+     * If action not specified, dispatched control name is used
      *
      * @param string|null $action Action name
      *
@@ -361,29 +361,29 @@ class Dispatcher
     }
 
     /**
-     * Invoke controller action
+     * Invoke control action
      *
      * @return array
      * @throws \ErrorException
      */
     protected function invokeAction()
     {
-        $class = $this->getControllerClass();
-        $method = $this->getControllerMethod();
+        $class = $this->getControlClass();
+        $method = $this->getControlMethod();
 
         if (!class_exists($class)) {
             throw new \ErrorException(sprintf(
-                "Controller '%s' could not be loaded. Check paths and autoloader configuration",
+                "Control '%s' could not be loaded. Check paths and autoloader configuration",
                 $class
             ));
         }
 
         $module = $this->runModule();
-        $controller = new $class($this->app);
+        $control = new $class($this->app);
 
-        $this->addData($this->invokeMethod($controller, static::BEFORE, false));
-        $this->addData($this->invokeMethod($controller, $method, true));
-        $this->addData($this->invokeMethod($controller, static::AFTER, false));
+        $this->addData($this->invokeMethod($control, static::BEFORE, false));
+        $this->addData($this->invokeMethod($control, $method, true));
+        $this->addData($this->invokeMethod($control, static::AFTER, false));
 
         $data = $this->getData();
 
@@ -391,30 +391,30 @@ class Dispatcher
     }
 
     /**
-     * Get controller class name basing on current route
+     * Get control class name basing on current route
      *
      * @return string
      */
-    protected function getControllerClass()
+    protected function getControlClass()
     {
-        $parts = explode('/', $this->route->getController());
+        $parts = explode('/', $this->route->getControl());
         foreach ($parts as $key => $part) {
             $parts[$key] = ucfirst($part);
         }
-        $controller = implode('\\', $parts);
+        $control = implode('\\', $parts);
 
         $class = ucfirst($this->route->getModule())
-            . '\\Controller\\' . $controller . 'Controller';
+            . '\\Control\\' . $control . 'Control';
 
         return $class;
     }
 
     /**
-     * Get controller method name basing on current route
+     * Get control method name basing on current route
      *
      * @return string
      */
-    protected function getControllerMethod()
+    protected function getControlMethod()
     {
         $method = lcfirst($this->route->getAction()) . 'Action';
 
@@ -461,19 +461,19 @@ class Dispatcher
     }
 
     /**
-     * Invoke controller method
+     * Invoke control method
      *
-     * @param Lite    $controller Controller
+     * @param Lite    $control Control
      * @param string  $method     Method name
      * @param boolean $verbose    Error when method does not exist
      *
      * @return array
      * @throws \ErrorException
      */
-    protected function invokeMethod($controller, $method, $verbose)
+    protected function invokeMethod($control, $method, $verbose)
     {
-        $action = array($controller, $method);
-        $class = get_class($controller);
+        $action = array($control, $method);
+        $class = get_class($control);
         $name = $class . '::' . $method;
         $data = array();
 
@@ -484,13 +484,13 @@ class Dispatcher
                 $data = array();
             } elseif (!is_array($data)) {
                 throw new \ErrorException(sprintf(
-                    "Controller method '%s' should return values as array.",
+                    "Control method '%s' should return values as array.",
                     $name
                 ));
             }
         } elseif ($verbose) {
             throw new \ErrorException(sprintf(
-                "Could not dispatch '%s''. Check whether controller method really exist.",
+                "Could not dispatch '%s''. Check whether control method really exist.",
                 $name
             ));
         }

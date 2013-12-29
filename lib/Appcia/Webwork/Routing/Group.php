@@ -31,11 +31,11 @@ class Group
     protected $suffix;
 
     /**
-     * Default controller
+     * Default control
      *
      * @var string
      */
-    protected $controller;
+    protected $control;
 
     /**
      * Default module
@@ -77,27 +77,27 @@ class Group
     }
 
     /**
-     * Set default controller name
+     * Set default control name
      *
-     * @param string $controller Name
+     * @param string $control Name
      *
      * @return $this
      */
-    public function setController($controller)
+    public function setControl($control)
     {
-        $this->controller = $controller;
+        $this->control = $control;
 
         return $this;
     }
 
     /**
-     * Get default controller name
+     * Get default control name
      *
      * @return string
      */
-    public function getController()
+    public function getControl()
     {
-        return $this->controller;
+        return $this->control;
     }
 
     /**
@@ -219,9 +219,9 @@ class Group
             $route['module'] = $this->module;
         }
 
-        // Controller name completion
-        if ($this->controller !== null && !isset($route['controller'])) {
-            $route['controller'] = $this->controller;
+        // Control name completion
+        if ($this->control !== null && !isset($route['control'])) {
+            $route['control'] = $this->control;
             return $route;
         }
 

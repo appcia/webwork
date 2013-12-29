@@ -1,6 +1,6 @@
 <?
 
-namespace Appcia\Webwork\Controller;
+namespace Appcia\Webwork\Control;
 
 use Appcia\Webwork\Exception\Error;
 use Appcia\Webwork\Exception\NotFound;
@@ -12,9 +12,7 @@ use Appcia\Webwork\Web\Request;
 use Appcia\Webwork\Web\Response;
 
 /**
- * Standard controller with wrappers for most commonly used staff
- *
- * @package Appcia\Webwork\Controller
+ * Standard control with wrappers for most commonly used staff
  */
 abstract class Fat extends Lite
 {

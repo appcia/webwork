@@ -208,18 +208,24 @@ abstract class Lister implements \IteratorAggregate, \Countable
      */
     public function getFilters()
     {
-        $filters = array();
-        foreach ($this->options as $option) {
-            if ($option->getFilter() !== null) {
-                $filters[$option->getName()] = $option->getFilter();
-            }
-        }
-
+        $filters = $this->fetchFilters();
         if (empty($filters)) {
             $filters = $this->filters;
         }
 
         return $filters;
+    }
+
+    /**
+     * Check whether some custom filter is active
+     *
+     * @return bool
+     */
+    public function isFiltered()
+    {
+        $filters = $this->fetchFilters();
+
+        return !empty($filters);
     }
 
     /**
@@ -286,18 +292,24 @@ abstract class Lister implements \IteratorAggregate, \Countable
      */
     public function getSorters()
     {
-        $sorters = array();
-        foreach ($this->options as $option) {
-            if ($option->getDir() !== null) {
-                $sorters[$option->getName()] = $option->getDir();
-            }
-        }
-
+        $sorters = $this->fetchSorters();
         if (empty($sorters)) {
             $sorters = $this->sorters;
         }
 
         return $sorters;
+    }
+
+    /**
+     * Check whether custom sorter is active
+     *
+     * @return bool
+     */
+    public function isSorted()
+    {
+        $sorters = $this->fetchSorters();
+
+        return !empty($sorters);
     }
 
     /**
@@ -361,5 +373,35 @@ abstract class Lister implements \IteratorAggregate, \Countable
         }
 
         return $this->options[$option];
+    }
+
+    /**
+     * @return array
+     */
+    protected function fetchSorters()
+    {
+        $sorters = array();
+        foreach ($this->options as $option) {
+            if ($option->getDir() !== null) {
+                $sorters[$option->getName()] = $option->getDir();
+            }
+        }
+
+        return $sorters;
+    }
+
+    /**
+     * @return array
+     */
+    protected function fetchFilters()
+    {
+        $filters = array();
+        foreach ($this->options as $option) {
+            if ($option->getFilter() !== null) {
+                $filters[$option->getName()] = $option->getFilter();
+            }
+        }
+
+        return $filters;
     }
 }

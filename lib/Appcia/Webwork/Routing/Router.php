@@ -346,7 +346,7 @@ class Router
         }
 
         throw new \InvalidArgumentException(sprintf(
-            "Route '%s' does not have any segment that match specified parameters: '%s'.",
+            "Route '%s' does not have any segment that match specified parameters: '%s' (invalid parameter count).",
             $route->getName(),
             implode(', ', array_keys($params))
         ));

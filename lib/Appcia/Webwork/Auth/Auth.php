@@ -9,8 +9,6 @@ use Appcia\Webwork\Storage\Session\Space;
 /**
  * Provides basic authorization
  * User data stored in session space for specified time
- *
- * @package Appcia\Webwork\Auth
  */
 class Auth
 {

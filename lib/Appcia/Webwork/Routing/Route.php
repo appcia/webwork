@@ -35,11 +35,11 @@ class Route implements Object
     protected $module;
 
     /**
-     * Controller name
+     * Control name
      *
      * @var string
      */
-    protected $controller;
+    protected $control;
 
     /**
      * Action name
@@ -91,7 +91,7 @@ class Route implements Object
         if (!isset($data['name'])) {
             $data['name'] = self::generateName(
                 $data['module'],
-                $data['controller'],
+                $data['control'],
                 $data['action']
             );
         }
@@ -103,17 +103,17 @@ class Route implements Object
      * Generate unique name
      *
      * @param string      $module     Module name
-     * @param string      $controller Controller path (or null for only module name)
-     * @param string|null $action     Action name (or null for only controller name)
+     * @param string      $control Control path (or null for only module name)
+     * @param string|null $action     Action name (or null for only control name)
      *
      * @return string
      */
-    public static function generateName($module, $controller = null, $action = null)
+    public static function generateName($module, $control = null, $action = null)
     {
         $parts = explode('/', $module);
 
-        if ($controller !== null) {
-            $parts = array_merge($parts, explode('/', $controller));
+        if ($control !== null) {
+            $parts = array_merge($parts, explode('/', $control));
         }
 
         if ($action !== null) {
@@ -274,43 +274,43 @@ class Route implements Object
      */
     public function getActionName()
     {
-        $name = $this->generateName($this->module, $this->controller, $this->action);
+        $name = $this->generateName($this->module, $this->control, $this->action);
 
         return $name;
     }
 
     /**
-     * Get controller name
+     * Get control name
      *
      * @return mixed
      */
-    public function getController()
+    public function getControl()
     {
-        return $this->controller;
+        return $this->control;
     }
 
     /**
-     * Set controller name
+     * Set control name
      *
-     * @param $controller
+     * @param $control
      *
      * @return $this
      */
-    public function setController($controller)
+    public function setControl($control)
     {
-        $this->controller = (string) $controller;
+        $this->control = (string) $control;
 
         return $this;
     }
 
     /**
-     * Generate unique controller name
+     * Generate unique control name
      *
      * @return string
      */
-    public function getControllerName()
+    public function getControlName()
     {
-        $name = $this->generateName($this->module, $this->controller);
+        $name = $this->generateName($this->module, $this->control);
 
         return $name;
     }
