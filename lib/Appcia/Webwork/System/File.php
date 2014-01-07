@@ -333,7 +333,7 @@ class File
             throw new \LogicException(sprintf("File '%s' already exists so it cannot be overwritten.", $this->path));
         }
 
-        if (!@file_put_contents($this->path, $content)) {
+        if (@file_put_contents($this->path, $content) === false) {
             throw new \IOException(sprintf("Cannot write content to file '%s'.", $this->path));
         }
 
@@ -355,7 +355,7 @@ class File
             throw new \LogicException(sprintf("File '%s' does not exist so data cannot be appended.", $this->path));
         }
 
-        if (!@file_put_contents($this->path, $content, FILE_APPEND)) {
+        if (@file_put_contents($this->path, $content, FILE_APPEND) === false) {
             throw new \IOException(sprintf("Cannot append content to file '%s'.", $this->path));
         }
 
