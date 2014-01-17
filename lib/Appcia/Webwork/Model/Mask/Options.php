@@ -8,7 +8,7 @@ use Psr\Log\InvalidArgumentException;
 /**
  * Mask with named options
  */
-class Options extends Mask implements \ArrayAccess
+class Options extends Mask implements \ArrayAccess, \IteratorAggregate
 {
     /**
      * Mapped mask options to names
@@ -227,5 +227,13 @@ class Options extends Mask implements \ArrayAccess
     public function offsetUnset($option)
     {
         $this->set($option, false);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIterator()
+    {
+        return new \ArrayIterator($this->getAll());
     }
 }

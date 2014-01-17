@@ -22,6 +22,14 @@ class File extends Field
     const UNLOADED = 2;
 
     /**
+     * {@inheritdoc}
+     */
+    public function __construct(Uploader $form, $name, $value = null)
+    {
+        parent::__construct($form, $name, $value);
+    }
+
+    /**
      * @return boolean
      */
     public function isUploaded()
@@ -47,7 +55,7 @@ class File extends Field
     {
         $token = $this->form->getMetadata(Uploader::CSRF);
         if ($token === null) {
-            throw new \LogicException('Form CSRF protection must be enabled to use file fields.');
+            throw new \LogicException('Form CSRF protection must be properly configured for using file fields.');
         }
 
         $params = array(

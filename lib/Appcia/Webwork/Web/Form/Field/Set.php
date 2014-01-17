@@ -2,7 +2,9 @@
 
 namespace Appcia\Webwork\Web\Form\Field;
 
+use Appcia\Webwork\Data\Value;
 use Appcia\Webwork\Web\Form\Field;
+use Psr\Log\InvalidArgumentException;
 
 /**
  * Field with set of values (arrays)
@@ -16,7 +18,11 @@ class Set extends Field
      */
     public function setValue($value)
     {
-        $value = (array) $value;
+        if ($value === null) {
+            $value = array();
+        } elseif (!Value::isArray($value)) {
+            throw new InvalidArgumentException(sprintf("Field set value has invalid type: '%s'", gettype($value)));
+        }
 
         return parent::setValue($value);
     }
